@@ -375,6 +375,7 @@ __subsystem struct uart_driver_api {
 	/** Console I/O function */
 	int (*poll_in)(const struct device *dev, unsigned char *p_char);
 	void (*poll_out)(const struct device *dev, unsigned char out_char);
+	void (*poll_out2)(const struct device *dev, unsigned char *out_char, uint16_t size);
 
 #ifdef CONFIG_UART_WIDE_DATA
 	int (*poll_in_u16)(const struct device *dev, uint16_t *p_u16);
@@ -574,6 +575,21 @@ static inline void z_impl_uart_poll_out(const struct device *dev,
 		(const struct uart_driver_api *)dev->api;
 
 	api->poll_out(dev, out_char);
+}
+
+__syscall void uart_poll_out2(const struct device *dev,
+			     unsigned char *out_char, uint16_t size);
+
+static inline void z_impl_uart_poll_out2(const struct device *dev,
+					unsigned char *out_char, uint16_t size)
+{
+	const struct uart_driver_api *api =
+		(const struct uart_driver_api *)dev->api;
+uint16_t i = 0;
+while (i < size) {
+	api->poll_out(dev, out_char[i]);
+++i;
+}
 }
 
 /**

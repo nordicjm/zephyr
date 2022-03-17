@@ -14,7 +14,14 @@
 #include <device.h>
 #include <drivers/uart.h>
 #include <sys/__assert.h>
+
+#include "shell/shell.h"
+#include "shell/shell_uart.h"
+
 LOG_MODULE_REGISTER(log_uart);
+
+extern struct shell_transport shell_transport_uart;
+
 
 /* Fixed size to avoid auto-added trailing '\0'.
  * Used if CONFIG_LOG_BACKEND_UART_OUTPUT_DICTIONARY_HEX.
@@ -26,6 +33,9 @@ static struct k_sem sem;
 static volatile bool in_panic;
 static bool use_async;
 static uint32_t log_format_current = CONFIG_LOG_BACKEND_UART_OUTPUT_DEFAULT;
+
+extern void lockuart3();
+extern void unlockuart3();
 
 static void uart_callback(const struct device *dev,
 			  struct uart_event *evt,
@@ -68,11 +78,30 @@ static int char_out(uint8_t *data, size_t length, void *ctx)
 		return length;
 	}
 
-	if (!IS_ENABLED(CONFIG_LOG_BACKEND_UART_ASYNC) || in_panic || !use_async) {
-		for (size_t i = 0; i < length; i++) {
-			uart_poll_out(uart_dev, data[i]);
-		}
+lockuart3();
 
+	if (!IS_ENABLED(CONFIG_LOG_BACKEND_UART_ASYNC) || in_panic || !use_async) {
+//		for (size_t i = 0; i < length; i++) {
+//			uart_poll_out(uart_dev, data[i]);
+//		}
+
+
+
+        const struct shell *const sh = shell_backend_uart_get_ptr();
+        const struct shell_uart *const su = sh->iface->ctx;
+        const struct shell_uart_ctrl_blk *const scb = su->ctrl_blk;
+        const uint8_t *out = data;
+
+                size_t cnt;
+uint16_t alen = length;
+
+                while (alen > 0) {
+                        shell_uart_transport_api.write(&shell_transport_uart, data, alen, &cnt);
+                        data += cnt;
+                        alen -= cnt;
+                }
+
+unlockuart3();
 		return length;
 	}
 
@@ -83,6 +112,8 @@ static int char_out(uint8_t *data, size_t length, void *ctx)
 	__ASSERT_NO_MSG(err == 0);
 
 	(void)err;
+unlockuart3();
+
 
 	return length;
 }

@@ -27,6 +27,8 @@ struct smp_shell_data {
 	atomic_t esc_state;
 };
 
+#include <shell/shell_uart.h>
+
 /**
  * @brief Attempt to process received bytes as part of an SMP frame.
  *
@@ -40,7 +42,7 @@ struct smp_shell_data {
  * @return number of bytes consumed by the SMP
  */
 size_t smp_shell_rx_bytes(struct smp_shell_data *data, const uint8_t *bytes,
-			  size_t size);
+			  size_t size/*, const struct shell_uart *sh_uart*/);
 
 /**
  * @brief Processes SMP data and executes command if full frame was received.

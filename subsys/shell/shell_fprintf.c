@@ -8,10 +8,24 @@
 #include <shell/shell.h>
 #include <sys/cbprintf.h>
 
+K_MUTEX_DEFINE(my_mutex2);
+
+void lockuart2()
+{
+k_mutex_lock(&my_mutex2, K_FOREVER);
+}
+
+void unlockuart2()
+{
+k_mutex_unlock(&my_mutex2);
+}
+
 static int out_func(int c, void *ctx)
 {
 	const struct shell_fprintf *sh_fprintf;
 	const struct shell *shell;
+
+lockuart2();
 
 	sh_fprintf = (const struct shell_fprintf *)ctx;
 	shell = (const struct shell *)sh_fprintf->user_ctx;
@@ -26,6 +40,8 @@ static int out_func(int c, void *ctx)
 	if (sh_fprintf->ctrl_blk->buffer_cnt == sh_fprintf->buffer_size) {
 		z_shell_fprintf_buffer_flush(sh_fprintf);
 	}
+
+unlockuart2();
 
 	return 0;
 }
@@ -43,7 +59,9 @@ void z_shell_fprintf_fmt(const struct shell_fprintf *sh_fprintf,
 
 void z_shell_fprintf_buffer_flush(const struct shell_fprintf *sh_fprintf)
 {
+lockuart2();
 	sh_fprintf->fwrite(sh_fprintf->user_ctx, sh_fprintf->buffer,
 			   sh_fprintf->ctrl_blk->buffer_cnt);
 	sh_fprintf->ctrl_blk->buffer_cnt = 0;
+unlockuart2();
 }

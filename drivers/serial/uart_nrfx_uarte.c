@@ -509,9 +509,9 @@ static bool is_tx_ready(const struct device *dev)
 	NRF_UARTE_Type *uarte = get_uarte_instance(dev);
 	bool ppi_endtx = config->flags & UARTE_CFG_FLAG_PPI_ENDTX;
 
-	return nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_TXSTOPPED) ||
+	return nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_TXSTOPPED)/* ||
 		(!ppi_endtx ?
-		       nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_ENDTX) : 0);
+		       nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_ENDTX) : 0)*/;
 }
 
 /* Wait until the transmitter is in the idle state. When this function returns,

@@ -36,6 +36,38 @@
 LOG_MODULE_REGISTER(smp_sample);
 
 #include "common.h"
+#include <drivers/sensor.h>
+
+K_THREAD_STACK_DEFINE(sensor_thread_stack,
+                      4096);
+K_MSGQ_DEFINE(sensor_queue, 64,
+              32, 4);
+struct k_thread threadData;
+
+void sensorthread(void *arg1, void *arg2, void *arg3)
+{
+        const struct device *dev = device_get_binding(DT_LABEL(DT_INST(0, bosch_bme680)));
+        struct sensor_value temp, press, humidity, gas_res;
+
+        LOG_WRN("Device %p name is %s\n", dev, dev->name);
+                k_sleep(K_MSEC(137));
+
+        while (1) {
+                k_sleep(K_MSEC(1123));
+
+                sensor_sample_fetch(dev);
+                sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP, &temp);
+                sensor_channel_get(dev, SENSOR_CHAN_PRESS, &press);
+                sensor_channel_get(dev, SENSOR_CHAN_HUMIDITY, &humidity);
+                sensor_channel_get(dev, SENSOR_CHAN_GAS_RES, &gas_res);
+
+                LOG_WRN("T: %d.%06d; P: %d.%06d; H: %d.%06d; G: %d.%06d\n",
+                                temp.val1, temp.val2, press.val1, press.val2,
+                                humidity.val1, humidity.val2, gas_res.val1,
+                                gas_res.val2);
+        }
+}
+
 
 /* Define an example stats group; approximates seconds since boot. */
 STATS_SECT_START(smp_svr_stats)
@@ -112,11 +144,24 @@ void main(void)
 	 */
 	LOG_INF("build time: " __DATE__ " " __TIME__);
 
+
+                k_thread_create(&threadData,
+                                sensor_thread_stack,
+                                K_THREAD_STACK_SIZEOF(sensor_thread_stack),
+                                sensorthread, NULL, NULL, NULL,
+                                2, 0, K_NO_WAIT);
+
+
 	/* The system work queue handles all incoming mcumgr requests.  Let the
 	 * main thread idle while the mcumgr server runs.
 	 */
 	while (1) {
-		k_sleep(K_MSEC(1000));
+		k_sleep(K_MSEC(630));
+LOG_ERR("ya!");
+LOG_ERR("here is a");
+		k_sleep(K_MSEC(510));
+LOG_ERR("message");
+LOG_ERR("output");
 		STATS_INC(smp_svr_stats, ticks);
 	}
 }

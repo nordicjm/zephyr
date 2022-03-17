@@ -18,7 +18,6 @@
 #include "mgmt/mcumgr/smp.h"
 #include "mgmt/mcumgr/smp_shell.h"
 #include "drivers/uart.h"
-#include "drivers/gpio.h"
 #include "syscalls/uart.h"
 #include "shell/shell.h"
 #include "shell/shell_uart.h"
@@ -30,34 +29,8 @@ static struct zephyr_smp_transport smp_shell_transport;
 
 static struct mcumgr_serial_rx_ctxt smp_shell_rx_ctxt;
 
-extern struct shell_transport shell_transport_uart;
-
-const struct device *dev;
-
 extern void lockuart();
-//extern void unlockuart();
-extern void unlockuart(const struct device *dev);
-extern void lockuart2();
-extern void unlockuart2();
-
-
-K_MUTEX_DEFINE(my_mutex3);
-
-void lockuart3()
-{
-k_mutex_lock(&my_mutex3, K_FOREVER);
-//while (k_mutex_lock(&my_mutex3, K_NO_WAIT) != 0)
-//{
-//k_yield();
-//}
-}
-
-void unlockuart3()
-{
-k_mutex_unlock(&my_mutex3);
-}
-
-
+extern void unlockuart();
 
 /** SMP mcumgr frame fragments. */
 enum smp_shell_esc_mcumgr {
@@ -95,8 +68,6 @@ static int read_mcumgr_byte(struct smp_shell_data *data, uint8_t byte)
 		if (byte == MCUMGR_SERIAL_HDR_PKT_2) {
 			/* Final framing byte received. */
 			atomic_set_bit(&data->esc_state, ESC_MCUMGR_PKT_2);
-//gpio_pin_set(dev, 5, 1);
-//lockuart();
 			return SMP_SHELL_MCUMGR_STATE_PAYLOAD;
 		}
 	} else if (frag_1) {
@@ -109,7 +80,6 @@ static int read_mcumgr_byte(struct smp_shell_data *data, uint8_t byte)
 		if (byte == MCUMGR_SERIAL_HDR_PKT_1) {
 			/* First framing byte received. */
 			atomic_set_bit(&data->esc_state, ESC_MCUMGR_PKT_1);
-//gpio_pin_set(dev, 4, 1);
 			return SMP_SHELL_MCUMGR_STATE_HEADER;
 		} else if (byte == MCUMGR_SERIAL_HDR_FRAG_1) {
 			/* First framing byte received. */
@@ -119,17 +89,18 @@ static int read_mcumgr_byte(struct smp_shell_data *data, uint8_t byte)
 	}
 
 	/* Non-mcumgr byte received. */
-//gpio_pin_set(dev, 4, 0);
-//gpio_pin_set(dev, 5, 0);
-//gpio_pin_set(dev, 6, 0);
-//gpio_pin_set(dev, 7, 0);
 	return SMP_SHELL_MCUMGR_STATE_NONE;
 }
 
+const struct shell_uart *tmpshuart;
+
 size_t smp_shell_rx_bytes(struct smp_shell_data *data, const uint8_t *bytes,
-			  size_t size)
+			  size_t size, const struct shell_uart *sh_uart)
 {
 	size_t consumed = 0;		/* Number of bytes consumed by SMP */
+tmpshuart = sh_uart;
+
+//shell_print(sh_uart, "lol");
 
 	/* Process all bytes that are accepted as SMP commands. */
 	while (size != consumed) {
@@ -147,7 +118,6 @@ size_t smp_shell_rx_bytes(struct smp_shell_data *data, const uint8_t *bytes,
 		}
 
 		if (data->buf && net_buf_tailroom(data->buf) > 0) {
-//gpio_pin_set(dev, 6, 1);
 			net_buf_add_u8(data->buf, byte);
 		}
 
@@ -158,8 +128,6 @@ size_t smp_shell_rx_bytes(struct smp_shell_data *data, const uint8_t *bytes,
 				net_buf_put(&data->buf_ready, data->buf);
 				data->buf = NULL;
 			}
-//gpio_pin_set(dev, 7, 1);
-
 			atomic_clear_bit(&data->esc_state, ESC_MCUMGR_PKT_1);
 			atomic_clear_bit(&data->esc_state, ESC_MCUMGR_PKT_2);
 			atomic_clear_bit(&data->esc_state, ESC_MCUMGR_FRAG_1);
@@ -199,21 +167,8 @@ static uint16_t smp_shell_get_mtu(const struct net_buf *nb)
 	return CONFIG_MCUMGR_SMP_SHELL_MTU;
 }
 
-static void irq_write2(const struct shell_uart *sh_uart, const void *data,
-                     size_t length, size_t *cnt)
-{
-//lockuart();
-
-        *cnt = ring_buf_put(sh_uart->tx_ringbuf, data, length);
-
-        if (atomic_set(&sh_uart->ctrl_blk->tx_busy, 1) == 0) {
-#ifdef CONFIG_SHELL_BACKEND_SERIAL_INTERRUPT_DRIVEN
-                uart_irq_tx_enable(sh_uart->ctrl_blk->dev);
-#endif
-        }
-//unlockuart();
-}
-
+uint8_t buf[1024];
+uint16_t bufpos = 0;
 
 static int smp_shell_tx_raw(const void *data, int len, void *arg)
 {
@@ -221,16 +176,28 @@ static int smp_shell_tx_raw(const void *data, int len, void *arg)
 	const struct shell_uart *const su = sh->iface->ctx;
 	const struct shell_uart_ctrl_blk *const scb = su->ctrl_blk;
 	const uint8_t *out = data;
+//shell_hexdump(sh, data, len);
+//shell_print(sh, "OK");
 
-	if (out != NULL && len > 0) {
-		size_t cnt;
+memcpy(&buf[bufpos], data, len);
+bufpos += len;
 
-		while (len > 0) {
-			shell_uart_transport_api.write(&shell_transport_uart, data, len, &cnt);
-			data += cnt;
-			len -= cnt;
-		}
-	}
+/*
+extern const struct shell_transport_api shell_uart_transport_api;
+extern const struct shell_transport shell_transport_uart;
+uint16_t wtf = 0;
+while (wtf < len) {
+size_t whocares = 0;
+shell_uart_transport_api.write(&shell_transport_uart, &out[wtf], (len - wtf), &whocares);
+wtf += whocares;
+}
+*/
+//		uart_poll_out2(scb->dev, out, len);
+//	while ((out != NULL) && (len != 0)) {
+//		uart_poll_out(scb->dev, *out);
+//		++out;
+//		--len;
+//	}
 
 	return 0;
 }
@@ -240,49 +207,50 @@ static int smp_shell_tx_pkt(struct zephyr_smp_transport *zst,
 {
 	int rc;
 
+lockuart();
+bufpos = 0;
+	rc = mcumgr_serial_tx_pkt(nb->data, nb->len, smp_shell_tx_raw, NULL);
+	mcumgr_buf_free(nb);
+
+/*
 	const struct shell *const sh = shell_backend_uart_get_ptr();
 	const struct shell_uart *const su = sh->iface->ctx;
 	const struct shell_uart_ctrl_blk *const scb = su->ctrl_blk;
-//skipfunc();
-//lockuart();
-//lockuart2();
-//        k_mutex_lock(&sh->ctx->wr_mtx, K_FOREVER);
-lockuart3();
-	rc = mcumgr_serial_tx_pkt(nb->data, nb->len, smp_shell_tx_raw, NULL);
-	mcumgr_buf_free(nb);
-unlockuart3();
+uint8_t crap[16];
+shell_hexdump(sh, crap, 8);
+//shell_hexdump(sh, buf, bufpos);
+//shell_print(sh, "wtf");
+*/
 
-//while (uart_irq_tx_complete(scb->dev))
-//{
-//k_sleep(K_SECONDS(1));
-//}
-//        k_mutex_unlock(&sh->ctx->wr_mtx);
-//unlockuart(scb->dev);
-//unlockuart();
-//unlockuart2();
+	const struct shell *const sh = shell_backend_uart_get_ptr();
+extern const struct shell_transport_api shell_uart_transport_api;
+extern const struct shell_transport shell_transport_uart;
+uint16_t wtf = 0;
+        k_mutex_lock(&sh->ctx->wr_mtx, K_FOREVER);
 
+while (wtf < bufpos) {
+size_t whocares = 0;
+shell_uart_transport_api.write(&shell_transport_uart, &buf[wtf], (bufpos - wtf), &whocares);
+wtf += whocares;
+}
+        k_mutex_unlock(&sh->ctx->wr_mtx);
+
+
+/*
+extern const struct shell_transport_api shell_uart_transport_api;
+extern const struct shell_transport shell_transport_uart;
+size_t whocares;
+shell_uart_transport_api.write(&shell_transport_uart, buf, bufpos, &whocares);
+*/
+unlockuart();
 
 	return rc;
 }
-
 
 int smp_shell_init(void)
 {
 	zephyr_smp_transport_init(&smp_shell_transport, smp_shell_tx_pkt,
 				  smp_shell_get_mtu, NULL, NULL);
-
-
-int ret;
-
-//dev = device_get_binding("//gpio_1");
-//ret = gpio_pin_configure(dev, 4, //gpio_OUTPUT | //gpio_ACTIVE_HIGH);
-//ret = gpio_pin_configure(dev, 5, //gpio_OUTPUT | //gpio_ACTIVE_HIGH);
-//ret = gpio_pin_configure(dev, 6, //gpio_OUTPUT | //gpio_ACTIVE_HIGH);
-//ret = gpio_pin_configure(dev, 7, //gpio_OUTPUT | //gpio_ACTIVE_HIGH);
-//gpio_pin_set(dev, 4, 0);
-//gpio_pin_set(dev, 5, 0);
-//gpio_pin_set(dev, 6, 0);
-//gpio_pin_set(dev, 7, 0);
 
 	return 0;
 }

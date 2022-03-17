@@ -32,6 +32,27 @@ SHELL_DEFINE(shell_uart, CONFIG_SHELL_PROMPT_UART, &shell_transport_uart,
 	     CONFIG_SHELL_BACKEND_SERIAL_LOG_MESSAGE_QUEUE_TIMEOUT,
 	     SHELL_FLAG_OLF_CRLF);
 
+K_MUTEX_DEFINE(my_mutex);
+
+void lockuart()
+{
+//k_mutex_lock(&my_mutex, K_FOREVER);
+while (k_mutex_lock(&my_mutex, K_NO_WAIT) != 0)
+{
+k_yield();
+}
+
+}
+
+void unlockuart(const struct device *dev)
+{
+while (uart_irq_tx_complete(dev))
+{
+k_sleep(K_SECONDS(1));
+}
+k_mutex_unlock(&my_mutex);
+}
+
 #ifdef CONFIG_SHELL_BACKEND_SERIAL_INTERRUPT_DRIVEN
 static void uart_rx_handle(const struct device *dev,
 			   const struct shell_uart *sh_uart)
@@ -62,7 +83,7 @@ static void uart_rx_handle(const struct device *dev,
 			/* Divert bytes from shell handling if it is
 			 * part of an mcumgr frame.
 			 */
-			size_t i = smp_shell_rx_bytes(smp, data, rd_len);
+			size_t i = smp_shell_rx_bytes(smp, data, rd_len/*, sh_uart*/);
 
 			rd_len -= i;
 
@@ -88,7 +109,7 @@ static void uart_rx_handle(const struct device *dev,
 			 * feeding it to SMP as a part of mcumgr frame.
 			 */
 			if ((rd_len != 0) &&
-			    (smp_shell_rx_bytes(smp, &dummy, 1) == 1)) {
+			    (smp_shell_rx_bytes(smp, &dummy, 1/*, sh_uart*/) == 1)) {
 				new_data = true;
 			}
 #endif /* CONFIG_MCUMGR_SMP_SHELL */
@@ -127,6 +148,8 @@ static void uart_tx_handle(const struct device *dev,
 	int err;
 	const uint8_t *data;
 
+//lockuart();
+
 	len = ring_buf_get_claim(sh_uart->tx_ringbuf, (uint8_t **)&data,
 				 sh_uart->tx_ringbuf->size);
 	if (len) {
@@ -142,6 +165,7 @@ static void uart_tx_handle(const struct device *dev,
 
 	sh_uart->ctrl_blk->handler(SHELL_TRANSPORT_EVT_TX_RDY,
 				   sh_uart->ctrl_blk->context);
+//unlockuart();
 }
 
 static void uart_callback(const struct device *dev, void *user_data)
@@ -150,6 +174,7 @@ static void uart_callback(const struct device *dev, void *user_data)
 
 	uart_irq_update(dev);
 
+//while (uart_irq_rx_ready(dev) || uart_irq_tx_ready(dev)) {
 	if (uart_irq_rx_ready(dev)) {
 		uart_rx_handle(dev, sh_uart);
 	}
@@ -157,6 +182,7 @@ static void uart_callback(const struct device *dev, void *user_data)
 	if (uart_irq_tx_ready(dev)) {
 		uart_tx_handle(dev, sh_uart);
 	}
+//}
 }
 #endif /* CONFIG_SHELL_BACKEND_SERIAL_INTERRUPT_DRIVEN */
 
@@ -249,6 +275,8 @@ static int enable(const struct shell_transport *transport, bool blocking_tx)
 static void irq_write(const struct shell_uart *sh_uart, const void *data,
 		     size_t length, size_t *cnt)
 {
+//lockuart();
+
 	*cnt = ring_buf_put(sh_uart->tx_ringbuf, data, length);
 
 	if (atomic_set(&sh_uart->ctrl_blk->tx_busy, 1) == 0) {
@@ -256,6 +284,13 @@ static void irq_write(const struct shell_uart *sh_uart, const void *data,
 		uart_irq_tx_enable(sh_uart->ctrl_blk->dev);
 #endif
 	}
+//unlockuart();
+}
+
+bool skipone = false;
+void skipfunc()
+{
+skipone = true;
 }
 
 static int write(const struct shell_transport *transport,
@@ -264,19 +299,31 @@ static int write(const struct shell_transport *transport,
 	const struct shell_uart *sh_uart = (struct shell_uart *)transport->ctx;
 	const uint8_t *data8 = (const uint8_t *)data;
 
+//bool skip = skipone;
+//skipone = false;
+
+//if (skip == false)
+//{
+//lockuart();
+//}
 	if (IS_ENABLED(CONFIG_SHELL_BACKEND_SERIAL_INTERRUPT_DRIVEN) &&
 		!sh_uart->ctrl_blk->blocking_tx) {
 		irq_write(sh_uart, data, length, cnt);
+// *cnt = length;
 	} else {
-		for (size_t i = 0; i < length; i++) {
+/*		for (size_t i = 0; i < length; i++) {
 			uart_poll_out(sh_uart->ctrl_blk->dev, data8[i]);
-		}
+		}*/
 
 		*cnt = length;
 
 		sh_uart->ctrl_blk->handler(SHELL_TRANSPORT_EVT_TX_RDY,
 					   sh_uart->ctrl_blk->context);
 	}
+//if (skip == false)
+//{
+//unlockuart(sh_uart->ctrl_blk->dev);
+//}
 
 	return 0;
 }
