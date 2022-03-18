@@ -41,6 +41,8 @@ LOG_MODULE_REGISTER(uart_nrfx_uarte, CONFIG_UART_LOG_LEVEL);
 #error "No PPI or DPPI"
 #endif
 
+static K_MUTEX_DEFINE(uart_lock_m);
+
 
 #if	(defined(CONFIG_UART_0_NRF_UARTE) &&         \
 	 defined(CONFIG_UART_0_INTERRUPT_DRIVEN)) || \
@@ -509,9 +511,9 @@ static bool is_tx_ready(const struct device *dev)
 	NRF_UARTE_Type *uarte = get_uarte_instance(dev);
 	bool ppi_endtx = config->flags & UARTE_CFG_FLAG_PPI_ENDTX;
 
-	return nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_TXSTOPPED)/* ||
+	return nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_TXSTOPPED) ||
 		(!ppi_endtx ?
-		       nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_ENDTX) : 0)*/;
+		       nrf_uarte_event_check(uarte, NRF_UARTE_EVENT_ENDTX) : 0);
 }
 
 /* Wait until the transmitter is in the idle state. When this function returns,
@@ -1734,6 +1736,18 @@ static void uarte_nrfx_irq_callback_set(const struct device *dev,
 }
 #endif /* UARTE_INTERRUPT_DRIVEN */
 
+static int uarte_nrfx_lock(const struct device *dev)
+{
+k_mutex_lock(&uart_lock_m, K_FOREVER);
+return 0;
+}
+
+static int uarte_nrfx_unlock(const struct device *dev)
+{
+k_mutex_unlock(&uart_lock_m);
+return 0;
+}
+
 static const struct uart_driver_api uart_nrfx_uarte_driver_api = {
 	.poll_in		= uarte_nrfx_poll_in,
 	.poll_out		= uarte_nrfx_poll_out,
@@ -1766,6 +1780,8 @@ static const struct uart_driver_api uart_nrfx_uarte_driver_api = {
 	.irq_update		= uarte_nrfx_irq_update,
 	.irq_callback_set	= uarte_nrfx_irq_callback_set,
 #endif /* UARTE_INTERRUPT_DRIVEN */
+.lock = uarte_nrfx_lock,
+.unlock = uarte_nrfx_unlock,
 };
 
 static int endtx_stoptx_ppi_init(NRF_UARTE_Type *uarte,

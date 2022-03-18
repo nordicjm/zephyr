@@ -78,30 +78,27 @@ static int char_out(uint8_t *data, size_t length, void *ctx)
 		return length;
 	}
 
-lockuart3();
+uart_lock(uart_dev);
 
 	if (!IS_ENABLED(CONFIG_LOG_BACKEND_UART_ASYNC) || in_panic || !use_async) {
-//		for (size_t i = 0; i < length; i++) {
-//			uart_poll_out(uart_dev, data[i]);
-//		}
+		if (IS_ENABLED(SHELL_BACKEND_SERIAL)) {
+			const struct shell *const sh = shell_backend_uart_get_ptr();
+			const struct shell_uart *const su = sh->iface->ctx;
+			const struct shell_uart_ctrl_blk *const scb = su->ctrl_blk;
+			size_t cnt;
+			uint16_t alen = length;
 
-
-
-        const struct shell *const sh = shell_backend_uart_get_ptr();
-        const struct shell_uart *const su = sh->iface->ctx;
-        const struct shell_uart_ctrl_blk *const scb = su->ctrl_blk;
-        const uint8_t *out = data;
-
-                size_t cnt;
-uint16_t alen = length;
-
-                while (alen > 0) {
-                        shell_uart_transport_api.write(&shell_transport_uart, data, alen, &cnt);
-                        data += cnt;
-                        alen -= cnt;
-                }
-
-unlockuart3();
+			while (alen > 0) {
+				shell_uart_transport_api.write(&shell_transport_uart, data, alen, &cnt);
+				data += cnt;
+				alen -= cnt;
+			}
+		} else {
+			for (size_t i = 0; i < length; i++) {
+				uart_poll_out(uart_dev, data[i]);
+			}
+		}
+uart_unlock(uart_dev);
 		return length;
 	}
 
@@ -112,8 +109,7 @@ unlockuart3();
 	__ASSERT_NO_MSG(err == 0);
 
 	(void)err;
-unlockuart3();
-
+//unlockuart3();
 
 	return length;
 }

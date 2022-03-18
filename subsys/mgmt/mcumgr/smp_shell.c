@@ -41,6 +41,7 @@ extern void lockuart2();
 extern void unlockuart2();
 
 
+#if 0
 K_MUTEX_DEFINE(my_mutex3);
 
 void lockuart3()
@@ -56,7 +57,7 @@ void unlockuart3()
 {
 k_mutex_unlock(&my_mutex3);
 }
-
+#endif
 
 
 /** SMP mcumgr frame fragments. */
@@ -247,10 +248,12 @@ static int smp_shell_tx_pkt(struct zephyr_smp_transport *zst,
 //lockuart();
 //lockuart2();
 //        k_mutex_lock(&sh->ctx->wr_mtx, K_FOREVER);
-lockuart3();
+                uart_lock(scb->dev);
+//lockuart3();
 	rc = mcumgr_serial_tx_pkt(nb->data, nb->len, smp_shell_tx_raw, NULL);
 	mcumgr_buf_free(nb);
-unlockuart3();
+                uart_unlock(scb->dev);
+//unlockuart3();
 
 //while (uart_irq_tx_complete(scb->dev))
 //{

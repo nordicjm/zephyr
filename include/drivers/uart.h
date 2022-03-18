@@ -461,6 +461,9 @@ __subsystem struct uart_driver_api {
 	int (*drv_cmd)(const struct device *dev, uint32_t cmd, uint32_t p);
 #endif
 
+	int (*lock)(const struct device *dev);
+	int (*unlock)(const struct device *dev);
+
 };
 
 /** @endcond */
@@ -1576,6 +1579,47 @@ static inline int z_impl_uart_drv_cmd(const struct device *dev, uint32_t cmd,
 		return -ENOSYS;
 	}
 	return api->drv_cmd(dev, cmd, p);
+#endif
+
+	return -ENOTSUP;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
+__syscall int uart_lock(const struct device *dev);
+
+static inline int z_impl_uart_lock(const struct device *dev)
+{
+//#ifdef CONFIG_UART_DRV_CMD
+#if 1
+	const struct uart_driver_api *api =
+		(const struct uart_driver_api *)dev->api;
+
+	if (api->lock == NULL) {
+		return -ENOSYS;
+	}
+	return api->lock(dev);
+#endif
+
+	return -ENOTSUP;
+}
+
+__syscall int uart_unlock(const struct device *dev);
+
+static inline int z_impl_uart_unlock(const struct device *dev)
+{
+//#ifdef CONFIG_UART_DRV_CMD
+#if 1
+	const struct uart_driver_api *api =
+		(const struct uart_driver_api *)dev->api;
+
+	if (api->unlock == NULL) {
+		return -ENOSYS;
+	}
+	return api->unlock(dev);
 #endif
 
 	return -ENOTSUP;
