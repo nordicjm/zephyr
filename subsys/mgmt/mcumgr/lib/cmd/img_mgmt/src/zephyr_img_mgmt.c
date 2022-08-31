@@ -27,6 +27,11 @@ BUILD_ASSERT(CONFIG_IMG_MGMT_UPDATABLE_IMAGE_NUMBER == 1 ||
 	      FLASH_AREA_LABEL_EXISTS(image_3)),
 	     "Missing partitions?");
 
+struct erase_slot_t {
+	struct k_work work;
+	int id;
+} erase_slot_info;
+
 static int
 zephyr_img_mgmt_slot_to_image(int slot)
 {
@@ -235,9 +240,20 @@ img_mgmt_vercmp(const struct image_version *a, const struct image_version *b)
 	return 0;
 }
 
-int
-img_mgmt_impl_erase_slot(void)
+K_SEM_DEFINE(erase_async_sem, 1, 1);
+
+void erase_slot_async(struct k_work *item)
 {
+	struct erase_slot_t *erase_data = CONTAINER_OF(item, struct erase_slot_t, work);
+
+	int rc = boot_erase_img_bank(erase_data->id);
+	k_sem_give(&erase_async_sem);
+}
+
+int
+img_mgmt_impl_erase_slot(/*bool async*/)
+{
+bool async = true;
 	bool empty;
 	int rc, best_id;
 
@@ -251,10 +267,30 @@ img_mgmt_impl_erase_slot(void)
 		return MGMT_ERR_EUNKNOWN;
 	}
 
-	if (!empty) {
-		rc = boot_erase_img_bank(best_id);
-		if (rc != 0) {
-			return MGMT_ERR_EUNKNOWN;
+//	if (!empty) {
+{
+		if (async == true) {
+			/* Perform asyncronous erase */
+			if (k_sem_take(&erase_async_sem, K_NO_WAIT) == 0) {
+				/* Check flash area exists */
+				const struct flash_area *fa;
+
+				rc = flash_area_open(best_id, &fa);
+				if (rc == 0) {
+					flash_area_close(fa);
+					erase_slot_info.id = best_id;
+					k_work_submit(&erase_slot_info.work);
+				} else {
+					rc = -4;
+				}
+			} else {
+				rc = -5;
+			}
+		} else {
+			rc = boot_erase_img_bank(best_id);
+			if (rc != 0) {
+				return MGMT_ERR_EUNKNOWN;
+			}
 		}
 	}
 
@@ -647,3 +683,12 @@ img_mgmt_impl_erased_val(int slot, uint8_t *erased_val)
 
 	return 0;
 }
+
+static int img_mgmt_init(const struct device *dev)
+{
+	k_work_init(&erase_slot_info.work, erase_slot_async);
+
+	return 0;
+}
+
+SYS_INIT(img_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);

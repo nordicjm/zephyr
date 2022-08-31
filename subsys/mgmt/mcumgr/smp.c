@@ -6,6 +6,7 @@
  */
 
 #include <zephyr/zephyr.h>
+#include <zephyr/device.h>
 #include <zephyr/net/buf.h>
 #include <zephyr/mgmt/mcumgr/buf.h>
 #include "mgmt/mgmt.h"
@@ -223,6 +224,12 @@ static const struct mgmt_streamer_cfg zephyr_smp_cbor_cfg = {
 	.free_buf = zephyr_smp_free_buf,
 };
 
+
+#define CONFIG_MCUMGR_SMP_WORKQUEUE_THREAD_PRIO -3
+#define CONFIG_MCUMGR_SMP_WORKQUEUE_STACK_SIZE 4096
+K_THREAD_STACK_DEFINE(smp_work_queue_stack, CONFIG_MCUMGR_SMP_WORKQUEUE_STACK_SIZE);
+static struct k_work_q smp_work_queue;
+
 void
 zephyr_smp_transport_init(struct zephyr_smp_transport *zst,
 			  zephyr_smp_transport_out_fn *output_func,
@@ -249,5 +256,18 @@ WEAK void
 zephyr_smp_rx_req(struct zephyr_smp_transport *zst, struct net_buf *nb)
 {
 	net_buf_put(&zst->zst_fifo, nb);
-	k_work_submit(&zst->zst_work);
+	k_work_submit_to_queue(&smp_work_queue, &zst->zst_work);
 }
+
+static int zephyr_smp_init(const struct device *dev)
+{
+	k_work_queue_init(&smp_work_queue);
+
+	k_work_queue_start(&smp_work_queue, smp_work_queue_stack,
+			   K_THREAD_STACK_SIZEOF(smp_work_queue_stack),
+			   CONFIG_MCUMGR_SMP_WORKQUEUE_THREAD_PRIO, NULL);
+
+	return 0;
+}
+
+SYS_INIT(zephyr_smp_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
