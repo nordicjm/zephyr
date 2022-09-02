@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+#zephyr_library_named(flash)
+zephyr_library(flash)
 
 zephyr_library_sources_ifdef(CONFIG_SOC_FLASH_CC13XX_CC26XX soc_flash_cc13xx_cc26xx.c)
 zephyr_library_sources_ifdef(CONFIG_SOC_FLASH_TELINK_B91 soc_flash_b91.c)

@@ -2,7 +2,7 @@
 
 zephyr_system_include_directories(include)
 
-zephyr_library()
+zephyr_library_named(minimal)
 
 set(GEN_DIR ${ZEPHYR_BINARY_DIR}/include/generated)
 set(STRERROR_TABLE_H ${GEN_DIR}/libc/minimal/strerror_table.h)

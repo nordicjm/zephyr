@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-zephyr_library()
+zephyr_library_named(mec172xevb_assy6906)
 
 if(DEFINED ENV{MEC172X_SPI_GEN})
   # Grab it from environment variable if defined

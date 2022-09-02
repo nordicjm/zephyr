@@ -2,7 +2,7 @@
 
 if(CONFIG_USB_DEVICE_DRIVER)
 
-zephyr_library()
+zephyr_library_named(usb_device)
 
 zephyr_library_sources_ifdef(CONFIG_USB_DW           usb_dc_dw.c)
 zephyr_library_sources_ifdef(CONFIG_USB_DC_RPI_PICO  usb_dc_rpi_pico.c)

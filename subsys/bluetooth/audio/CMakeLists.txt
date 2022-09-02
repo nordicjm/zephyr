@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(bluetooth_audio)
 zephyr_library_sources(audio.c)
 
 if (CONFIG_BT_VOCS OR CONFIG_BT_VOCS_CLIENT)

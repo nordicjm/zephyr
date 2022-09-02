@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(usb_netusb)
 
 zephyr_library_include_directories(
   # USB headers

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(net)
 
 zephyr_library_sources_ifdef(CONFIG_NET_LOOPBACK loopback.c)
 zephyr_library_sources_ifdef(CONFIG_NET_CANBUS canbus.c)

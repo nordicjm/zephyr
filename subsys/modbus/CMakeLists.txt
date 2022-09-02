@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 if(CONFIG_MODBUS)
-	zephyr_library()
+	zephyr_library_named(modbus)
 
 	zephyr_include_directories(${ZEPHYR_BASE}/subsys/modbus)
 

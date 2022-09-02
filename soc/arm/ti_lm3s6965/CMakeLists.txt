@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(ti_lm3s6965)
 
 zephyr_library_sources(
   soc.c

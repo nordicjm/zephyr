@@ -115,7 +115,7 @@ if(CONFIG_USERSPACE OR CONFIG_SENSOR_SHELL OR CONFIG_SENSOR_SHELL_BATTERY)
 # The above if() is needed or else CMake would complain about
 # empty library.
 
-zephyr_library()
+zephyr_library_named(sensor)
 zephyr_library_sources_ifdef(CONFIG_USERSPACE sensor_handlers.c)
 zephyr_library_sources_ifdef(CONFIG_SENSOR_SHELL sensor_shell.c)
 zephyr_library_sources_ifdef(CONFIG_SENSOR_SHELL_BATTERY shell_battery.c)

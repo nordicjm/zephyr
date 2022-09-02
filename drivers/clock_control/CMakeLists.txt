@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(clock_control)
 
 zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_BEETLE              beetle_clock_control.c)
 zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_CAVS                clock_control_cavs.c)

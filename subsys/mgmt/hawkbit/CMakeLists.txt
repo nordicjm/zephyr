@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-zephyr_library()
+zephyr_library_named(hawkbit)
 
 zephyr_library_sources_ifdef(CONFIG_HAWKBIT hawkbit.c)
 zephyr_library_sources_ifdef(CONFIG_HAWKBIT hawkbit_device.c)

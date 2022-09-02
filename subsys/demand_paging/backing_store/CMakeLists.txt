@@ -9,7 +9,7 @@ include_directories(
   )
 
 if(NOT DEFINED CONFIG_BACKING_STORE_CUSTOM)
-  zephyr_library()
+  zephyr_library_named(demand_paging_backing_store)
   zephyr_library_sources_ifdef(CONFIG_BACKING_STORE_RAM   ram.c)
 
   zephyr_library_sources_ifdef(

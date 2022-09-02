@@ -35,7 +35,7 @@ zephyr_link_libraries_ifdef(CONFIG_ARM_FIRMWARE_USES_SECURE_ENTRY_FUNCS
   )
 
 if(CONFIG_ARM_SECURE_FIRMWARE)
-  zephyr_library()
+  zephyr_library_named(tz)
 
   zephyr_library_sources(arm_core_tz.c)
 endif()

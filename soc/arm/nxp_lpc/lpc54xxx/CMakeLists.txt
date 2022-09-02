@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-zephyr_library()
+zephyr_library_named(lpc54xxx)
 
 zephyr_library_sources(soc.c)
 zephyr_library_sources_ifdef(CONFIG_PLATFORM_SPECIFIC_INIT gcc/startup_LPC54114_cm4.S)

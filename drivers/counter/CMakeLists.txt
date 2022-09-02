@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(counter)
 
 zephyr_library_sources_ifdef(CONFIG_TIMER_TMR_CMSDK_APB         timer_tmr_cmsdk_apb.c)
 zephyr_library_sources_ifdef(CONFIG_TIMER_DTMR_CMSDK_APB        timer_dtmr_cmsdk_apb.c)

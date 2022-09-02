@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-zephyr_library()
+zephyr_library_named(mps2_an521)
 zephyr_library_sources(pinmux.c)
 
 if(CONFIG_SOC_MPS2_AN521_CPU1 AND NOT CONFIG_OPENAMP)

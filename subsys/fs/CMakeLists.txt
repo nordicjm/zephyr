@@ -3,7 +3,7 @@
 if(CONFIG_FILE_SYSTEM)
   zephyr_interface_library_named(FS)
 
-  zephyr_library()
+  zephyr_library_named(fs)
   zephyr_library_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
   zephyr_library_sources(fs.c fs_impl.c)
   zephyr_library_sources_ifdef(CONFIG_FAT_FILESYSTEM_ELM   fat_fs.c)

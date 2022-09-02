@@ -4,6 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-zephyr_library()
+zephyr_library_named(mcumgr_zephyr_grp)
 zephyr_library_sources_ifdef(CONFIG_MCUMGR_GRP_BASIC_CMD_STORAGE_ERASE basic_mgmt.c)
 zephyr_library_link_libraries(MCUMGR)

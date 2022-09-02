@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(pwm)
 
 zephyr_library_sources_ifdef(CONFIG_PWM_TELINK_B91	pwm_b91.c)
 zephyr_library_sources_ifdef(CONFIG_PWM_STM32		pwm_stm32.c)

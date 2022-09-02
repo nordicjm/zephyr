@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(gpio)
 
 zephyr_library_sources_ifdef(CONFIG_GPIO_TELINK_B91 gpio_b91.c)
 zephyr_library_sources_ifdef(CONFIG_GPIO_CC13XX_CC26XX gpio_cc13xx_cc26xx.c)

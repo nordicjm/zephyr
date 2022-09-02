@@ -3,7 +3,7 @@
 
 if ((CONFIG_BOARD_NRF5340DK_NRF5340_CPUAPP OR CONFIG_BOARD_NRF5340DK_NRF5340_CPUAPP_NS)
     AND CONFIG_BOARD_ENABLE_CPUNET)
-zephyr_library()
+zephyr_library_named(nrf5340dk_nrf5340)
 zephyr_library_sources(nrf5340_cpunet_reset.c)
 
 if (CONFIG_BUILD_WITH_TFM)

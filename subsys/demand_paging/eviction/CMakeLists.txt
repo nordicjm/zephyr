@@ -9,6 +9,6 @@ include_directories(
   )
 
 if(NOT DEFINED CONFIG_EVICTION_CUSTOM)
-  zephyr_library()
+  zephyr_library_named(demand_paging_eviction)
   zephyr_library_sources_ifdef(CONFIG_EVICTION_NRU            nru.c)
 endif()

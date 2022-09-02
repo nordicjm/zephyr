@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(picolibc)
 zephyr_library_sources(libc-hooks.c)
 
 if(NOT CONFIG_PICOLIBC_USE_MODULE)

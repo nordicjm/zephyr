@@ -1,7 +1,7 @@
 # Copyright (c) 2020 Intel Corporation.
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(debug_coredump)
 
 zephyr_library_include_directories(
   ${ZEPHYR_BASE}/kernel/include

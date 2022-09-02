@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(spi)
 
 zephyr_library_sources_ifdef(CONFIG_SPI_TELINK_B91  spi_b91.c)
 zephyr_library_sources_ifdef(CONFIG_SPI_CC13XX_CC26XX		spi_cc13xx_cc26xx.c)

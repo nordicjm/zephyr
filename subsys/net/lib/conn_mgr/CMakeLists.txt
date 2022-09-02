@@ -2,7 +2,7 @@
 
 zephyr_include_directories(.)
 
-zephyr_library()
+zephyr_library_named(conn_mgr)
 zephyr_library_sources(
 	conn_mgr.c
 	events_handler.c

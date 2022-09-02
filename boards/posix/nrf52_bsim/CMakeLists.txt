@@ -13,7 +13,7 @@ if (NOT DEFINED ENV{BSIM_OUT_PATH})
  https://babblesim.github.io/folder_structure_and_env.html")
 endif()
 
-zephyr_library()
+zephyr_library_named(nrf52_bsim)
 zephyr_library_compile_definitions(NO_POSIX_CHEATS)
 
 #Due to the BLE controller assumption about enum size

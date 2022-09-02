@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-zephyr_library()
+zephyr_library_named(lpcxpresso55s69)
 zephyr_library_sources(pinmux.c)
 
 

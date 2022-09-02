@@ -5,5 +5,5 @@ zephyr_linker_sources(
   SORT_KEY 0
   intvect_reserved.ld
 )
-zephyr_library()
+zephyr_library_named(da1469x)
 zephyr_library_sources(soc.c)

@@ -13,7 +13,7 @@ if(DEFINED TC_RUNID)
   zephyr_compile_definitions(TC_RUNID=${TC_RUNID})
 endif()
 
-zephyr_library()
+zephyr_library_named(ztest)
 zephyr_library_sources_ifndef(CONFIG_ZTEST_NEW_API src/ztest.c)
 zephyr_library_sources_ifdef(CONFIG_ZTEST_NEW_API  src/ztest_new.c)
 zephyr_library_sources(                            src/ztest_error_hook.c)

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(crypto)
 zephyr_library_sources_ifdef(CONFIG_CRYPTO_TINYCRYPT_SHIM	crypto_tc_shim.c)
 zephyr_library_sources_ifdef(CONFIG_CRYPTO_ATAES132A		crypto_ataes132a.c)
 zephyr_library_sources_ifdef(CONFIG_CRYPTO_MBEDTLS_SHIM		crypto_mtls_shim.c)

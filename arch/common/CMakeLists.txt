@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 if(CONFIG_GEN_ISR_TABLES)
-  zephyr_library()
+  zephyr_library_named(common)
 
   zephyr_library_sources_ifdef(
     CONFIG_GEN_ISR_TABLES

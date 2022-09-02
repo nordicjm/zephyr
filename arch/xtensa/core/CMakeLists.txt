@@ -2,7 +2,7 @@
 
 zephyr_cc_option(-mlongcalls)
 
-zephyr_library()
+zephyr_library_named(core)
 
 zephyr_library_sources(
   cpu_idle.c

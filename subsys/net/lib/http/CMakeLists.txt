@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(http)
 
 if(CONFIG_HTTP_PARSER_STRICT)
 zephyr_library_compile_definitions(HTTP_PARSER_STRICT)

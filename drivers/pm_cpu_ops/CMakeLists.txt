@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(pm_cpu_ops)
 
 zephyr_library_sources_ifdef(CONFIG_PM_CPU_OPS pm_cpu_ops_weak_impl.c)
 

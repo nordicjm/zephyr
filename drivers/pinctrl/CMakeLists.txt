@@ -1,7 +1,7 @@
 # Copyright (c) 2021 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(pinctrl)
 zephyr_library_sources(common.c)
 zephyr_library_sources_ifdef(CONFIG_PINCTRL_TELINK_B91 pinctrl_b91.c)
 zephyr_library_sources_ifdef(CONFIG_PINCTRL_GD32_AF pinctrl_gd32_af.c)

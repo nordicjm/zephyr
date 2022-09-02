@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(led_strip)
 
 zephyr_library_sources_ifdef(CONFIG_APA102_STRIP        apa102.c)
 zephyr_library_sources_ifdef(CONFIG_LPD880X_STRIP       lpd880x.c)

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(modem)
 
 zephyr_library_sources_ifdef(CONFIG_MODEM_RECEIVER modem_receiver.c)
 zephyr_library_sources_ifdef(CONFIG_MODEM_SHELL modem_shell.c)

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(newlib)
 zephyr_library_sources(libc-hooks.c)
 
 # Zephyr normally uses -ffreestanding, which with current GNU toolchains

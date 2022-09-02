@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-zephyr_library()
+zephyr_library_named(watchdog)
 
 zephyr_library_sources_ifdef(CONFIG_IWDG_STM32 wdt_iwdg_stm32.c)
 zephyr_library_sources_ifdef(CONFIG_WWDG_STM32 wdt_wwdg_stm32.c)

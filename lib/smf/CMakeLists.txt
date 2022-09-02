@@ -4,7 +4,7 @@ zephyr_interface_library_named(smf)
 
 target_include_directories(smf INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-zephyr_library()
+zephyr_library_named(smf)
 
 zephyr_library_sources(smf.c)
 
