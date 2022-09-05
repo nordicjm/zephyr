@@ -13,4 +13,8 @@ config TEMP_NRF5
 
 endif # HAS_HW_NRF_TEMP
 
+config COOL_IMAGE
+    bool "Coolest 5340 image on earth"
+    depends on SOC_NRF5340_CPUAPP
+
 source "Kconfig.zephyr"
