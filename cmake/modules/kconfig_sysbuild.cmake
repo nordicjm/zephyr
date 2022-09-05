@@ -61,7 +61,7 @@ if(KCONFIG_ROOT)
 elseif(EXISTS   ${APPLICATION_SOURCE_DIR}/Kconfig)
   set(KCONFIG_ROOT ${APPLICATION_SOURCE_DIR}/Kconfig)
 else()
-  set(KCONFIG_ROOT ${ZEPHYR_BASE}/Kconfig)
+  set(KCONFIG_ROOT ${ZEPHYR_BASE}/Kconfig_sysbuild)
 endif()
 
 set_ifndef(BOARD_DEFCONFIG ${BOARD_DIR}/${BOARD}_defconfig)
@@ -323,23 +323,6 @@ execute_process(
   RESULT_VARIABLE ret
   )
 if(NOT "${ret}" STREQUAL "0")
-
-message(WARNING
-"  COMMAND ${CMAKE_COMMAND} -E env
-  ${COMMON_KCONFIG_ENV_SETTINGS}
-  SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED_COMMAND}
-  ${PYTHON_EXECUTABLE}
-  ${ZEPHYR_BASE}/scripts/kconfig/kconfig.py
-  --zephyr-base=${ZEPHYR_BASE}
-  ${input_configs_are_handwritten}
-  ${KCONFIG_ROOT}
-  ${DOTCONFIG}
-  ${AUTOCONF_H}
-  ${PARSED_KCONFIG_SOURCES_TXT}
-  ${input_configs}
-  WORKING_DIRECTORY ${APPLICATION_SOURCE_DIR}
-  RESULT_VARIABLE ret")
-
   message(FATAL_ERROR "command failed with return code: ${ret}")
 endif()
 

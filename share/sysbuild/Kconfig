@@ -33,4 +33,9 @@ config WARN_DEPRECATED
 	  Print a warning when the Kconfig tree is parsed if any deprecated
 	  features are enabled.
 
+#config IS_SYSBUILD
+#	bool
+#	default y
+
 rsource "bootloader/Kconfig"
+#source "soc/Kconfig_basic"
