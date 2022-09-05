@@ -1,4 +1,3 @@
-CONFIG_SOC_XENVM=y
 CONFIG_BOARD_XENVM=y
 
 # Enable UART driver

@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
+CONFIG_SOC_NPCX9M6F=y
+CONFIG_SOC_SERIES_NPCX9=y

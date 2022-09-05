@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: Apache-2.0
+CONFIG_SOC_SERIES_CC13X2_CC26X2=y
+CONFIG_SOC_CC1352R=y

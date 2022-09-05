@@ -65,6 +65,7 @@ else()
 endif()
 
 set_ifndef(BOARD_DEFCONFIG ${BOARD_DIR}/${BOARD}_defconfig)
+set_ifndef(BOARD_SOCCONFIG ${BOARD_DIR}/${BOARD}_soc)
 set(DOTCONFIG                  ${PROJECT_BINARY_DIR}/.config)
 set(PARSED_KCONFIG_SOURCES_TXT ${PROJECT_BINARY_DIR}/kconfig/sources.txt)
 
@@ -235,6 +236,7 @@ file(GLOB config_files ${APPLICATION_BINARY_DIR}/*.conf)
 list(SORT config_files)
 set(
   merge_config_files
+  ${BOARD_SOCCONFIG}
   ${BOARD_DEFCONFIG}
   ${CONF_FILE_AS_LIST}
   ${shield_conf_files}
