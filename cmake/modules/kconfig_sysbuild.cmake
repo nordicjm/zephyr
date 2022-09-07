@@ -43,16 +43,16 @@ endforeach()
 # Support multiple shields in BOARD_ROOT, remove ZEPHYR_BASE as that is always sourced.
 set(kconfig_board_root ${BOARD_ROOT})
 list(REMOVE_ITEM kconfig_board_root ${ZEPHYR_BASE})
-set(OPERATION WRITE)
-foreach(root ${kconfig_board_root})
-  file(${OPERATION} ${KCONFIG_BINARY_DIR}/Kconfig.shield.defconfig
-       "osource \"${root}/boards/shields/*/Kconfig.defconfig\"\n"
-  )
-  file(${OPERATION} ${KCONFIG_BINARY_DIR}/Kconfig.shield
-       "osource \"${root}/boards/shields/*/Kconfig.shield\"\n"
-  )
-  set(OPERATION APPEND)
-endforeach()
+#set(OPERATION WRITE)
+#foreach(root ${kconfig_board_root})
+#  file(${OPERATION} ${KCONFIG_BINARY_DIR}/Kconfig.shield.defconfig
+#       "osource \"${root}/boards/shields/*/Kconfig.defconfig\"\n"
+#  )
+#  file(${OPERATION} ${KCONFIG_BINARY_DIR}/Kconfig.shield
+#       "osource \"${root}/boards/shields/*/Kconfig.shield\"\n"
+#  )
+#  set(OPERATION APPEND)
+#endforeach()
 
 if(KCONFIG_ROOT)
   zephyr_file(APPLICATION_ROOT KCONFIG_ROOT)
@@ -72,10 +72,10 @@ if(CONF_FILE)
 string(REPLACE " " ";" CONF_FILE_AS_LIST "${CONF_FILE}")
 endif()
 
-zephyr_get(OVERLAY_CONFIG SYSBUILD LOCAL)
-if(OVERLAY_CONFIG)
-  string(REPLACE " " ";" OVERLAY_CONFIG_AS_LIST "${OVERLAY_CONFIG}")
-endif()
+#zephyr_get(OVERLAY_CONFIG SYSBUILD LOCAL)
+#if(OVERLAY_CONFIG)
+#  string(REPLACE " " ";" OVERLAY_CONFIG_AS_LIST "${OVERLAY_CONFIG}")
+#endif()
 
 if((DEFINED BOARD_REVISION) AND EXISTS ${BOARD_DIR}/${BOARD}_${BOARD_REVISION_STRING}.conf)
   list(INSERT CONF_FILE_AS_LIST 0 ${BOARD_DIR}/${BOARD}_${BOARD_REVISION_STRING}.conf)
@@ -107,9 +107,9 @@ endforeach()
 
 # A list of common environment settings used when invoking Kconfig during CMake
 # configure time or menuconfig and related build target.
-string(REPLACE ";" "\\\;" SHIELD_AS_LIST_ESCAPED "${SHIELD_AS_LIST}")
+#string(REPLACE ";" "\\\;" SHIELD_AS_LIST_ESCAPED "${SHIELD_AS_LIST}")
 # cmake commands are escaped differently
-string(REPLACE ";" "\\;" SHIELD_AS_LIST_ESCAPED_COMMAND "${SHIELD_AS_LIST}")
+#string(REPLACE ";" "\\;" SHIELD_AS_LIST_ESCAPED_COMMAND "${SHIELD_AS_LIST}")
 
 set(COMMON_KCONFIG_ENV_SETTINGS
   PYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
@@ -164,7 +164,7 @@ foreach(kconfig_target
     ${CMAKE_COMMAND} -E env
     ZEPHYR_BASE=${ZEPHYR_BASE}
     ${COMMON_KCONFIG_ENV_SETTINGS}
-    "SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED}"
+#    "SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED}"
     DTS_POST_CPP=${DTS_POST_CPP}
     DTS_ROOT_BINDINGS=${DTS_ROOT_BINDINGS}
     ${PYTHON_EXECUTABLE}
@@ -236,9 +236,10 @@ list(SORT config_files)
 set(
   merge_config_files
   ${BOARD_DEFCONFIG}
+  ${BOARD_SOCCONFIG}
   ${CONF_FILE_AS_LIST}
-  ${shield_conf_files}
-  ${OVERLAY_CONFIG_AS_LIST}
+#  ${shield_conf_files}
+#  ${OVERLAY_CONFIG_AS_LIST}
   ${EXTRA_KCONFIG_OPTIONS_FILE}
   ${config_files}
 )
@@ -307,7 +308,7 @@ endif()
 execute_process(
   COMMAND ${CMAKE_COMMAND} -E env
   ${COMMON_KCONFIG_ENV_SETTINGS}
-  SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED_COMMAND}
+#  SHIELD_AS_LIST=${SHIELD_AS_LIST_ESCAPED_COMMAND}
   ${PYTHON_EXECUTABLE}
   ${ZEPHYR_BASE}/scripts/kconfig/kconfig.py
   --zephyr-base=${ZEPHYR_BASE}

@@ -12,14 +12,16 @@ osource "soc/$(ARCH)/*/Kconfig.soc"
 
 menu "Hardware Configuration"
 # This loads custom SoC root Kconfig (only available if custom SoC root are defined)
-osource "$(KCONFIG_BINARY_DIR)/Kconfig.soc.arch"
+#osource "$(KCONFIG_BINARY_DIR)/Kconfig.soc.arch"
 # This loads Zephyr base SoC Kconfigs
-osource "soc/$(ARCH)/Kconfig"
-osource "soc/$(ARCH)/*/Kconfig"
+#osource "soc/$(ARCH)/Kconfig"
+#osource "soc/$(ARCH)/*/Kconfig"
+osource "soc/$(ARCH)/Kconfig.base"
+osource "soc/$(ARCH)/*/Kconfig.base"
 
-module = SOC
-module-str = SOC
-source "subsys/logging/Kconfig.template.log_config"
+#module = SOC
+#module-str = SOC
+#source "subsys/logging/Kconfig.template.log_config"
 
 endmenu
 
@@ -53,3 +55,4 @@ config SOC_HAS_TIMING_FUNCTIONS
 	help
 	  Should be selected if SoC provides custom method for retrieving
 	  timestamps and cycle count.
+

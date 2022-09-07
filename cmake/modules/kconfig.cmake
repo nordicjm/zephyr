@@ -322,7 +322,6 @@ execute_process(
   # can use relative paths in CONF_FILE, e.g. CONF_FILE=nrf5.conf
   RESULT_VARIABLE ret
   )
-if(NOT "${ret}" STREQUAL "0")
 
 message(WARNING
 "  COMMAND ${CMAKE_COMMAND} -E env
@@ -340,6 +339,7 @@ message(WARNING
   WORKING_DIRECTORY ${APPLICATION_SOURCE_DIR}
   RESULT_VARIABLE ret")
 
+if(NOT "${ret}" STREQUAL "0")
   message(FATAL_ERROR "command failed with return code: ${ret}")
 endif()
 
