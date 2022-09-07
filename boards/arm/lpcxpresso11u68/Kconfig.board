@@ -1,6 +1,0 @@
-# LPCXpresso11U68 board
-
-# Copyright (c) 2020, Seagate
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_LPCXPRESSO11U68

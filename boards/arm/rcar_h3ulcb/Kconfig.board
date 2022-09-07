@@ -1,4 +1,0 @@
-# Copyright (c) 2021 IoT.bzh
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_RCAR_H3ULCB_CR7

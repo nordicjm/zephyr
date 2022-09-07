@@ -1,9 +1,0 @@
-# Actinius Icarus board configuration
-
-# Copyright (c) 2019 Actinius
-# SPDX-License-Identifier: Apache-2.0
-
-if SOC_NRF9160_SICA
-
-config BOARD_ACTINIUS_ICARUS
-config BOARD_ACTINIUS_ICARUS_NS

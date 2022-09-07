@@ -1,5 +1,0 @@
-# Copyright (c) 2021, NXP
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_MIMXRT1160_EVK_CM7
-config BOARD_MIMXRT1160_EVK_CM4

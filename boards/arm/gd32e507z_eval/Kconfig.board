@@ -1,4 +1,0 @@
-# Copyright (c) 2022, Teslabs Engineering S.L.
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_GD32E507Z_EVAL

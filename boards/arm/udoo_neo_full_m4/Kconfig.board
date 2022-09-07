@@ -1,4 +1,0 @@
-# Copyright (c) 2018, NXP
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_UDOO_NEO_FULL_M4

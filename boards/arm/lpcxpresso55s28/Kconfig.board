@@ -1,6 +1,0 @@
-# LPCXpresso55S28 board
-
-# Copyright (c) 2020 Lemonbeat GmbH
-# SPDX-License-Identifier: Apache-2.0
-
-config BOARD_LPCXPRESSO55S28

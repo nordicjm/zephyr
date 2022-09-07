@@ -1,8 +1,0 @@
-#
-# Copyright (c) 2020, Bernhard Kraemer
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-config BOARD_TEENSY40
-config BOARD_TEENSY41
