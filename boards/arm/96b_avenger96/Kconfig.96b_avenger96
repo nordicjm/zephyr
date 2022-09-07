@@ -1,0 +1,5 @@
+config BOARD_96B_AVENGER96
+	bool
+	default y
+	select SOC_SERIES_STM32MP1X
+	select SOC_STM32MP15_M4
