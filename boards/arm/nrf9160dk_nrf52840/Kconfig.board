@@ -4,9 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NRF9160DK_NRF52840
-	bool "NRF9160 DK NRF52840"
-	depends on SOC_NRF52840_QIAA
-	# The GPIO driver is required by this board's initialization code
-	# (board.c), so it is forced here to be enabled always, not only
-	# enabled by default (in defconfig).
-	select GPIO

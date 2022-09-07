@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_STM32F3_DISCO
-	bool "STM32F3DISCOVERY Development Board"
-	depends on SOC_STM32F303XC

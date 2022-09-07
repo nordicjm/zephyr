@@ -4,5 +4,3 @@
 # STM32F401CC based Black Pill V3.0+ board configuration
 
 config BOARD_BLACKPILL_F401CC
-	bool "WeAct Studio Black Pill V3.0+ Board"
-	depends on SOC_STM32F401XC

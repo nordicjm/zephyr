@@ -6,5 +6,3 @@
 # Author: Saravanan Sekar <saravanan@linumiz.com>
 
 config BOARD_NUVOTON_PFM_M487
-	bool "NUVOTON PFM MP487 Development Board"
-	depends on SOC_M487

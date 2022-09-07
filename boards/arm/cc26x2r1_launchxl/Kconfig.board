@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_CC26X2R1_LAUNCHXL
-	bool "TI CC26x2R1 LaunchXL"
-	depends on SOC_CC2652R

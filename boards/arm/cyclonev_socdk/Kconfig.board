@@ -4,5 +4,3 @@
 # Cyclone V SoC development kit configuration option
 
 config BOARD_CVSXDEVKIT
-	bool "Intel Cyclone V Development Kit"
-	depends on SOC_CYCLONE5

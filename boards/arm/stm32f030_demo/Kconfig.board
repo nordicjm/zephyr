@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_STM32F030_DEMO
-	bool "STM32F030 DEMO Board"
-	depends on SOC_STM32F030X4

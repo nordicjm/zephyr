@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_OLIMEX_STM32_E407
-	bool "OLIMEX-STM32-E407 Development Board"
-	depends on SOC_STM32F407XG

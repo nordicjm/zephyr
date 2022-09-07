@@ -3,5 +3,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_SERPENTE
-	bool "Serpente"
-	depends on SOC_PART_NUMBER_SAMD21E18A

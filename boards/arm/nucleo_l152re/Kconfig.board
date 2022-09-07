@@ -5,5 +5,3 @@
 #
 
 config BOARD_NUCLEO_L152RE
-	bool "NUCLEO-64 L152RE Development Board"
-	depends on SOC_STM32L152XE

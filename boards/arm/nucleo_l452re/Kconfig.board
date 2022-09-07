@@ -5,9 +5,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NUCLEO_L452RE
-	bool "Nucleo L452RE Development Board"
-	depends on SOC_STM32L452XX
-
 config BOARD_NUCLEO_L452RE_P
-	bool "Nucleo L452RE-P Development Board"
-	depends on SOC_STM32L452XX

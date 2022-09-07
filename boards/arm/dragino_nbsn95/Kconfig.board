@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_DRAGINO_NBSN95
-	bool "Dragino NBSN95 Sensor Node"
-	depends on SOC_STM32L072XX

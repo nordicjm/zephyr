@@ -5,9 +5,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_CY8CKIT_062_BLE_M0
-	bool "PSoC6 BLE Pioneer Kit [M0 CPU0]"
-	depends on SOC_PART_NUMBER_CY8C6347BZI_BLD53
-
 config BOARD_CY8CKIT_062_BLE_M4
-	bool "PSoC6 BLE Pioneer Kit [M4 CPU1]"
-	depends on SOC_PART_NUMBER_CY8C6347BZI_BLD53

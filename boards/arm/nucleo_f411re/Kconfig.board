@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NUCLEO_F411RE
-	bool "NUCLEO-64 F411RE Development Board"
-	depends on SOC_STM32F411XE

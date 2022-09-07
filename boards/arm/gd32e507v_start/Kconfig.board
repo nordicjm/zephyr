@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_GD32E507V_START
-	bool "GigaDevice GD32E507V-START"
-	depends on SOC_GD32E507

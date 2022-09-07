@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NRF52833DK_NRF52820
-	bool "nRF52833 DK NRF52820"
-	depends on SOC_NRF52820_QDAA

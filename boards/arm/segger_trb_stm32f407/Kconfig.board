@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_SEGGER_TRB_STM32F407
-	bool "SEGGER STM32F407 Trace Reference Board"
-	depends on SOC_STM32F407XE

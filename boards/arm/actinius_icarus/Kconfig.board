@@ -6,9 +6,4 @@
 if SOC_NRF9160_SICA
 
 config BOARD_ACTINIUS_ICARUS
-	bool "Actinius Icarus"
-
 config BOARD_ACTINIUS_ICARUS_NS
-	bool "Actinius Icarus Non-Secure"
-
-endif # SOC_NRF9160_SICA

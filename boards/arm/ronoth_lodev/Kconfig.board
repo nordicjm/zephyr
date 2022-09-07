@@ -3,5 +3,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_RONOTH_LODEV
-	bool "Ronoth LoDev"
-	depends on SOC_STM32L073XX

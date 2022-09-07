@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_ZYBO
-	bool "Digilent Zybo"
-	depends on SOC_XILINX_XC7Z010

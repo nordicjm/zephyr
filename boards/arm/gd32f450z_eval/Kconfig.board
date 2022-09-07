@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_GD32F450Z_EVAL
-	bool "GigaDevice GD32F450Z-EVAL"
-	depends on SOC_GD32F450

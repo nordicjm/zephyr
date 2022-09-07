@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NUCLEO_G0B1RE
-	bool "NUCLEO-64 G0B1RE Development Board"
-	depends on SOC_STM32G0B1XX

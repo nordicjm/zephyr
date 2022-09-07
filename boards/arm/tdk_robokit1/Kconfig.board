@@ -4,5 +4,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_TDK_ROBOKIT1
-	bool "TDK RoboKit1 Board"
 	depends on SOC_PART_NUMBER_SAME70Q21 || SOC_PART_NUMBER_SAME70Q21B

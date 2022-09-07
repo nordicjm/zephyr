@@ -6,5 +6,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_STM32L496G_DISCO
-	bool "STM32L496G Discovery Development Board"
-	depends on SOC_STM32L496XX

@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_WE_OPHELIA1EV_NRF52805
-	bool "we_ophelia1ev_nrf52805"
-	depends on SOC_NRF52805_CAAA

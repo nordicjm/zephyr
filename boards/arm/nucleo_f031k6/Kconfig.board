@@ -4,5 +4,3 @@
 # SPDX -License-Identifier: Apache-2.0
 
 config BOARD_NUCLEO_F031K6
-	bool "NUCLEO-32 F031K6 Development Board"
-	depends on SOC_STM32F031X6

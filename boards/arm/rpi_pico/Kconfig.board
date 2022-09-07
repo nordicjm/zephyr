@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_RPI_PICO
-	bool "Raspberry Pi Pico Board"
-	depends on SOC_RP2040

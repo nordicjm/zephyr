@@ -6,9 +6,4 @@
 if SOC_NRF9160_SICA
 
 config BOARD_NRF9160_INNBLUE21
-	bool "nRF9160 innblue v2.1"
-
 config BOARD_NRF9160_INNBLUE21_NS
-	bool "nRF9160 innblue v2.1 non-secure"
-
-endif # SOC_NRF9160_SICA

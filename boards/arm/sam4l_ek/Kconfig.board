@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_SAM4L_EK
-	bool "Atmel SAM4L-EK"
-	depends on SOC_PART_NUMBER_SAM4LC4C

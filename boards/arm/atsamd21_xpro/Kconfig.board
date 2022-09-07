@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_ATSAMD21_XPRO
-	bool "SAM D21 Xplained Pro"
-	depends on SOC_PART_NUMBER_SAMD21J18A

@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_PAN1782_EVB
-	bool "pan1782-evb"
-	depends on SOC_NRF52833_QIAA

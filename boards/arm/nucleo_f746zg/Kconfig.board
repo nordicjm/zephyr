@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NUCLEO_F746ZG
-	bool "Nucleo F746ZG Development Board"
-	depends on SOC_STM32F746XX
