@@ -6,12 +6,13 @@ comment "Sysbuild image configuration"
 
 osource "$(BOARD_DIR)/Kconfig.sysbuild"
 
-choice
-        prompt "Board Selection"
+#choice
+#        prompt "Board Selection"
 
-source "$(BOARD_DIR)/Kconfig.board"
+source "$(BOARD_DIR)/Kconfig.$(BOARD)"
+#source "$(BOARD_DIR)/Kconfig.board"
 
-endchoice
+#endchoice
 
 config EXPERIMENTAL
 	bool

@@ -1,0 +1,6 @@
+config BOARD_NRF9160DK_NRF9160_NS
+        bool
+	default y
+	select SOC_NRF9160_SICA
+	select SOC_SERIES_NRF91X  
+	select SOC_NRF9160_SICA
