@@ -1,0 +1,5 @@
+config BOARD_BLACKPILL_F401CE
+	bool
+	default y
+	select SOC_SERIES_STM32F4X
+	select SOC_STM32F401XE

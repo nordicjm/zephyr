@@ -1,0 +1,6 @@
+config BOARD_TWR_KV58F220M
+	bool
+	default y
+	select SOC_SERIES_KINETIS_KV5X
+	select SOC_MKV58F24
+	select SOC_PART_NUMBER_MKV58F1M0VLQ24

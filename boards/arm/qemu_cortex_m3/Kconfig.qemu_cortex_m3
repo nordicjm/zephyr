@@ -1,0 +1,5 @@
+config BOARD_QEMU_CORTEX_M3
+	bool
+	default y
+	select SOC_TI_LM3S6965
+	select QEMU_TARGET

@@ -1,0 +1,5 @@
+config BOARD_SERPENTE
+	bool
+	default y
+	select SOC_SERIES_SAMD21
+	select SOC_PART_NUMBER_SAMD21E18A

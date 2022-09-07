@@ -1,0 +1,5 @@
+config BOARD_STM32G0316_DISCO
+	bool
+	default y
+	select SOC_SERIES_STM32G0X
+	select SOC_STM32G031XX

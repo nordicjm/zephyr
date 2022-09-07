@@ -1,0 +1,5 @@
+config BOARD_V2M_MUSCA_S1_NS
+	bool
+	default y
+	select SOC_SERIES_MUSCA_S1
+	select SOC_V2M_MUSCA_S1

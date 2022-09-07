@@ -1,0 +1,5 @@
+config BOARD_MIMXRT1170_EVK_CM4
+	bool
+	default y
+	select SOC_MIMXRT1176_CM4
+	select SOC_SERIES_IMX_RT

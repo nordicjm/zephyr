@@ -1,0 +1,5 @@
+config BOARD_ARDUINO_MKRZERO
+	bool
+	default y
+	select SOC_SERIES_SAMD21
+	select SOC_PART_NUMBER_SAMD21G18A

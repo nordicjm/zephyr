@@ -1,0 +1,6 @@
+config BOARD_TEENSY40
+	bool
+	default y
+	select SOC_MIMXRT1062
+	select SOC_SERIES_IMX_RT
+	select SOC_PART_NUMBER_MIMXRT1062DVL6A

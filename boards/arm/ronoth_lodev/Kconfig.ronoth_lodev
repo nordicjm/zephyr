@@ -1,0 +1,5 @@
+config BOARD_RONOTH_LODEV
+	bool
+	default y
+	select SOC_SERIES_STM32L0X
+	select SOC_STM32L073XX

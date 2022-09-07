@@ -1,0 +1,5 @@
+config BOARD_RPI_PICO
+	bool
+	default y
+	select SOC_SERIES_RP2XXX
+	select SOC_RP2040

@@ -1,0 +1,5 @@
+config BOARD_NRF52DK_NRF52805
+	bool
+	default y
+	select SOC_SERIES_NRF52X
+	select SOC_NRF52805_CAAA

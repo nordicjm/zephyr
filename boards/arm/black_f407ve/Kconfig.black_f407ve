@@ -1,0 +1,5 @@
+config BOARD_BLACK_F407VE
+	bool
+	default y
+	select SOC_SERIES_STM32F4X
+	select SOC_STM32F407XE

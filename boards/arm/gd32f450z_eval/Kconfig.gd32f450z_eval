@@ -1,0 +1,5 @@
+config BOARD_GD32F450Z_EVAL
+	bool
+	default y
+	select SOC_SERIES_GD32F4XX
+	select SOC_GD32F450

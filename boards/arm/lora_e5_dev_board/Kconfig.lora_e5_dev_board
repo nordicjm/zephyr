@@ -1,0 +1,5 @@
+config BOARD_LORA_E5_DEV_BOARD
+	bool
+	default y
+	select SOC_SERIES_STM32WLX
+	select SOC_STM32WLE5XX

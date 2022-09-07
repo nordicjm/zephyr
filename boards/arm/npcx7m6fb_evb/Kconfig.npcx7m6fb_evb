@@ -1,0 +1,5 @@
+config BOARD_NPCX7M6FB_EVB
+	bool
+	default y
+	select SOC_NPCX7M6FB
+	select SOC_SERIES_NPCX7

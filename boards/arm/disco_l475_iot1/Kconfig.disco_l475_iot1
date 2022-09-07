@@ -1,0 +1,5 @@
+config BOARD_DISCO_L475_IOT1
+	bool
+	default y
+	select SOC_SERIES_STM32L4X
+	select SOC_STM32L475XX

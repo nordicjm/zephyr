@@ -1,0 +1,5 @@
+config BOARD_AST1030_EVB
+	bool
+	default y
+	select SOC_SERIES_AST10X0
+	select SOC_AST1030

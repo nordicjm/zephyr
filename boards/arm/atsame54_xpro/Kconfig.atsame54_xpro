@@ -1,0 +1,5 @@
+config BOARD_ATSAME54_XPRO
+	bool
+	default y
+	select SOC_SERIES_SAME54
+	select SOC_PART_NUMBER_SAME54P20A

@@ -1,0 +1,5 @@
+config BOARD_TDK_ROBOKIT1
+	bool
+	default y
+	select SOC_SERIES_SAME70
+	select SOC_PART_NUMBER_SAME70Q21

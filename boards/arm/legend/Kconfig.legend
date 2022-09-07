@@ -1,0 +1,5 @@
+config BOARD_LEGEND
+	bool
+	default y
+	select SOC_SERIES_STM32F0X
+	select SOC_STM32F070XB

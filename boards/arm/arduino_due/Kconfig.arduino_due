@@ -1,0 +1,5 @@
+config BOARD_ARDUINO_DUE
+	bool
+	default y
+	select SOC_SERIES_SAM3X
+	select SOC_PART_NUMBER_SAM3X8E

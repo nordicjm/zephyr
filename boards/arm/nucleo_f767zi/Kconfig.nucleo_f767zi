@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_F767ZI
+	bool
+	default y
+	select SOC_SERIES_STM32F7X
+	select SOC_STM32F767XX

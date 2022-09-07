@@ -1,0 +1,6 @@
+config BOARD_CY8CKIT_062_WIFI_BT_M0
+	bool
+	default y
+	select SOC_SERIES_PSOC62
+	select SOC_PSOC6_M0
+	select SOC_PART_NUMBER_CY8C6247BZI_D54

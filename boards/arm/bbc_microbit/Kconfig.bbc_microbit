@@ -1,0 +1,5 @@
+config BOARD_BBC_MICROBIT
+	bool
+	default y
+	select SOC_SERIES_NRF51X
+	select SOC_NRF51822_QFAA

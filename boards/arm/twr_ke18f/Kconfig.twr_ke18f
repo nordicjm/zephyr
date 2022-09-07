@@ -1,0 +1,6 @@
+config BOARD_TWR_KE18F
+	bool
+	default y
+	select SOC_SERIES_KINETIS_KE1XF
+	select SOC_MKE18F16
+	select SOC_PART_NUMBER_MKE18F512VLL16

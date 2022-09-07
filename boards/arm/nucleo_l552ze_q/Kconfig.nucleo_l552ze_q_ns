@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_L552ZE_Q_NS
+	bool
+	default y
+	select SOC_SERIES_STM32L5X
+	select SOC_STM32L552XX

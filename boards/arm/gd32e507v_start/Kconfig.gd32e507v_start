@@ -1,0 +1,5 @@
+config BOARD_GD32E507V_START
+	bool
+	default y
+	select SOC_SERIES_GD32E50X
+	select SOC_GD32E507

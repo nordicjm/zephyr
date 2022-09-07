@@ -1,0 +1,5 @@
+config BOARD_CC1352R_SENSORTAG
+	bool
+	default y
+	select SOC_SERIES_CC13X2_CC26X2
+	select SOC_CC1352R

@@ -1,0 +1,5 @@
+config BOARD_STM32_MIN_DEV_BLUE
+	bool
+	default y
+	select SOC_SERIES_STM32F1X
+	select SOC_STM32F103X8

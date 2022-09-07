@@ -1,0 +1,5 @@
+config BOARD_ATSAML21_XPRO
+	bool
+	default y
+	select SOC_SERIES_SAML21
+	select SOC_PART_NUMBER_SAML21J18B

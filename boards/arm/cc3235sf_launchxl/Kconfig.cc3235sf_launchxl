@@ -1,0 +1,5 @@
+config BOARD_CC3235SF_LAUNCHXL
+	bool
+	default y
+	select SOC_SERIES_CC32XX
+	select SOC_CC3235SF

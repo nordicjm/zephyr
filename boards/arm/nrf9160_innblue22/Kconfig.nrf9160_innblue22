@@ -1,0 +1,5 @@
+config BOARD_NRF9160_INNBLUE22
+	bool
+	default y
+	select SOC_SERIES_NRF91X
+	select SOC_NRF9160_SICA

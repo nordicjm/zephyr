@@ -1,0 +1,6 @@
+config BOARD_QEMU_CORTEX_M0
+	bool
+	default y
+	select SOC_SERIES_NRF51X
+	select SOC_NRF51822_QFAA
+	select QEMU_TARGET

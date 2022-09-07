@@ -1,0 +1,5 @@
+config BOARD_B_L072Z_LRWAN1
+	bool
+	default y
+	select SOC_SERIES_STM32L0X
+	select SOC_STM32L072XX

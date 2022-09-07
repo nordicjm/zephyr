@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_F334R8
+	bool
+	default y
+	select SOC_SERIES_STM32F3X
+	select SOC_STM32F334X8

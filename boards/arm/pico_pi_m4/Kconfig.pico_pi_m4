@@ -1,0 +1,5 @@
+config BOARD_PICO_PI_M4
+	bool
+	default y
+	select SOC_SERIES_IMX7_M4
+	select SOC_MCIMX7_M4

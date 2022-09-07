@@ -1,0 +1,5 @@
+config BOARD_STM32F7508_DK
+	bool
+	default y
+	select SOC_SERIES_STM32F7X
+	select SOC_STM32F750XX

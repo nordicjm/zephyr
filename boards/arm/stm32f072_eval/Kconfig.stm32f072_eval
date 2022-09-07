@@ -1,0 +1,5 @@
+config BOARD_STM32F072_EVAL
+	bool
+	default y
+	select SOC_SERIES_STM32F0X
+	select SOC_STM32F072XB

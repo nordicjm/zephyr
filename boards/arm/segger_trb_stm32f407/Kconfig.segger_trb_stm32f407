@@ -1,0 +1,5 @@
+config BOARD_SEGGER_TRB_STM32F407
+	bool
+	default y
+	select SOC_SERIES_STM32F4X
+	select SOC_STM32F407XE

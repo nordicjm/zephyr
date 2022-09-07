@@ -1,0 +1,5 @@
+config BOARD_GD32F350R_EVAL
+	bool
+	default y
+	select SOC_SERIES_GD32F3X0
+	select SOC_GD32F350

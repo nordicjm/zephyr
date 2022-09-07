@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_L011K4
+	bool
+	default y
+	select SOC_SERIES_STM32L0X
+	select SOC_STM32L011XX

@@ -1,0 +1,6 @@
+config BOARD_UDOO_NEO_FULL_M4
+	bool
+	default y
+	select SOC_MCIMX6X_M4
+	select SOC_SERIES_IMX_6X_M4
+	select SOC_PART_NUMBER_MCIMX6X4EVM10AB

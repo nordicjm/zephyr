@@ -1,0 +1,5 @@
+config BOARD_CVSXDEVKIT
+	bool
+	default y
+	select SOC_SERIES_CYCLONE5
+	select SOC_CYCLONE5

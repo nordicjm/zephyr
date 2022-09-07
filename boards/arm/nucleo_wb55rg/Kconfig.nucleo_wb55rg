@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_WB55RG
+	bool
+	default y
+	select SOC_SERIES_STM32WBX
+	select SOC_STM32WB55XX

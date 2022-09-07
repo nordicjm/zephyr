@@ -1,0 +1,5 @@
+config BOARD_NUVOTON_PFM_M487
+	bool
+	default y
+	select SOC_SERIES_M48X
+	select SOC_M487

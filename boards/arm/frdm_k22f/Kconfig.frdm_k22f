@@ -1,0 +1,6 @@
+config BOARD_FRDM_K22F
+	bool
+	default y
+	select SOC_MK22F51212
+	select SOC_SERIES_KINETIS_K2X
+	select SOC_PART_NUMBER_MK22FN512VLH12

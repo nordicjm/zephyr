@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_WL55JC
+	bool
+	default y
+	select SOC_SERIES_STM32WLX
+	select SOC_STM32WL55XX

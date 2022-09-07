@@ -1,0 +1,5 @@
+config BOARD_PAN1782_EVB
+	bool
+	default y
+	select SOC_SERIES_NRF52X
+	select SOC_NRF52833_QIAA

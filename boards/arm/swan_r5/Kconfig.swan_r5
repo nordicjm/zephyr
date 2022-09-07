@@ -1,0 +1,5 @@
+config BOARD_SWAN_R5
+	bool
+	default y
+	select SOC_SERIES_STM32L4X
+	select SOC_STM32L4R5XX

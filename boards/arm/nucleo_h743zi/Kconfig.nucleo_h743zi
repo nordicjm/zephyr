@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_H743ZI
+	bool
+	default y
+	select SOC_SERIES_STM32H7X
+	select SOC_STM32H743XX

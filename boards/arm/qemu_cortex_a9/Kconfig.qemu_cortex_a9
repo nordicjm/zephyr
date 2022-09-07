@@ -1,0 +1,6 @@
+config BOARD_QEMU_CORTEX_A9
+	bool
+	default y
+	select SOC_SERIES_XILINX_XC7ZXXXS
+	select SOC_XILINX_XC7Z007S
+	select QEMU_TARGET

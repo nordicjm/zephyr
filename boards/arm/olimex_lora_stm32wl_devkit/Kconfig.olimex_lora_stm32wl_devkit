@@ -1,0 +1,5 @@
+config BOARD_OLIMEX_LORA_STM32WL_DEVKIT
+	bool
+	default y
+	select SOC_SERIES_STM32WLX
+	select SOC_STM32WLE5XX

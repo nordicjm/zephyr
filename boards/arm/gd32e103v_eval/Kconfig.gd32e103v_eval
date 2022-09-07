@@ -1,0 +1,5 @@
+config BOARD_GD32E103V_EVAL
+	bool
+	default y
+	select SOC_SERIES_GD32E10X
+	select SOC_GD32E103

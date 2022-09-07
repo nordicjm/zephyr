@@ -1,0 +1,5 @@
+config BOARD_ZYBO
+	bool
+	default y
+	select SOC_SERIES_XILINX_XC7ZXXX
+	select SOC_XILINX_XC7Z010

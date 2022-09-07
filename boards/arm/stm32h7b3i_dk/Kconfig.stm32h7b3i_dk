@@ -1,0 +1,5 @@
+config BOARD_STM32H7B3I_DK
+	bool
+	default y
+	select SOC_SERIES_STM32H7X
+	select SOC_STM32H7B3XXQ

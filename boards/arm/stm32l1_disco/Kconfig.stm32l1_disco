@@ -1,0 +1,5 @@
+config BOARD_STM32L1_DISCO
+	bool
+	default y
+	select SOC_SERIES_STM32L1X
+	select SOC_STM32L151XB

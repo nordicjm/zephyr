@@ -1,0 +1,5 @@
+config BOARD_UBX_BMD330EVAL_NRF52810
+	bool
+	default y
+	select SOC_SERIES_NRF52X
+	select SOC_NRF52810_QFAA

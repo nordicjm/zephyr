@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_G474RE
+	bool
+	default y
+	select SOC_SERIES_STM32G4X
+	select SOC_STM32G474XX

@@ -1,0 +1,5 @@
+config BOARD_SAM_V71_XULT
+	bool
+	default y
+	select SOC_SERIES_SAMV71
+	select SOC_PART_NUMBER_SAMV71Q21

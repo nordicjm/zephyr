@@ -1,0 +1,6 @@
+config BOARD_HEXIWEAR_K64
+	bool
+	default y
+	select SOC_MK64F12
+	select SOC_SERIES_KINETIS_K6X
+	select SOC_PART_NUMBER_MK64FN1M0VDC12

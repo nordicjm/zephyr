@@ -1,0 +1,6 @@
+config BOARD_HEXIWEAR_KW40Z
+	bool
+	default y
+	select SOC_MKW40Z4
+	select SOC_SERIES_KINETIS_KWX
+	select SOC_PART_NUMBER_MKW40Z160VHT4

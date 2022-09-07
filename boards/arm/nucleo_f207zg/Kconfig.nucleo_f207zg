@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_F207ZG
+	bool
+	default y
+	select SOC_SERIES_STM32F2X
+	select SOC_STM32F207XX

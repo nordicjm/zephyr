@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_L412RB_P
+	bool
+	default y
+	select SOC_SERIES_STM32L4X
+	select SOC_STM32L412XX

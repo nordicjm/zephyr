@@ -1,0 +1,5 @@
+config BOARD_CC26X2R1_LAUNCHXL
+	bool
+	default y
+	select SOC_SERIES_CC13X2_CC26X2
+	select SOC_CC2652R

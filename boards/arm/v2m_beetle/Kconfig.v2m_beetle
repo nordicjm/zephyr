@@ -1,0 +1,5 @@
+config BOARD_V2M_BEETLE
+	bool
+	default y
+	select SOC_BEETLE_R0
+	select SOC_SERIES_BEETLE

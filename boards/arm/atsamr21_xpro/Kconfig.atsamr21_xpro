@@ -1,0 +1,5 @@
+config BOARD_ATSAMR21_XPRO
+	bool
+	default y
+	select SOC_SERIES_SAMR21
+	select SOC_PART_NUMBER_SAMR21G18A

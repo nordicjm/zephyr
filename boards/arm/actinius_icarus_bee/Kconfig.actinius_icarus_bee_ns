@@ -1,0 +1,5 @@
+config BOARD_ACTINIUS_ICARUS_BEE_NS
+	bool
+	default y
+	select SOC_SERIES_NRF91X
+	select SOC_NRF9160_SICA

@@ -1,0 +1,5 @@
+config BOARD_PINETIME_DEVKIT0
+	bool
+	default y
+	select SOC_SERIES_NRF52X
+	select SOC_NRF52832_QFAA

@@ -1,0 +1,5 @@
+config BOARD_VALKYRIE_BCM958401M2
+	bool
+	default y
+	select SOC_SERIES_VALKYRIE
+	select SOC_BCM58400

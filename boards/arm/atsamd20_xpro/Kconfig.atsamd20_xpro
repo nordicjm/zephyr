@@ -1,0 +1,5 @@
+config BOARD_ATSAMD20_XPRO
+	bool
+	default y
+	select SOC_SERIES_SAMD20
+	select SOC_PART_NUMBER_SAMD20J18

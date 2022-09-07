@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_F091RC
+	bool
+	default y
+	select SOC_SERIES_STM32F0X
+	select SOC_STM32F091XC

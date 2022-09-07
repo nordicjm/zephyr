@@ -1,0 +1,7 @@
+config BOARD_MPS2_AN521_CPU1
+	bool
+	default y
+	select SOC_SERIES_MPS2
+	select SOC_MPS2_AN521_CPU1
+	select QEMU_TARGET
+	select HAS_COVERAGE_SUPPORT

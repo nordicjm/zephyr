@@ -1,0 +1,6 @@
+config BOARD_MIMXRT1064_EVK
+	bool
+	default y
+	select SOC_MIMXRT1064
+	select SOC_SERIES_IMX_RT
+	select SOC_PART_NUMBER_MIMXRT1064DVL6A

@@ -1,0 +1,5 @@
+config BOARD_MIMX8MP_EVK
+	bool
+	default y
+	select SOC_SERIES_IMX8ML_M7
+	select SOC_MIMX8ML8

@@ -1,0 +1,5 @@
+config BOARD_NUCLEO_F103RB
+	bool
+	default y
+	select SOC_SERIES_STM32F1X
+	select SOC_STM32F103XB

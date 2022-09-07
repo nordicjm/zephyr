@@ -1,0 +1,5 @@
+config BOARD_CIRCUITDOJO_FEATHER_NRF9160_NS
+	bool
+	default y
+	select SOC_SERIES_NRF91X
+	select SOC_NRF9160_SICA

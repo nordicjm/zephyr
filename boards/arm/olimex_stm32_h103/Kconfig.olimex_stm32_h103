@@ -1,0 +1,5 @@
+config BOARD_OLIMEX_STM32_H103
+	bool
+	default y
+	select SOC_SERIES_STM32F1X
+	select SOC_STM32F103XB

@@ -1,0 +1,5 @@
+config BOARD_MPS3_AN547
+	bool
+	default y
+	select SOC_SERIES_MPS3
+	select SOC_MPS3_AN547
