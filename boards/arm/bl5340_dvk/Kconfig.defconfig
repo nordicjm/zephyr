@@ -6,7 +6,6 @@
 
 if BOARD_BL5340_DVK_CPUAPP || BOARD_BL5340_DVK_CPUAPP_NS
 
-
 config FLASH
 	default y
 

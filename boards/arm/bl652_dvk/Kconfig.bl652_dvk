@@ -1,0 +1,5 @@
+config BOARD_BL652_DVK
+	bool
+	default y
+	select CONFIG_SOC_SERIES_NRF52X
+	select CONFIG_SOC_NRF52832_QFAA

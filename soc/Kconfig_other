@@ -10,7 +10,7 @@ osource "soc/$(ARCH)/*/Kconfig.soc"
 
 #endchoice
 
-menu "Hardware Configuration"
+#menu "Hardware Configuration"
 # This loads custom SoC root Kconfig (only available if custom SoC root are defined)
 #osource "$(KCONFIG_BINARY_DIR)/Kconfig.soc.arch"
 # This loads Zephyr base SoC Kconfigs
@@ -23,7 +23,7 @@ osource "soc/$(ARCH)/*/Kconfig.base"
 #module-str = SOC
 #source "subsys/logging/Kconfig.template.log_config"
 
-endmenu
+#endmenu
 
 # The helper symbols below are put here due to an unusual setup: The simulated
 # nrf52_bsim board uses the POSIX arch, but is compatible with Nordic ARM
