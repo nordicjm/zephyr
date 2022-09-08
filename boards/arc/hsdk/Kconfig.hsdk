@@ -1,0 +1,4 @@
+config BOARD_HSDK
+	bool
+	default y
+	select SOC_ARC_HSDK

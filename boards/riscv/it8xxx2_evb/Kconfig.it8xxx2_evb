@@ -1,0 +1,5 @@
+config BOARD_IT8XXX2_EVB
+	bool
+	default y
+	select SOC_SERIES_RISCV32_IT8XXX2
+	select SOC_IT8XXX2

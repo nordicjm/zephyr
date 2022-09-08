@@ -1,0 +1,4 @@
+config BOARD_QEMU_MALTA_BE
+	bool
+	default y
+	select SOC_QEMU_MALTA

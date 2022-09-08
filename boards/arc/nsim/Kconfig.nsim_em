@@ -1,0 +1,6 @@
+config BOARD_NSIM_EM
+	bool
+	default y
+	select SOC_NSIM
+	select SOC_NSIM_EM
+	select HAS_COVERAGE_SUPPORT

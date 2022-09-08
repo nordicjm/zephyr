@@ -1,0 +1,5 @@
+config BOARD_QEMU_ARC_HS5X
+	bool
+	default y
+	select SOC_QEMU_ARC
+	select SOC_QEMU_ARC_HS5X

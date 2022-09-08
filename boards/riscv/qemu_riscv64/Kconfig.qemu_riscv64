@@ -1,0 +1,5 @@
+config BOARD_QEMU_RISCV64
+	bool
+	default y
+	select SOC_SERIES_RISCV_VIRT
+	select SOC_RISCV_VIRT

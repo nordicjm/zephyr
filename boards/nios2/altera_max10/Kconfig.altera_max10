@@ -1,0 +1,4 @@
+config BOARD_ALTERA_MAX10
+	bool
+	default y
+	select SOC_NIOS2F_ZEPHYR

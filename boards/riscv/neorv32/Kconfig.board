@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NEORV32
-	bool "NEORV32 Processor (SoC)"
-	depends on SOC_SERIES_NEORV32

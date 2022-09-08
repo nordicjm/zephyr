@@ -1,0 +1,5 @@
+config BOARD_M2GL025_MIV
+	bool
+	default y
+	select SOC_SERIES_RISCV32_MIV
+	select SOC_RISCV32_MIV

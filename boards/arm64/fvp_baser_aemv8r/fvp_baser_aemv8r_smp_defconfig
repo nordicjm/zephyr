@@ -1,9 +1,6 @@
 # Copyright (c) 2021 Arm Limited (or its affiliates). All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-CONFIG_SOC_SERIES_FVP_AEMV8R=y
-CONFIG_SOC_FVP_AEMV8R_AARCH64=y
-CONFIG_BOARD_FVP_BASER_AEMV8R=y
 
 # Cache management
 CONFIG_CACHE_MANAGEMENT=y
@@ -25,10 +22,8 @@ CONFIG_CONSOLE=y
 CONFIG_UART_CONSOLE=y
 
 # Enable simulate cpu power management
-CONFIG_SOC_FVP_AEMV8R_SIMULATE_CPU_PM=y
 CONFIG_PM_CPU_OPS=y
 CONFIG_PM_CPU_OPS_PSCI=n
-CONFIG_SOC_FVP_AEMV8R_EL2_INIT=y
 
 CONFIG_SMP=y
 CONFIG_MP_NUM_CPUS=4

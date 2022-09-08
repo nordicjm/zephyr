@@ -1,0 +1,4 @@
+config BOARD_ESP_WROVER_KIT
+	bool
+	default y
+	select SOC_ESP32

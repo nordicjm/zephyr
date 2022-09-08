@@ -1,0 +1,4 @@
+config BOARD_ICEV_WIRELESS
+	bool
+	default y
+	select SOC_ESP32C3

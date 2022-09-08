@@ -1,0 +1,4 @@
+config BOARD_NXP_ADSP_IMX8M
+	bool
+	default y
+	select SOC_SERIES_NXP_IMX8M

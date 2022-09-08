@@ -1,0 +1,4 @@
+config BOARD_GR716A_MINI
+	bool
+	default y
+	select SOC_GR716A

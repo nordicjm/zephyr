@@ -1,0 +1,4 @@
+config BOARD_QEMU_X86_TINY
+	bool
+	default y
+	select SOC_IA32

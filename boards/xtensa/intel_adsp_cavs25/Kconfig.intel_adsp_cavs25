@@ -1,0 +1,5 @@
+config BOARD_INTEL_ADSP_CAVS25
+	bool
+	default y
+	select SOC_SERIES_INTEL_ADSP_CAVS
+	select SOC_INTEL_CAVS_V25

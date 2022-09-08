@@ -1,0 +1,9 @@
+config BOARD_QEMU_RISCV32E
+	bool
+	default y
+	select SOC_SERIES_RISCV_VIRT
+	select SOC_RISCV_VIRT
+	select QEMU_TARGET
+	select RISCV_ISA_RV32E
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI

@@ -1,0 +1,4 @@
+config BOARD_OLIMEX_ESP32_EVB
+	bool
+	default y
+	select SOC_ESP32

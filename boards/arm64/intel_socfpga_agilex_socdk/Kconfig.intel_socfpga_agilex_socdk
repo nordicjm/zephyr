@@ -1,0 +1,5 @@
+config BOARD_INTEL_SOCFPGA_AGILEX_SOCDK
+	bool
+	default y
+	select SOC_SERIES_AGILEX
+	select SOC_AGILEX

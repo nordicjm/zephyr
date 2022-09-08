@@ -1,0 +1,5 @@
+config BOARD_HIFIVE1_REVB
+	bool
+	default y
+	select SOC_SERIES_RISCV_SIFIVE_FREEDOM
+	select SOC_RISCV_SIFIVE_FREEDOM

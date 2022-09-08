@@ -2,7 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_ACRN
-	bool "ACRN User OS"
-	depends on SOC_IA32
-	select CPU_HAS_FPU
-	select X86_64

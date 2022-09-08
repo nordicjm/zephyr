@@ -1,0 +1,4 @@
+config BOARD_ESP32
+	bool
+	default y
+	select SOC_ESP32

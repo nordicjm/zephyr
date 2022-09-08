@@ -1,0 +1,4 @@
+config BOARD_LITEX_VEXRISCV
+	bool
+	default y
+	select SOC_RISCV32_LITEX_VEXRISCV

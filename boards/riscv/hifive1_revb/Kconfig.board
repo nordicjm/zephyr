@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_HIFIVE1_REVB
-	bool "HiFive1 Rev B target"
-	depends on SOC_RISCV_SIFIVE_FREEDOM

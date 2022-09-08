@@ -1,0 +1,4 @@
+config BOARD_ESP32_NET
+	bool
+	default y
+	select SOC_ESP32_NET

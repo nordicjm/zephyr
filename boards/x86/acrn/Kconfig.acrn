@@ -1,0 +1,4 @@
+config BOARD_ACRN
+	bool
+	default y
+	select SOC_IA32

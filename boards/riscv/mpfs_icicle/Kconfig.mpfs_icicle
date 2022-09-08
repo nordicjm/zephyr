@@ -1,0 +1,8 @@
+config BOARD_MPFS_ICICLE
+	bool
+	default y
+	select SOC_SERIES_RISCV64_MIV
+	select SOC_MPFS
+	select 64BIT
+	select SCHED_IPI_SUPPORTED
+	select CPU_HAS_FPU_DOUBLE_PRECISION

@@ -1,0 +1,5 @@
+config BOARD_GD32VF103C_STARTER
+	bool
+	default y
+	select SOC_SERIES_GD32VF103
+	select SOC_GD32VF103

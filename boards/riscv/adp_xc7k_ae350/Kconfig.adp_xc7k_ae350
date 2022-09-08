@@ -1,0 +1,5 @@
+config BOARD_ADP_XC7K_AE350
+	bool
+	default y
+	select SOC_SERIES_RISCV_ANDES_V5
+	select SOC_RISCV_ANDES_AE350

@@ -4,5 +4,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_ESP32S2_SAOLA
-	bool "ESP32S2 Saola Board"
-	depends on SOC_ESP32S2

@@ -1,0 +1,4 @@
+config BOARD_ODROID_GO
+	bool
+	default y
+	select SOC_ESP32

@@ -1,0 +1,4 @@
+config BOARD_INTEL_ADSP_ACE15_MTPM
+	bool
+	default y
+	select SOC_SERIES_INTEL_ACE1X

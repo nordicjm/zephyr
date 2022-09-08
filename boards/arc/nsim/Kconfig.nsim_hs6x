@@ -1,0 +1,6 @@
+config BOARD_NSIM_HS6X
+	bool
+	default y
+	select SOC_NSIM
+	select SOC_NSIM_HS6X
+	select HAS_COVERAGE_SUPPORT

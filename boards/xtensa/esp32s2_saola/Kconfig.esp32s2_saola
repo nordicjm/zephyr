@@ -1,0 +1,4 @@
+config BOARD_ESP32S2_SAOLA
+	bool
+	default y
+	select SOC_ESP32S2

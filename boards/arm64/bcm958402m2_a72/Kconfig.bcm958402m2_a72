@@ -1,0 +1,5 @@
+config BOARD_BCM958402M2_A72
+	bool
+	default y
+	select SOC_SERIES_VIPER
+	select SOC_BCM58402_A72

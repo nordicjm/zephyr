@@ -1,0 +1,4 @@
+config BOARD_QEMU_X86_LAKEMONT
+	bool
+	default y
+	select SOC_LAKEMONT

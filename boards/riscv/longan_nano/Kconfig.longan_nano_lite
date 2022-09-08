@@ -1,0 +1,5 @@
+config BOARD_LONGAN_NANO_LITE
+	bool
+	default y
+	select SOC_SERIES_GD32VF103
+	select SOC_GD32VF103

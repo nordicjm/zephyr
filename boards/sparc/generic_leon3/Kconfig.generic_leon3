@@ -1,0 +1,4 @@
+config BOARD_GENERIC_LEON3
+	bool
+	default y
+	select SOC_LEON3

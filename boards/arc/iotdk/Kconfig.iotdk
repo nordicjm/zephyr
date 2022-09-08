@@ -1,0 +1,4 @@
+config BOARD_IOTDK
+	bool
+	default y
+	select SOC_ARC_IOT

@@ -1,0 +1,5 @@
+config BOARD_FVP_BASE_REVC_2XAEMV8A
+	bool
+	default y
+	select SOC_SERIES_FVP_AEMV8A
+	select SOC_FVP_BASE_REVC_2XAEMV8A
