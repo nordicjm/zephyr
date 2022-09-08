@@ -1,4 +1,4 @@
-config BOARD_MIMXRT685_EVK
+config BOARD_MIMXRT685_EVK_CM33
 	bool
 	default y
 	select SOC_MIMXRT685S_CM33
