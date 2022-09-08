@@ -3,9 +3,9 @@
 # Copyright (c) 2016 Piotr Mienkowski
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Atmel SAME70 MCU Selection"
-	depends on SOC_SERIES_SAME70
+#choice
+#	prompt "Atmel SAME70 MCU Selection"
+#	depends on SOC_SERIES_SAME70
 
 	config SOC_PART_NUMBER_SAME70Q21
 		bool "SAME70Q21"
@@ -69,7 +69,7 @@ choice
 	config SOC_PART_NUMBER_SAME70J19B
 		bool "SAME70J19B"
 		select SOC_ATMEL_SAME70_REVB
-endchoice
+#endchoice
 
 if SOC_SERIES_SAME70
 

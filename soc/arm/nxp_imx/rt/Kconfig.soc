@@ -3,9 +3,9 @@
 # Copyright (c) 2017-2021, NXP
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "i.MX RT Selection"
-	depends on SOC_SERIES_IMX_RT
+#choice
+#	prompt "i.MX RT Selection"
+#	depends on SOC_SERIES_IMX_RT
 
 config SOC_MIMXRT1011
 	bool "SOC_MIMXRT1011"
@@ -430,7 +430,7 @@ config SOC_MIMXRT1166_CM4
 	select HAS_MCUX_IOMUXC
 	select HAS_SWO
 
-endchoice
+#endchoice
 
 if SOC_SERIES_IMX_RT
 

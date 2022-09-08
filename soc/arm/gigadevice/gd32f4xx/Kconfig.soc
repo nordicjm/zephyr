@@ -2,9 +2,9 @@
 # Copyright (c) 2022, Rtone.
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "GigaDevice GD32F4XX MCU Selection"
-	depends on SOC_SERIES_GD32F4XX
+#choice
+#	prompt "GigaDevice GD32F4XX MCU Selection"
+#	depends on SOC_SERIES_GD32F4XX
 
 	config SOC_GD32F405
 		bool "gd32f405"
@@ -18,4 +18,4 @@ choice
 	config SOC_GD32F470
 		bool "gd32f470"
 
-endchoice
+#endchoice

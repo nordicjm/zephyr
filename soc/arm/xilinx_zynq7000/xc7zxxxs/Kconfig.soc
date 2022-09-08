@@ -6,9 +6,9 @@
 # https://www.xilinx.com/products/silicon-devices/soc/zynq-7000.html#productTable
 #
 
-choice
-	prompt "XC7ZxxxS SoC Selection"
-	depends on SOC_SERIES_XILINX_XC7ZXXXS
+#choice
+#	prompt "XC7ZxxxS SoC Selection"
+#	depends on SOC_SERIES_XILINX_XC7ZXXXS
 
 config SOC_XILINX_XC7Z007S
 	bool "XC7Z007S"
@@ -29,4 +29,4 @@ config SOC_XILINX_XC7Z014S
 	  1 ARM Cortex-A9 core up to 766 MHz, Artix-7 programmable logic,
 	  65k logic cells, 3.8Mb block RAM, 170 DSP slices, up to 200 I/O pins.
 
-endchoice
+#endchoice

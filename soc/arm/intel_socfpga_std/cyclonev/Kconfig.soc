@@ -3,10 +3,10 @@
 # Description:
 # Adding support to Cyclone V SoC FPGA
 
-choice
-	prompt "Intel SoC FPGA Cyclone5"
-	depends on SOC_SERIES_CYCLONE5
+#choice
+#	prompt "Intel SoC FPGA Cyclone5"
+#	depends on SOC_SERIES_CYCLONE5
 
 config SOC_CYCLONE5
 	bool "Intel SoC FPGA Cyclone5"
-endchoice
+#endchoice

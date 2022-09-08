@@ -4,9 +4,9 @@
 # Copyright (c) 2018 Vincent van der Locht
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Atmel SAM4S MCU Selection"
-	depends on SOC_SERIES_SAM4S
+#choice
+#	prompt "Atmel SAM4S MCU Selection"
+#	depends on SOC_SERIES_SAM4S
 
 	config SOC_PART_NUMBER_SAM4S16C
 		bool "SAM4S16C"
@@ -41,7 +41,7 @@ choice
 	config SOC_PART_NUMBER_SAM4S2A
 		bool "SAM4S2A"
 
-endchoice
+#endchoice
 
 if SOC_SERIES_SAM4S
 

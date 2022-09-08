@@ -3,9 +3,9 @@
 # Copyright (c) 2017 Google LLC.
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Atmel SAMR21 MCU Selection"
-	depends on SOC_SERIES_SAMR21
+#choice
+#	prompt "Atmel SAMR21 MCU Selection"
+#	depends on SOC_SERIES_SAMR21
 
 config SOC_PART_NUMBER_SAMR21E16A
 	bool "SAMR21E16A"
@@ -28,4 +28,4 @@ config SOC_PART_NUMBER_SAMR21G17A
 config SOC_PART_NUMBER_SAMR21G18A
 	bool "SAMR21G18A"
 
-endchoice
+#endchoice

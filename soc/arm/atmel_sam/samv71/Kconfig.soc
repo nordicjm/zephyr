@@ -4,9 +4,9 @@
 # Copyright (c) 2016 Piotr Mienkowski
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Atmel SAMV71 MCU Selection"
-	depends on SOC_SERIES_SAMV71
+#choice
+#	prompt "Atmel SAMV71 MCU Selection"
+#	depends on SOC_SERIES_SAMV71
 
 	config SOC_PART_NUMBER_SAMV71Q21
 		bool "SAMV71Q21"
@@ -70,7 +70,7 @@ choice
 	config SOC_PART_NUMBER_SAMV71J19B
 		bool "SAMV71J19B"
 		select SOC_ATMEL_SAMV71_REVB
-endchoice
+#endchoice
 
 if SOC_SERIES_SAMV71
 

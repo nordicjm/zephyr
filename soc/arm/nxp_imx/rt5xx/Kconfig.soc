@@ -3,9 +3,9 @@
 # Copyright (c) 2022, NXP
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "i.MX RT5XX Series MCU Selection"
-	depends on SOC_SERIES_IMX_RT5XX
+#choice
+#	prompt "i.MX RT5XX Series MCU Selection"
+#	depends on SOC_SERIES_IMX_RT5XX
 
 config SOC_MIMXRT595S_CM33
 	bool "SOC_MIMXRT595S M33"
@@ -31,7 +31,7 @@ config SOC_MIMXRT595S_CM33
 	select HAS_MCUX_USDHC2
 	select HAS_MCUX_USB_LPCIP3511
 	select HAS_MCUX_CTIMER
-endchoice
+#endchoice
 
 if SOC_SERIES_IMX_RT5XX
 

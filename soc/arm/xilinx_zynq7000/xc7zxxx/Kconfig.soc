@@ -6,9 +6,9 @@
 # https://www.xilinx.com/products/silicon-devices/soc/zynq-7000.html#productTable
 #
 
-choice
-	prompt "XC7Zxxx SoC Selection"
-	depends on SOC_SERIES_XILINX_XC7ZXXX
+#choice
+#	prompt "XC7Zxxx SoC Selection"
+#	depends on SOC_SERIES_XILINX_XC7ZXXX
 
 config SOC_XILINX_XC7Z010
 	bool "XC7Z010"
@@ -57,4 +57,4 @@ config SOC_XILINX_XC7Z100
 	  444k logic cells, 26.5Mb block RAM, 2020 DSP slices, up to 400 I/O pins,
 	  up to 16 transceivers.
 
-endchoice
+#endchoice

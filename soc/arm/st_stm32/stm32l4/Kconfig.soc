@@ -6,9 +6,9 @@
 # Copyright (c) 2019 STMicroelectronics
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "STM32L4x MCU Selection"
-	depends on SOC_SERIES_STM32L4X
+#choice
+#	prompt "STM32L4x MCU Selection"
+#	depends on SOC_SERIES_STM32L4X
 
 config SOC_STM32L476XX
 	bool "STM32L476X"
@@ -49,4 +49,4 @@ config SOC_STM32L4R9XX
 config SOC_STM32L471XX
 	bool "STM32L471XX"
 
-endchoice
+#endchoice

@@ -7,9 +7,9 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-choice
-	prompt "Kinetis K2x MCU Selection"
-	depends on SOC_SERIES_KINETIS_K2X
+#choice
+#	prompt "Kinetis K2x MCU Selection"
+#	depends on SOC_SERIES_KINETIS_K2X
 
 config SOC_MK22F51212
 	bool "SOC_MK22F51212"
@@ -26,7 +26,7 @@ config SOC_MK22F51212
 	select HAS_MCUX_DAC
 	select HAS_MCUX_RCM
 
-endchoice
+#endchoice
 
 if SOC_SERIES_KINETIS_K2X
 

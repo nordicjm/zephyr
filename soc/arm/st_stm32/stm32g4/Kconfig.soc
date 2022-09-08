@@ -3,9 +3,9 @@
 # Copyright (c) 2019 Richard Osterloh <richard.osterloh@gmail.com>
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "STM32G4x MCU Selection"
-	depends on SOC_SERIES_STM32G4X
+#choice
+#	prompt "STM32G4x MCU Selection"
+#	depends on SOC_SERIES_STM32G4X
 
 config SOC_STM32G4A1XX
 	bool "STM32G4A1XX"
@@ -31,4 +31,4 @@ config SOC_STM32G484XX
 config SOC_STM32G491XX
 	bool "STM32G491XX"
 
-endchoice
+#endchoice

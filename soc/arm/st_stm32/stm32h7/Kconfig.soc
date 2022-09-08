@@ -5,9 +5,9 @@
 # Copyright (c) 2021 Electrolance Solutions
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "STM32H7x MCU Selection"
-	depends on SOC_SERIES_STM32H7X
+#choice
+#	prompt "STM32H7x MCU Selection"
+#	depends on SOC_SERIES_STM32H7X
 
 config SOC_STM32H723XX
 	bool "STM32H723XX"
@@ -72,4 +72,4 @@ config SOC_STM32H7B3XXQ
 	select CPU_CORTEX_M7
 	select CPU_HAS_FPU_DOUBLE_PRECISION
 
-endchoice
+#endchoice

@@ -3,9 +3,9 @@
 # Copyright (c) 2020 STMicroelectronics.
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "STM32WLx MCU Selection"
-	depends on SOC_SERIES_STM32WLX
+#choice
+#	prompt "STM32WLx MCU Selection"
+#	depends on SOC_SERIES_STM32WLX
 
 config SOC_STM32WLE4XX
 	bool "STM32WLE4XX"
@@ -19,4 +19,4 @@ config SOC_STM32WL54XX
 config SOC_STM32WL55XX
 	bool "STM32WL55XX"
 
-endchoice
+#endchoice

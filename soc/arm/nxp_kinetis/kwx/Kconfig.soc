@@ -3,9 +3,9 @@
 # Copyright (c) 2017, NXP
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Kinetis KWx MCU Selection"
-	depends on SOC_SERIES_KINETIS_KWX
+#choice
+#	prompt "Kinetis KWx MCU Selection"
+#	depends on SOC_SERIES_KINETIS_KWX
 
 config SOC_MKW22D5
 	bool "SOC_MKW22D5"
@@ -62,7 +62,7 @@ config SOC_MKW41Z4
 	select HAS_MCG
 	select HAS_MCUX_RCM
 
-endchoice
+#endchoice
 
 if SOC_SERIES_KINETIS_KWX
 

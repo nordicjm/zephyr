@@ -1,9 +1,9 @@
 # Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
 # SPDX-License-Identifier: Apache-2.0
 
-choice
-	prompt "Atmel SAM4L MCU Selection"
-	depends on SOC_SERIES_SAM4L
+#choice
+#	prompt "Atmel SAM4L MCU Selection"
+#	depends on SOC_SERIES_SAM4L
 
 	config SOC_PART_NUMBER_SAM4LS8C
 		bool "SAM4LS8C"
@@ -58,4 +58,4 @@ choice
 
 	config SOC_PART_NUMBER_SAM4LC2A
 		bool "SAM4LC2A"
-endchoice
+#endchoice
