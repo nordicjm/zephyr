@@ -1,4 +1,4 @@
-config BOARD_MPS2_AN521_CPU1
+config BOARD_MPS2_AN521_REMOTE
 	bool
 	default y
 	select SOC_SERIES_MPS2
