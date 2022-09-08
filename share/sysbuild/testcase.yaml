@@ -1,0 +1,4 @@
+tests:
+  sysbuild.go:
+    tags: sysbuild
+    arch_allow: arc arm arm64 mips nios2 posix riscv sparc x86 xtensa
