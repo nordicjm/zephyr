@@ -1,4 +1,4 @@
-config BOARD_MPS2_AN521_CPU0
+config BOARD_MPS2_AN521_NS
 	bool
 	default y
 	select SOC_SERIES_MPS2

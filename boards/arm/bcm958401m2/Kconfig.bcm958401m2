@@ -1,4 +1,4 @@
-config BOARD_VALKYRIE_BCM958401M2
+config BOARD_BCM958401M2
 	bool
 	default y
 	select SOC_SERIES_VALKYRIE

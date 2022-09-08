@@ -1,4 +1,4 @@
-config BOARD_CVSXDEVKIT
+config BOARD_CYCLONEV_SOCDK
 	bool
 	default y
 	select SOC_SERIES_CYCLONE5
