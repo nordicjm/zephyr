@@ -323,7 +323,7 @@ class FilterBuilder(CMake):
             for line in fp.readlines():
                 m = self.config_re.match(line)
                 if not m:
-                    if line.strip() and not line.startswith("#"):
+                    if line.strip() and not line.startswith("#") and not line.startswith("SB_CONFIG"):
                         sys.stderr.write("Unrecognized line %s\n" % line)
                     continue
                 defconfig[m.group(1)] = m.group(2).strip()
