@@ -1,0 +1,4 @@
+config BOARD_HSDK_2CORES
+	bool
+	default y
+	select SOC_ARC_HSDK
