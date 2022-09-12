@@ -1,0 +1,5 @@
+config BOARD_MIMX8MP_EVK_A53
+	bool
+	default y
+	select SOC_SERIES_MIMX8M_A53
+	select SOC_MIMX8MP_A53
