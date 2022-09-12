@@ -1,4 +1,5 @@
 config BOARD_INTEL_ADSP_ACE15_MTPM
 	bool
 	default y
-	select SOC_SERIES_INTEL_ACE1X
+	select SOC_SERIES_INTEL_ACE=y
+	select SOC_INTEL_ACE15_MTPM=y
