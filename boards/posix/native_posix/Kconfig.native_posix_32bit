@@ -1,5 +1,0 @@
-config BOARD_NATIVE_POSIX_32BIT
-	bool
-	default y
-	select SOC_POSIX
-	select BOARD_NATIVE_POSIX

@@ -1,0 +1,5 @@
+config BOARD_NATIVE_POSIX_64
+	bool
+	default y
+	select SOC_POSIX
+	select 64BIT

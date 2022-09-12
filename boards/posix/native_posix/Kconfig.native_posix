@@ -1,0 +1,4 @@
+config BOARD_NATIVE_POSIX
+	bool
+	default y
+	select SOC_POSIX

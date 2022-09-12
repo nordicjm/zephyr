@@ -11,6 +11,6 @@ config SOC_BCM58402_A72
 	select CPU_CORTEX_A72
 	select ARM_ARCH_TIMER
 	select GIC_V3
-	select SOC_SERIES_VIPER
+#	select SOC_SERIES_VIPER
 
 #endchoice

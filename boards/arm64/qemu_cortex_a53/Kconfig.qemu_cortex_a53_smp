@@ -1,0 +1,4 @@
+config BOARD_QEMU_CORTEX_A53_SMP
+	bool
+	default y
+	select SOC_QEMU_CORTEX_A53

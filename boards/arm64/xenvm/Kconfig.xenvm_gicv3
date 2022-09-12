@@ -1,0 +1,4 @@
+config BOARD_XENVM_GICV3
+	bool
+	default y
+	select SOC_XENVM

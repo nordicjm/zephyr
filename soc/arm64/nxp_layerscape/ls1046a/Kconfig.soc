@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-choice
-prompt "NXP Layerscpae LS1046A SoC"
-depends on SOC_SERIES_LS1046A
+#choice
+#prompt "NXP Layerscpae LS1046A SoC"
+#depends on SOC_SERIES_LS1046A
 
 config SOC_LS1046A
 	bool "NXP ls1046a"
@@ -15,4 +15,4 @@ config SOC_LS1046A
 	select ARM_ARCH_TIMER
 	select GIC_V2
 
-endchoice
+#endchoice
