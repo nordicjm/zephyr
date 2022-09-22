@@ -28,7 +28,7 @@ extern "C" {
  *
  * @return 0 on success, MGMT_ERR_[...] code on failure.
  */
-int img_mgmt_impl_erase_slot(int slot);
+int img_mgmt_impl_erase_slot(int slot, bool async);
 
 /**
  * @brief Marks the image in the specified slot as pending. On the next reboot,

@@ -34,6 +34,108 @@ BUILD_ASSERT(CONFIG_IMG_MGMT_UPDATABLE_IMAGE_NUMBER == 1 ||
 	      FIXED_PARTITION_EXISTS(SLOT3_PARTITION)),
 	     "Missing partitions?");
 
+
+//#define CONFIG_MCUMGR_SMP_WORKQUEUE_THREAD_PRIOA 15
+#define CONFIG_MCUMGR_SMP_WORKQUEUE_THREAD_PRIOA 20
+#define CONFIG_MCUMGR_SMP_WORKQUEUE_STACK_SIZEA 1024
+K_THREAD_STACK_DEFINE(img_mgmt_work_queue_stack, CONFIG_MCUMGR_SMP_WORKQUEUE_STACK_SIZEA);
+static struct k_work_q img_mgmt_work_queue;
+
+struct erase_slot_t {
+	struct k_work_delayable work;
+	int area_id;
+	const struct flash_area *fa;
+	uint32_t offset;
+} erase_slot_info;
+
+K_SEM_DEFINE(erase_async_sem, 1, 1);
+
+void erase_slot_async(struct k_work *item)
+{
+//	const struct flash_area *fa;
+        struct k_work_delayable *dwork = k_work_delayable_from_work(item);
+//	struct erase_slot_t *erase_data = CONTAINER_OF(item, struct erase_slot_t, work);
+	struct erase_slot_t *erase_data = CONTAINER_OF(dwork, struct erase_slot_t, work);
+	int rc;
+
+k_yield();
+printk("in async\n");
+//	rc = flash_area_open(erase_data->area_id, &fa);
+
+#if 0
+	if (rc == 0) {
+#if 1
+//		rc = flash_area_erase(fa, 0, fa->fa_size);
+		/* align requested erase size to the erase-block-size */
+		const struct device *dev = flash_area_get_device(erase_data->fa);
+//		if (dev == NULL) {
+//			rc = MGMT_ERR_EUNKNOWN;
+//			goto end_fa;
+//		}
+		struct flash_pages_info page;
+//		off_t page_offset = fa->fa_off + num_bytes - 1;
+
+uint32_t pos = erase_data->fa->fa_off;
+uint32_t end_pos = erase_data->fa->fa_off + erase_data->fa->fa_size;
+
+while (pos < end_pos)
+{
+		rc = flash_get_page_info_by_offs(dev, pos, &page);
+
+//		size_t erase_size = page.start_offset + page.size - fa->fa_off;
+
+printk("do erase @ %lx of %x...", (page.start_offset - erase_data->fa->fa_off), page.size);
+		rc = flash_area_erase(erase_data->fa, (page.start_offset - erase_data->fa->fa_off), page.size);
+
+pos += page.size;
+k_yield();
+}
+#else
+uint8_t i = 0;
+while (i < 8)
+{
+printk("#%d...\n", i);
+k_sleep(K_SECONDS(1));
+++i;
+}
+#endif
+
+
+//		flash_area_close(fa);
+	}
+#endif
+
+		const struct device *dev = flash_area_get_device(erase_data->fa);
+		struct flash_pages_info page;
+uint32_t pos = erase_data->fa->fa_off + erase_data->offset;
+uint32_t end_pos = erase_data->fa->fa_off + erase_data->fa->fa_size;
+		rc = flash_get_page_info_by_offs(dev, pos, &page);
+printk("do erase @ %lx of %x...", (page.start_offset - erase_data->fa->fa_off), page.size);
+		rc = flash_area_erase(erase_data->fa, (page.start_offset - erase_data->fa->fa_off), page.size);
+
+erase_data->offset += page.size;
+if ((erase_data->fa->fa_off + erase_data->offset) >= end_pos)
+{
+				flash_area_close(erase_data->fa);
+	k_sem_give(&erase_async_sem);
+printk("finished async\n");
+}
+else
+{
+//re-run
+//				k_work_submit_to_queue(&img_mgmt_work_queue, &erase_slot_info.work);
+k_work_schedule_for_queue(&img_mgmt_work_queue, &erase_slot_info.work, K_MSEC(150));
+//				k_work_submit(&erase_slot_info.work);
+}
+printk("leaving async\n");
+
+}
+
+bool check_async_running()
+{
+return k_sem_count_get(&erase_async_sem) == 0 ? true : false;
+}
+
 static int
 zephyr_img_mgmt_slot_to_image(int slot)
 {
@@ -254,7 +356,7 @@ img_mgmt_vercmp(const struct image_version *a, const struct image_version *b)
 }
 
 int
-img_mgmt_impl_erase_slot(int slot)
+img_mgmt_impl_erase_slot(int slot, bool async)
 {
 	const struct flash_area *fa;
 	int rc;
@@ -263,6 +365,13 @@ img_mgmt_impl_erase_slot(int slot)
 
 	if (area_id < 0) {
 		return MGMT_ERR_EUNKNOWN;
+	}
+printk("in erase slot\n");
+
+	/* First check if an async erase is already in progress */
+	if (k_sem_count_get(&erase_async_sem) == 0) {
+		/* As an erase is already in progress, return a busy error */
+		return MGMT_ERR_EBUSY;
 	}
 
 	rc = flash_area_open(area_id, &fa);
@@ -274,10 +383,37 @@ img_mgmt_impl_erase_slot(int slot)
 	rc = img_mgmt_flash_check_empty_inner(fa, &empty);
 
 	if (!empty && rc == 0) {
-		rc = flash_area_erase(fa, 0, fa->fa_size);
+		if (async == true) {
+printk("sem count was %d\n", k_sem_count_get(&erase_async_sem));
+			if (k_sem_take(&erase_async_sem, K_NO_WAIT) == 0) {
+printk("send!\n");
+printk("sem count now is %d\n", k_sem_count_get(&erase_async_sem));
+//				flash_area_close(fa);
+				erase_slot_info.area_id = area_id;
+				erase_slot_info.fa = fa;
+				erase_slot_info.offset = 0;
+
+//	const struct flash_area *fa;
+
+//				k_work_submit_to_queue(&img_mgmt_work_queue, &erase_slot_info.work);
+k_work_schedule_for_queue(&img_mgmt_work_queue, &erase_slot_info.work, K_MSEC(1));
+//				k_work_submit(&erase_slot_info.work);
+return 0;
+			} else {
+printk("uh oh\n");
+				rc = -1;
+			}
+		} else {
+			rc = flash_area_erase(fa, 0, fa->fa_size);
+		}
+	} else if (async == true) {
+		/* Return an error if there is nothing for the async erase to do */
+printk("already erased\n");
+		rc = -1;
 	}
 
 	flash_area_close(fa);
+printk("close\n");
 
 	return (rc == 0 ? MGMT_ERR_EOK : MGMT_ERR_EUNKNOWN);
 }
@@ -674,3 +810,20 @@ img_mgmt_impl_erased_val(int slot, uint8_t *erased_val)
 
 	return 0;
 }
+
+
+static int img_mgmt_init(const struct device *dev)
+{
+	k_work_queue_init(&img_mgmt_work_queue);
+
+	k_work_queue_start(&img_mgmt_work_queue, img_mgmt_work_queue_stack,
+			   K_THREAD_STACK_SIZEOF(img_mgmt_work_queue_stack),
+			   CONFIG_MCUMGR_SMP_WORKQUEUE_THREAD_PRIOA, NULL);
+
+	k_work_init_delayable(&erase_slot_info.work, erase_slot_async);
+
+	return 0;
+}
+
+SYS_INIT(img_mgmt_init, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY);
+

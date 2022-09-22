@@ -251,10 +251,13 @@ img_mgmt_erase(struct mgmt_ctxt *ctxt)
 	zcbor_state_t *zse = ctxt->cnbe->zs;
 	bool ok;
 	uint32_t slot = 1;
+	bool async = false;
 	size_t decoded = 0;
 
+printk("erase...\n");
 	struct zcbor_map_decode_key_val image_erase_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_VAL(slot, zcbor_uint32_decode, &slot),
+		ZCBOR_MAP_DECODE_KEY_VAL(async, zcbor_bool_decode, &async),
 	};
 
 	ok = zcbor_map_decode_bulk(zsd, image_erase_decode,
@@ -264,10 +267,16 @@ img_mgmt_erase(struct mgmt_ctxt *ctxt)
 		return MGMT_ERR_EINVAL;
 	}
 
+if (check_async_running() == true) {
+printk("already busy...\n");
+return MGMT_ERR_EBUSY;
+}
+
 	/*
 	 * First check if image info is valid.
 	 * This check is done incase the flash area has a corrupted image.
 	 */
+printk("read slot data\n");
 	rc = img_mgmt_read_info(slot, &ver, NULL, NULL);
 
 	if (rc == 0) {
@@ -278,7 +287,7 @@ img_mgmt_erase(struct mgmt_ctxt *ctxt)
 		}
 	}
 
-	rc = img_mgmt_impl_erase_slot(slot);
+	rc = img_mgmt_impl_erase_slot(slot, async);
 
 	if (rc != 0) {
 		img_mgmt_dfu_stopped();
@@ -286,6 +295,8 @@ img_mgmt_erase(struct mgmt_ctxt *ctxt)
 
 	ok = zcbor_tstr_put_lit(zse, "rc")      &&
 	     zcbor_int32_put(zse, rc);
+
+printk("done?\n");
 
 	return ok ? MGMT_ERR_EOK : MGMT_ERR_EMSGSIZE;
 }
