@@ -61,7 +61,7 @@ if(WEST OR ZEPHYR_MODULES)
 # TODO: replace with SYSBUILD when available
   if(SB_CONFIG_BOOTLOADER_MCUBOOT)
     set(SB_CONFIG_GENERATION
-      --sysbuild-kconfig-out ${KCONFIG_BINARY_DIR}/Kconfig.sysbuild_modules
+      --sysbuild-kconfig-out ${CMAKE_BINARY_DIR}/Kconfig.sysbuild_modules
       --sysbuild-cmake-out ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt
     )
   else()
@@ -117,6 +117,23 @@ if(WEST OR ZEPHYR_MODULES)
       list(APPEND ZEPHYR_MODULE_NAMES ${module_name})
     endforeach()
   endif()
+
+# TODO: replace with SYSBUILD when available
+#  if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+#    if(EXISTS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt)
+#      file(STRINGS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt ZEPHYR_SYSBUILD_MODULES_TXT
+#           ENCODING UTF-8)
+#
+#      set(ZEPHYR_SYSBUILD_MODULE_NAMES)
+#      foreach(module ${ZEPHYR_SYSBUILD_MODULES_TXT})
+#        # Match "<name>":"<path>" for each line of file, each corresponding to
+#        # one module. The use of quotes is required due to CMake not supporting
+#        # lazy regexes (it supports greedy only).
+#        string(REGEX REPLACE "\"(.*)\":\".*\":\".*\"" "\\1" module_name ${module})
+#        list(APPEND ZEPHYR_SYSBUILD_MODULE_NAMES ${module_name})
+#      endforeach()
+#    endif()
+#  endif()
 
   # MODULE_EXT_ROOT is process order which means Zephyr module roots processed
   # later wins. therefore we reverse the list before processing.

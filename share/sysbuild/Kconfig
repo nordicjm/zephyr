@@ -34,3 +34,6 @@ config WARN_DEPRECATED
 	  features are enabled.
 
 rsource "bootloader/Kconfig"
+
+# Include module sysbuild configuration if it exists
+osource "$(KCONFIG_BINARY_DIR)/Kconfig.sysbuild_modules"
