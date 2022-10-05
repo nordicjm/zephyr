@@ -119,21 +119,22 @@ if(WEST OR ZEPHYR_MODULES)
   endif()
 
 # TODO: replace with SYSBUILD when available
-#  if(SB_CONFIG_BOOTLOADER_MCUBOOT)
-#    if(EXISTS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt)
-#      file(STRINGS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt ZEPHYR_SYSBUILD_MODULES_TXT
-#           ENCODING UTF-8)
-#
-#      set(ZEPHYR_SYSBUILD_MODULE_NAMES)
-#      foreach(module ${ZEPHYR_SYSBUILD_MODULES_TXT})
-#        # Match "<name>":"<path>" for each line of file, each corresponding to
-#        # one module. The use of quotes is required due to CMake not supporting
-#        # lazy regexes (it supports greedy only).
-#        string(REGEX REPLACE "\"(.*)\":\".*\":\".*\"" "\\1" module_name ${module})
-#        list(APPEND ZEPHYR_SYSBUILD_MODULE_NAMES ${module_name})
-#      endforeach()
-#    endif()
-#  endif()
+  if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+    if(EXISTS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt)
+      file(STRINGS ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt ZEPHYR_SYSBUILD_MODULES_TXT
+           ENCODING UTF-8)
+
+      set(ZEPHYR_SYSBUILD_MODULE_NAMES)
+      foreach(module ${ZEPHYR_SYSBUILD_MODULES_TXT})
+        # Match "<name>":"<path>" for each line of file, each corresponding to
+        # one module. The use of quotes is required due to CMake not supporting
+        # lazy regexes (it supports greedy only).
+        string(REGEX REPLACE "\"(.*)\":\".*\":\".*\"" "\\1" module_name ${module})
+message(WARNING " added ${module_name}")
+        list(APPEND ZEPHYR_SYSBUILD_MODULE_NAMES ${module_name})
+      endforeach()
+    endif()
+  endif()
 
   # MODULE_EXT_ROOT is process order which means Zephyr module roots processed
   # later wins. therefore we reverse the list before processing.
@@ -160,6 +161,28 @@ if(WEST OR ZEPHYR_MODULES)
       if(NOT ${MODULE_NAME_UPPER} STREQUAL CURRENT)
         set(ZEPHYR_${MODULE_NAME_UPPER}_MODULE_DIR ${module_path})
         set(ZEPHYR_${MODULE_NAME_UPPER}_CMAKE_DIR ${cmake_path})
+      else()
+        message(FATAL_ERROR "Found Zephyr module named: ${module_name}\n\
+${MODULE_NAME_UPPER} is a restricted name for Zephyr modules as it is used for \
+\${ZEPHYR_${MODULE_NAME_UPPER}_MODULE_DIR} CMake variable.")
+      endif()
+    endforeach()
+  endif()
+
+  if(DEFINED ZEPHYR_SYSBUILD_MODULES_TXT)
+    foreach(module ${ZEPHYR_SYSBUILD_MODULES_TXT})
+      # Match "<name>":"<path>" for each line of file, each corresponding to
+      # one Zephyr module. The use of quotes is required due to CMake not
+      # supporting lazy regexes (it supports greedy only).
+      string(CONFIGURE ${module} module)
+      string(REGEX REPLACE "\"(.*)\":\".*\":\".*\"" "\\1" module_name ${module})
+      string(REGEX REPLACE "\".*\":\"(.*)\":\".*\"" "\\1" module_path ${module})
+      string(REGEX REPLACE "\".*\":\".*\":\"(.*)\"" "\\1" cmake_path ${module})
+
+      zephyr_string(SANITIZE TOUPPER MODULE_NAME_UPPER ${module_name})
+      if(NOT ${MODULE_NAME_UPPER} STREQUAL CURRENT)
+        set(ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_MODULE_DIR ${module_path})
+        set(ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_CMAKE_DIR ${cmake_path})
       else()
         message(FATAL_ERROR "Found Zephyr module named: ${module_name}\n\
 ${MODULE_NAME_UPPER} is a restricted name for Zephyr modules as it is used for \

@@ -101,6 +101,29 @@ foreach(module_name ${ZEPHYR_MODULE_NAMES})
   endif()
 endforeach()
 
+message(WARNING "at 2: ${SB_CONFIG_BOOTLOADER_MCUBOOT}")
+if (DEFINED SB_CONFIG_BOOTLOADER_MCUBOOT)
+#if (1)
+message(WARNING "list: ${ZEPHYR_SYSBUILD_MODULE_NAMES}")
+  # Export each `ZEPHYR_<module>_MODULE_DIR` to Kconfig.
+  # This allows Kconfig files to refer relative from a modules root as:
+  # source "$(ZEPHYR_FOO_MODULE_DIR)/Kconfig"
+  foreach(module_name ${ZEPHYR_SYSBUILD_MODULE_NAMES})
+    zephyr_string(SANITIZE TOUPPER MODULE_NAME_UPPER ${module_name})
+    list(APPEND
+         ZEPHYR_SYSBUILD_KCONFIG_MODULES_DIR
+         "ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_MODULE_DIR=${ZEPHYR_${MODULE_NAME_UPPER}_MODULE_DIR}"
+    )
+
+    if(ZEPHYR_${MODULE_NAME_UPPER}_KCONFIG)
+      list(APPEND
+           ZEPHYR_SYSBUILD_KCONFIG_MODULES_DIR
+           "ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_KCONFIG=${ZEPHYR_${MODULE_NAME_UPPER}_KCONFIG}"
+    )
+    endif()
+  endforeach()
+endif()
+
 # A list of common environment settings used when invoking Kconfig during CMake
 # configure time or menuconfig and related build target.
 string(REPLACE ";" "\\\;" SHIELD_AS_LIST_ESCAPED "${SHIELD_AS_LIST}")
@@ -126,6 +149,7 @@ set(COMMON_KCONFIG_ENV_SETTINGS
   EDT_PICKLE=${EDT_PICKLE}
   # Export all Zephyr modules to Kconfig
   ${ZEPHYR_KCONFIG_MODULES_DIR}
+  ${ZEPHYR_SYSBUILD_KCONFIG_MODULES_DIR}
 )
 
 # Allow out-of-tree users to add their own Kconfig python frontend

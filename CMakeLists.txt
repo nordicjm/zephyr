@@ -588,6 +588,27 @@ foreach(module_name ${ZEPHYR_MODULE_NAMES})
     add_subdirectory(${ZEPHYR_CURRENT_CMAKE_DIR} ${CMAKE_BINARY_DIR}/modules/${module_name})
   endif()
 endforeach()
+
+message(WARNING "at 1: ${SB_CONFIG_BOOTLOADER_MCUBOOT}")
+if (DEFINED SB_CONFIG_BOOTLOADER_MCUBOOT)
+#if (1)
+  # Include zephyr modules generated CMake file.
+message(WARNING "list: ${ZEPHYR_SYSBUILD_MODULE_NAMES}")
+  foreach(module_name ${ZEPHYR_SYSBUILD_MODULE_NAMES})
+    # Note the second, binary_dir parameter requires the added
+    # subdirectory to have its own, local cmake target(s). If not then
+    # this binary_dir is created but stays empty. Object files land in
+    # the main binary dir instead.
+    # https://cmake.org/pipermail/cmake/2019-June/069547.html
+    zephyr_string(SANITIZE TOUPPER MODULE_NAME_UPPER ${module_name})
+    if(NOT ${ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_CMAKE_DIR} STREQUAL "")
+      set(ZEPHYR_CURRENT_MODULE_DIR ${ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_MODULE_DIR})
+      set(ZEPHYR_CURRENT_CMAKE_DIR ${ZEPHYR_SYSBUILD_${MODULE_NAME_UPPER}_CMAKE_DIR})
+      add_subdirectory(${ZEPHYR_CURRENT_CMAKE_DIR} ${CMAKE_BINARY_DIR}/sysbuild_modules/${module_name})
+    endif()
+  endforeach()
+endif()
+
 # Done processing modules, clear ZEPHYR_CURRENT_MODULE_DIR and ZEPHYR_CURRENT_CMAKE_DIR.
 set(ZEPHYR_CURRENT_MODULE_DIR)
 set(ZEPHYR_CURRENT_CMAKE_DIR)
