@@ -58,6 +58,16 @@ endif()
 if(WEST OR ZEPHYR_MODULES)
   # Zephyr module uses west, so only call it if west is installed or
   # ZEPHYR_MODULES was provided as argument to CMake.
+# TODO: replace with SYSBUILD when available
+  if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+    set(SB_CONFIG_GENERATION
+      --sysbuild-kconfig-out ${KCONFIG_BINARY_DIR}/Kconfig.sysbuild_modules
+      --sysbuild-cmake-out ${CMAKE_BINARY_DIR}/zephyr_sysbuild_modules.txt
+    )
+  else()
+    set(SB_CONFIG_GENERATION "")
+  endif()
+
   execute_process(
     COMMAND
     ${PYTHON_EXECUTABLE} ${ZEPHYR_BASE}/scripts/zephyr_module.py
@@ -66,6 +76,7 @@ if(WEST OR ZEPHYR_MODULES)
     ${ZEPHYR_EXTRA_MODULES_ARG}
     --kconfig-out ${KCONFIG_MODULES_FILE}
     --cmake-out ${CMAKE_BINARY_DIR}/zephyr_modules.txt
+    ${SB_CONFIG_GENERATION}
     --settings-out ${ZEPHYR_SETTINGS_FILE}
     WORKING_DIRECTORY ${ZEPHYR_BASE}
     ERROR_VARIABLE

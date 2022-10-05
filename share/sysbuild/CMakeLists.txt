@@ -70,4 +70,6 @@ add_subdirectory(bootloader)
 include(${BOARD_DIR}/sysbuild.cmake OPTIONAL)
 include(${APP_DIR}/sysbuild.cmake OPTIONAL)
 
+# TODO: deal with sysbuild Kconfig and sysbuild cmake
+
 include(cmake/domains.cmake)
