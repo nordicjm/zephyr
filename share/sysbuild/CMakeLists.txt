@@ -112,15 +112,46 @@ include(cmake/domains.cmake)
 
 message(WARNING "teh apps: ${IMAGES}")
 
+set(VAR1)
+set(VAR2)
+set(VAR3)
+
 foreach(image ${IMAGES})
 message(WARNING "image: ${image}")
 
+include(${CMAKE_BINARY_DIR}/${image}/shared_vars.cmake)
+
+get_property(blah1 TARGET ${image}_shared_property_target PROPERTY PM_YML_DEP_FILES)
+get_property(blah2 TARGET ${image}_shared_property_target PROPERTY PM_YML_FILES)
+list(APPEND VAR1 ${blah1})
+list(APPEND VAR2 ${blah2})
+if (DEFINED blah1)
+#if (${blah1} STREQUAL "")
+#else()
+list(APPEND VAR3 ${image})
+endif()
+
+message(WARNING "1) ${blah1}, 2) ${blah2}")
+
 endforeach()
+
+message(WARNING "3) ${VAR1}, 4) ${VAR2}")
+
+#set_property(GLOBAL PROPERTY PM_IMAGES ${IMAGES})
+set_property(GLOBAL PROPERTY PM_IMAGES ${VAR3})
+set(CONFIG_FLASH_SIZE 1024)
+set(CONFIG_FLASH_BASE_ADDRESS 0x0)
+set(CONFIG_PM_SRAM_SIZE 0x40000)
+set(CONFIG_PM_SRAM_BASE 0x20000000)
+
+set(NRF_DIR "/tmp/bb/nrf" CACHE PATH "NCS root directory")
+#set_property(GLOBAL PROPERTY PM_SUBSYS_PREPROCESSED)
+#set_property(GLOBAL PROPERTY PM_DOMAINS)
 
 
 #if(ZEPHYR_NRF_MODULE_DIR)
 #set(ZEPHYR_BINARY_DIR ${CMAKE_BINARY_DIR})
 #  add_subdirectory(${ZEPHYR_NRF_MODULE_DIR} ${CMAKE_BINARY_DIR}/modules/nrf)
-#  include(${ZEPHYR_NRF_MODULE_DIR}/cmake/extensions.cmake)
-#  include(${ZEPHYR_NRF_MODULE_DIR}/cmake/partition_manager.cmake)
+  include(${ZEPHYR_NRF_MODULE_DIR}/cmake/extensions.cmake)
+  include(${ZEPHYR_NRF_MODULE_DIR}/cmake/partition_manager.cmake)
 #endif()
