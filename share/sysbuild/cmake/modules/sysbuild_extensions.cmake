@@ -23,7 +23,7 @@
 #                      MAIN_APP unmodified.
 #
 function(ExternalZephyrProject_Add)
-  cmake_parse_arguments(ZBUILD "MAIN_APP" "APPLICATION;BOARD;SOURCE_DIR" "" ${ARGN})
+  cmake_parse_arguments(ZBUILD "MAIN_APP" "APPLICATION;BOARD;SOURCE_DIR;SYSBUILD_MODULE_DIRS;SYSBUILD_CMAKE_DIRS" "" ${ARGN})
 
   if(ZBUILD_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
@@ -54,7 +54,12 @@ function(ExternalZephyrProject_Add)
     ZEPHYR_EXTRA_MODULES
     ZEPHYR_TOOLCHAIN_VARIANT
     EXTRA_KCONFIG_TARGETS
+#SYSBUILD_MODULE_DIRS
+#SYSBUILD_CMAKE_DIRS
+#APPLICATION
   )
+
+#message(WARNING "in this function: ${SYSBUILD_MODULE_DIRS}")
 
   set(shared_image_variables_regex
       "^[^_]*_TOOLCHAIN_PATH|^[^_]*_ROOT"
@@ -68,6 +73,7 @@ function(ExternalZephyrProject_Add)
   endif()
 
   get_cmake_property(variables_cached CACHE_VARIABLES)
+message(WARNING "vars: ${variables_cached}")
   foreach(var_name ${variables_cached})
     # Any var of the form `<app>_<var>` should be propagated.
     # For example mcuboot_<VAR>=<val> ==> -D<VAR>=<val> for mcuboot build.
@@ -139,12 +145,22 @@ function(ExternalZephyrProject_Add)
                  "   ${image_banner_header}\n"
   )
 
+message(WARNING     "COMMAND ${CMAKE_COMMAND}
+      -G${CMAKE_GENERATOR}
+      ${app_cache_entries}
+      -B${CMAKE_BINARY_DIR}/${ZBUILD_APPLICATION}
+      -S${ZBUILD_SOURCE_DIR}
+      -DAPPLICATION=${ZBUILD_APPLICATION}
+    RESULT_VARIABLE   return_val
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}")
+
   execute_process(
     COMMAND ${CMAKE_COMMAND}
       -G${CMAKE_GENERATOR}
       ${app_cache_entries}
       -B${CMAKE_BINARY_DIR}/${ZBUILD_APPLICATION}
       -S${ZBUILD_SOURCE_DIR}
+      -DAPPLICATION=${ZBUILD_APPLICATION}
     RESULT_VARIABLE   return_val
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
