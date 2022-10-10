@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Include MCUboot if enabled.
-if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+#if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+if (0)
   ExternalZephyrProject_Add(
     APPLICATION mcuboot
     SOURCE_DIR ${ZEPHYR_MCUBOOT_MODULE_DIR}/boot/zephyr/
@@ -14,3 +15,14 @@ SYSBUILD_CMAKE_DIRS ${SYSBUILD_CMAKE_DIRS}
   # Placing MCUBoot first in list to ensure it is flashed before other images.
   set(IMAGES "mcuboot" ${IMAGES} PARENT_SCOPE)
 endif()
+
+
+#if(SB_CONFIG_BOOTLOADER_MCUBOOT)
+  ExternalZephyrProject_Add(
+    APPLICATION hello_world
+    SOURCE_DIR /tmp/bb/zephyr/samples/hello_world/
+  )
+  # MCUBoot default configuration is to perform a full chip erase.
+  # Placing MCUBoot first in list to ensure it is flashed before other images.
+  set(IMAGES "hello_world" ${IMAGES} PARENT_SCOPE)
+#endif()
