@@ -3,6 +3,49 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Usage:
+#   load_cache(APPLICATION <name> BINARY_DIR <dir>)
+function(load_cache)
+  set(single_args APPLICATION BINARY_DIR)
+  cmake_parse_arguments(LOAD_CACHE "" "${single_args}" "" ${ARGN})
+
+  if(NOT TARGET ${LOAD_CACHE_APPLICATION}_cache)
+    add_custom_target(${LOAD_CACHE_APPLICATION}_cache)
+  endif()
+  file(STRINGS "${LOAD_CACHE_BINARY_DIR}/CMakeCache.txt" cache_strings)
+  foreach(str ${cache_strings})
+    # Using a regex for matching whole 'VAR_NAME:TYPE=VALUE' will strip semi-colons
+    # thus resulting in lists to become strings.
+    # Therefore we first fetch VAR_NAME and TYPE, and afterwards extract
+    # remaining of string into a value that populates the property.
+    # This method ensures that both quoted values and ;-separated list stays intact.
+    string(REGEX MATCH "([^:]*):([^=]*)=" variable_identifier ${str})
+    print(variable_identifier)
+    if(NOT ${variable_identifier} STREQUAL "")
+    string(LENGTH ${variable_identifier} variable_identifier_length)
+    string(SUBSTRING "${str}" ${variable_identifier_length} -1 variable_value)
+    set_property(TARGET ${LOAD_CACHE_APPLICATION}_cache APPEND PROPERTY "CACHE:VARIABLES" "${CMAKE_MATCH_1}")
+    set_property(TARGET ${LOAD_CACHE_APPLICATION}_cache PROPERTY "${CMAKE_MATCH_1}:TYPE" "${CMAKE_MATCH_2}")
+    set_property(TARGET ${LOAD_CACHE_APPLICATION}_cache PROPERTY "${CMAKE_MATCH_1}" "${variable_value}")
+    endif()
+  endforeach()
+endfunction()
+
+# Usage:
+#   sysbuild_get(<variable> IMAGE <image>)
+function(sysbuild_get variable)
+  cmake_parse_arguments(GET_VAR "" "IMAGE" "" ${ARGN})
+
+  if(NOT DEFINED GET_VAR_IMAGE)
+    message(FATAL_ERROR "sysbuild_get(...) requires IMAGE.")
+  endif()
+
+  get_property(${GET_VAR_IMAGE}_${variable} TARGET ${GET_VAR_IMAGE}_cache PROPERTY ${variable})
+  if(DEFINED ${GET_VAR_IMAGE}_${variable})
+    set(${variable} ${${GET_VAR_IMAGE}_${variable}} PARENT_SCOPE)
+  endif()
+endfunction()
+
+# Usage:
 #   ExternalZephyrProject_Add(APPLICATION <name>
 #                             SOURCE_DIR <dir>
 #                             [BOARD <board>]
@@ -171,6 +214,7 @@ message(WARNING     "COMMAND ${CMAKE_COMMAND}
             "Location: ${ZBUILD_SOURCE_DIR}"
     )
   endif()
+  load_cache(APPLICATION ${ZBUILD_APPLICATION} BINARY_DIR ${CMAKE_BINARY_DIR}/${ZBUILD_APPLICATION})
 
   foreach(kconfig_target
       menuconfig
