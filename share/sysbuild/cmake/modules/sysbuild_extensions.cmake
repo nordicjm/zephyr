@@ -19,7 +19,7 @@ function(load_cache)
     # remaining of string into a value that populates the property.
     # This method ensures that both quoted values and ;-separated list stays intact.
     string(REGEX MATCH "([^:]*):([^=]*)=" variable_identifier ${str})
-    print(variable_identifier)
+#    print(variable_identifier)
     if(NOT ${variable_identifier} STREQUAL "")
     string(LENGTH ${variable_identifier} variable_identifier_length)
     string(SUBSTRING "${str}" ${variable_identifier_length} -1 variable_value)
@@ -33,15 +33,19 @@ endfunction()
 # Usage:
 #   sysbuild_get(<variable> IMAGE <image>)
 function(sysbuild_get variable)
-  cmake_parse_arguments(GET_VAR "" "IMAGE" "" ${ARGN})
+  cmake_parse_arguments(GET_VAR "" "IMAGE;VAR" "" ${ARGN})
 
   if(NOT DEFINED GET_VAR_IMAGE)
     message(FATAL_ERROR "sysbuild_get(...) requires IMAGE.")
   endif()
 
-  get_property(${GET_VAR_IMAGE}_${variable} TARGET ${GET_VAR_IMAGE}_cache PROPERTY ${variable})
-  if(DEFINED ${GET_VAR_IMAGE}_${variable})
-    set(${variable} ${${GET_VAR_IMAGE}_${variable}} PARENT_SCOPE)
+  if(NOT DEFINED GET_VAR_VAR)
+    set(GET_VAR_VAR ${variable})
+  endif()
+
+  get_property(${GET_VAR_IMAGE}_${GET_VAR_VAR} TARGET ${GET_VAR_IMAGE}_cache PROPERTY ${GET_VAR_VAR})
+  if(DEFINED ${GET_VAR_IMAGE}_${GET_VAR_VAR})
+    set(${variable} ${${GET_VAR_IMAGE}_${GET_VAR_VAR}} PARENT_SCOPE)
   endif()
 endfunction()
 
