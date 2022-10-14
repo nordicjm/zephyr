@@ -193,3 +193,68 @@ set(NRF_DIR "/tmp/bb/nrf" CACHE PATH "NCS root directory")
   include(${ZEPHYR_NRF_MODULE_DIR}/cmake/extensions.cmake)
   include(${ZEPHYR_NRF_MODULE_DIR}/cmake/partition_manager.cmake)
 #endif()
+
+
+#get_cmake_property(_variableNames VARIABLES)
+#list (SORT _variableNames)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
+
+foreach(image ${IMAGES})
+message(WARNING "test signing for image: ${image}")
+
+#      --header-size $<TARGET_PROPERTY:partition_manager,PM_MCUBOOT_PAD_SIZE>
+#sysbuild_get(mcuboot_FLASH_WRITE_BLOCK_SIZE IMAGE ${image} VAR CONFIG_MCUBOOT_FLASH_WRITE_BLOCK_SIZE)
+#sysbuild_get(mcuboot_IMAGE_VERSION IMAGE ${image} VAR CONFIG_MCUBOOT_IMAGE_VERSION)
+set(mcuboot_FLASH_WRITE_BLOCK_SIZE 4)
+set(mcuboot_IMAGE_VERSION 0.0.0)
+    set(sign_cmd
+      ${PYTHON_EXECUTABLE}
+      ${ZEPHYR_MCUBOOT_MODULE_DIR}/scripts/imgtool.py
+      sign
+      --key ${SB_CONFIG_BOOT_SIGNATURE_KEY_FILE}
+      --header-size 0x200
+      --align       ${mcuboot_FLASH_WRITE_BLOCK_SIZE}
+      --version     ${mcuboot_IMAGE_VERSION}
+      --pad-header
+      )
+
+set(TEST $<TARGET_PROPERTY:partition_manager,PM_MCUBOOT_PRIMARY_SIZE>)
+    add_custom_command(
+      OUTPUT
+      ${image}/zephyr/zephyr_signed.hex            # Signed hex of input hex.
+
+      COMMAND
+      # Create signed hex file from input hex file.
+      # This does not have the IMAGE_MAGIC at the end. So for this hex file
+      # to be applied by mcuboot, the application is required to write the
+      # IMAGE_MAGIC into the image trailer.
+      ${sign_cmd}
+#      ${sign_dependencies}
+     --slot-size ${TEST}
+#${SIGN_ARG_SLOT_SIZE}
+#      ${SIGN_ARG_SIGNED_BIN_FILE_IN}
+      ${image}/zephyr/zephyr.hex
+      ${image}/zephyr/zephyr_signed.hex
+
+      DEPENDS
+      ${image}/zephyr/zephyr.hex
+        )
+
+#./mcuboot/zephyr/zephyr.hex
+#./smp_svr/zephyr/zephyr.hex
+#mcuboot_PM_HEX_FILE=/tmp/bb/zephyr/samples/subsys/mgmt/mcumgr/smp_svr/_AA/mcuboot/zephyr/zephyr.hex
+
+    add_custom_target(${image}_sign_target
+      DEPENDS ${${image}_PM_HEX_FILE} ${image}/zephyr/zephyr_signed.hex
+#      DEPENDS ${image}/zephyr/zephyr.hex ${image}/zephyr/zephyr_signed.hex
+      )
+add_dependencies(${image}_sign_target ${image})
+
+#${app_signed_hex} ${app_signed_bin} ${app_signed_test_hex}
+
+#  set_property(GLOBAL APPEND PROPERTY extra_post_build_commands COMMAND
+#          ${sign_cmd} ${image}/zephyr/zephyr.hex ${image}/zephyr/zephyr_signed.hex)
+
+endforeach()

@@ -145,8 +145,8 @@ function(zephyr_mcuboot_tasks)
   # add_custom_command() are run in order, so adding the 'west sign'
   # calls to the "extra_post_build_commands" property ensures they run
   # after the commands which generate the unsigned versions.
-  set_property(GLOBAL APPEND PROPERTY extra_post_build_commands COMMAND
-    ${west_sign} ${unconfirmed_args} ${imgtool_args})
+#  set_property(GLOBAL APPEND PROPERTY extra_post_build_commands COMMAND
+#    ${west_sign} ${unconfirmed_args} ${imgtool_args})
   if(confirmed_args)
     set_property(GLOBAL APPEND PROPERTY extra_post_build_commands COMMAND
       ${west_sign} ${confirmed_args} ${imgtool_args} --pad --confirm)
