@@ -47,8 +47,8 @@ _image_1_primary_slot_id = PM_S1_ID;
 
 #endif /* CONFIG_NCS_IS_VARIANT_IMAGE */
 
-#define ROM_ADDR PM_ADDRESS
-#define ROM_SIZE PM_SIZE
+#define ROM_ADDR PM_ADDRESS - PM_PADDING
+#define ROM_SIZE PM_SIZE + PM_PADDING
 
 #define RAM_SIZE PM_SRAM_SIZE
 #define RAM_ADDR PM_SRAM_ADDRESS

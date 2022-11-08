@@ -41,6 +41,10 @@ if(SB_CONFIG_BOOTLOADER_MCUBOOT)
       "Signature key file for signing" FORCE
   )
 
+  set(${app_name}_CONFIG_ROM_START_OFFSET "0x200" CACHE STRING
+      "Flash load offset" FORCE
+  )
+
   # Set corresponding values in mcuboot
   set(mcuboot_CONFIG_BOOT_SIGNATURE_TYPE_${SB_CONFIG_SIGNATURE_TYPE} y CACHE STRING
       "MCUBOOT signature type" FORCE
