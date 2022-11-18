@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2022-2023 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,6 +17,10 @@
 
 #ifdef CONFIG_MCUMGR_GRP_IMG
 #include <zephyr/mgmt/mcumgr/grp/img_mgmt/img_mgmt_callbacks.h>
+#endif
+
+#ifdef CONFIG_MCUMGR_GRP_SETTINGS
+#include <zephyr/mgmt/mcumgr/grp/settings_mgmt/settings_mgmt_callbacks.h>
 #endif
 
 #ifdef __cplusplus
@@ -106,6 +110,7 @@ enum mgmt_cb_groups {
 	MGMT_EVT_GRP_OS,
 	MGMT_EVT_GRP_IMG,
 	MGMT_EVT_GRP_FS,
+	MGMT_EVT_GRP_SETTINGS,
 
 	MGMT_EVT_GRP_USER_CUSTOM_START		= MGMT_GROUP_ID_PERUSER,
 };
@@ -184,6 +189,17 @@ enum os_mgmt_group_events {
 
 	/** Used to enable all os_mgmt_group events. */
 	MGMT_EVT_OP_OS_MGMT_ALL			= MGMT_DEF_EVT_OP_ALL(MGMT_EVT_GRP_OS),
+};
+
+/**
+ * MGMT event opcodes for settings management group.
+ */
+enum settings_mgmt_group_events {
+	/** Callback when a setting is read/written/deleted. */
+	MGMT_EVT_OP_SETTINGS_MGMT_ACCESS	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_SETTINGS, 0),
+
+	/** Used to enable all settings_mgmt_group events. */
+	MGMT_EVT_OP_SETTINGS_MGMT_ALL		= MGMT_DEF_EVT_OP_ALL(MGMT_EVT_GRP_SETTINGS),
 };
 
 /**

@@ -73,6 +73,9 @@ enum mcumgr_group_t {
 	/** Shell management group, used for executing shell commands */
 	MGMT_GROUP_ID_SHELL,
 
+	/** Settings management group, used for reading/writing settings */
+	MGMT_GROUP_ID_SETTINGS,
+
 	/** User groups defined from 64 onwards */
 	MGMT_GROUP_ID_PERUSER	= 64,
 
