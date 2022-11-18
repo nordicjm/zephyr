@@ -83,6 +83,7 @@ struct smp_streamer {
 	struct smp_transport *smpt;
 	struct cbor_nb_reader *reader;
 	struct cbor_nb_writer *writer;
+	enum smp_mcumgr_version_t source_header_version;
 
 #ifdef CONFIG_MCUMGR_SMP_VERBOSE_ERR_RESPONSE
 	const char *rc_rsn;
