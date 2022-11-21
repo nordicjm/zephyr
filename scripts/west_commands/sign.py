@@ -218,7 +218,12 @@ class ImgtoolSigner(Signer):
         # Flash device write alignment and the partition's slot size
         # come from devicetree:
         flash = self.edt_flash_node(b, args.quiet)
+        pm = self.edt_pm_config(b, args.quiet)
+        print(pm)
         align, addr, size = self.edt_flash_params(flash)
+
+        if (pm != 0):
+            addr, size = pm
 
         if not build_conf.getboolean('CONFIG_BOOTLOADER_MCUBOOT'):
             log.wrn("CONFIG_BOOTLOADER_MCUBOOT is not set to y in "
@@ -336,6 +341,33 @@ class ImgtoolSigner(Signer):
                     "can't infer flash write block or image-0 slot sizes")
 
         return flash
+
+    @staticmethod
+    def edt_pm_config(b, quiet=False):
+        # Get the EDT Node corresponding to the zephyr,flash chosen DT
+        # node; 'b' is the build directory as a pathlib object.
+
+        # Ensure the build directory has a compiled DTS file
+        # where we expect it to be.
+        dts = b / 'zephyr' / 'include' / 'generated' / 'pm_config.h'
+        if not quiet:
+            log.dbg('PM config file:', dts, level=log.VERBOSE_VERY)
+        if not dts.is_file():
+            return 0
+
+        # Load the devicetree.
+        this_addr = -1
+        this_size = -1
+        with open(dts, 'rb') as f:
+            for line in f:
+                if (line[0:18] == b"#define PM_ADDRESS"):
+                    this_addr = int(line[19:], 16)
+                    print(this_addr)
+                elif (line[0:15] == b"#define PM_SIZE"):
+                    this_size = int(line[16:], 16)
+                    print(this_size)
+
+        return [this_addr, this_size]
 
     @staticmethod
     def edt_flash_params(flash):
