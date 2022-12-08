@@ -1,0 +1,27 @@
+# This is a Kconfig @template@ file used for passing sysbuild controlled Kconfig
+# settings from sysbuild to images.
+
+config SYSBUILD_CONTROLLED
+	bool
+	default y
+	help
+	  Setting that can be used to indicate this setting is controlled by
+	  sysbuild when sysbuild is used as high level build system.
+
+config SYSBUILD_BOARD
+	string
+	default "@BOARD@"
+	help
+	  High-level board defined in sysbuild.
+
+if BOARD = SYSBUILD_BOARD
+
+config BOOTLOADER_MCUBOOT
+	default y if "@SB_CONFIG_BOOTLOADER_MCUBOOT@" && !MCUBOOT
+
+config MCUBOOT_SIGNATURE_KEY_FILE
+	default "@SB_CONFIG_BOOT_SIGNATURE_KEY_FILE@"
+
+endif
+
+orsource "Kconfig.sysbuild.*.image"

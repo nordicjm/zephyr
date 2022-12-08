@@ -107,6 +107,13 @@ while(NOT "${images_length}" EQUAL "${processed_length}")
 endwhile()
 
 foreach(image ${IMAGES})
+  # Create an sysbuild controlled Kconfig for the image.
+  # This allows sysbuild to propagate bootloader and signing settings to the image.
+  get_target_property(kconfig_dir ${image} KCONFIG_BINARY_DIR)
+  configure_file(${CMAKE_CURRENT_LIST_DIR}/Kconfig.image.template
+                 ${kconfig_dir}/Kconfig.sysbuild.image @ONLY
+  )
+
   ExternalZephyrProject_Cmake(APPLICATION ${image})
 endforeach()
 include(cmake/domains.cmake)

@@ -4,6 +4,10 @@
 # Copyright (c) 2016 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# Ensure that any setting defined by sysbuild takes precedence.
+# For eample if sysbuild defines that MCUboot is enabled, then it's enabled
+# and user should not be able to change this locally.
+osource "$(KCONFIG_BINARY_DIR)/Kconfig.sysbuild.image"
 
 # Include Kconfig.defconfig files first so that they can override defaults and
 # other symbol/choice properties by adding extra symbol/choice definitions.
