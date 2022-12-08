@@ -37,6 +37,7 @@ set(DTS_DEPS                    ${PROJECT_BINARY_DIR}/zephyr.dts.d)
 set(VENDOR_PREFIXES             dts/bindings/vendor-prefixes.txt)
 
 # Devicetree in Kconfig.
+set_ifndef(KCONFIG_BINARY_DIR   ${CMAKE_BINARY_DIR}/Kconfig)
 set(GEN_DRIVER_KCONFIG_SCRIPT   ${ZEPHYR_BASE}/scripts/dts/gen_driver_kconfig_dts.py)
 set(DTS_KCONFIG                 ${KCONFIG_BINARY_DIR}/Kconfig.dts)
 
