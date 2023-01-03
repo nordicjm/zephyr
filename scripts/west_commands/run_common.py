@@ -147,6 +147,12 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
     # This is the main routine for all the "west flash", "west debug",
     # etc. commands.
 
+    # Holds a dictionary of single-use commands, this is useful for sysbuild
+    # images whereby there are multiple images per board with flash commands
+    # that can interfere with other images if they run one per time an image
+    # is flashed.
+    used_cmds = {}
+
     if user_args.context:
         dump_context(command, user_args, user_runner_args)
         return
@@ -170,15 +176,50 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
                 "If problems are experienced, please specify a single domain "
                 "using '--domain <domain>'")
 
-    for d in domains:
-        do_run_common_image(command, user_args, user_runner_args, d.build_dir)
+        # Process all domains to load board names and populate flash runner
+        # parameters.
+        for d in domains:
+            if d.build_dir is None:
+                build_dir = get_build_dir(user_args)
+            else:
+                build_dir = d.build_dir
 
-def do_run_common_image(command, user_args, user_runner_args, build_dir=None):
+            cache = load_cmake_cache(build_dir, user_args)
+            board = cache['CACHED_BOARD']
+
+            # Load board flash runner configuration (if it exists) and store
+            # single-use commands in a dictionary so that they get executed
+            # once per unique board name.
+            try:
+                used_cmds[board]
+            except KeyError:
+                board_runner_test_file = Path(cache['BOARD_DIR']) / 'flash_runner.yml'
+
+                try:
+                    with open(board_runner_test_file, 'r') as f:
+                        board_runner_test_yaml = yaml.safe_load(f.read())
+                    used_cmds[board] = {}
+
+                    try:
+                        for c in board_runner_test_yaml['board_single_commands']:
+                            used_cmds[board][c] = False
+
+                    except KeyError:
+                        pass
+
+                except FileNotFoundError:
+                    pass
+
+    for d in domains:
+        do_run_common_image(command, user_args, user_runner_args, d.build_dir, used_cmds)
+
+def do_run_common_image(command, user_args, user_runner_args, build_dir=None, used_cmds=None):
     command_name = command.name
     if build_dir is None:
         build_dir = get_build_dir(user_args)
     cache = load_cmake_cache(build_dir, user_args)
     board = cache['CACHED_BOARD']
+
 
     # Load runners.yaml.
     yaml_path = runners_yaml_path(build_dir, board)
@@ -200,6 +241,20 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None):
     # If the user passed -- to force the parent argument parser to stop
     # parsing, it will show up here, and needs to be filtered out.
     runner_args = [arg for arg in user_runner_args if arg != '--']
+
+    # Check if there are any commands that should only be ran once per board
+    # and if so, remove them for all but the first iteration of the flash
+    # runner per unique board name.
+    try:
+        if len(used_cmds[board]) > 0 and len(runner_args) > 0:
+            for a in runner_args:
+                if a in used_cmds[board]:
+                    if used_cmds[board][a] is True:
+                        runner_args.pop(runner_args.index(a))
+                    else:
+                        used_cmds[board][a] = True
+    except KeyError:
+        pass
 
     # Arguments in this order to allow specific to override general:
     #
