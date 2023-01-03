@@ -151,7 +151,9 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
     # images whereby there are multiple images per board with flash commands
     # that can interfere with other images if they run one per time an image
     # is flashed.
-    used_cmds = {}
+    used_cmds = []
+    board_priority = []
+    processed_boards = {}
 
     if user_args.context:
         dump_context(command, user_args, user_runner_args)
@@ -191,24 +193,54 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
             # single-use commands in a dictionary so that they get executed
             # once per unique board name.
             try:
-                used_cmds[board]
+                processed_boards[cache['BOARD_DIR']]
             except KeyError:
                 board_runner_test_file = Path(cache['BOARD_DIR']) / 'flash_runner.yml'
 
                 try:
                     with open(board_runner_test_file, 'r') as f:
                         board_runner_test_yaml = yaml.safe_load(f.read())
-                    used_cmds[board] = {}
+#                    used_cmds[processed_boards] = {}
+                    processed_boards[cache['BOARD_DIR']] = True
 
                     try:
+                        print(type(board_runner_test_yaml))
                         for c in board_runner_test_yaml['board_single_commands']:
-                            used_cmds[board][c] = False
+                            used_cmds.append(len(used_cmds))
+                            used_cmds[len(used_cmds)-1] = c
+                            used_cmds[len(used_cmds)-1]['Ran'] = False
+
+                    except KeyError:
+                        pass
+
+                    try:
+                        for c in board_runner_test_yaml['board_flash_priority']:
+                            board_priority.append(len(board_priority))
+                            board_priority[len(board_priority)-1] = c
 
                     except KeyError:
                         pass
 
                 except FileNotFoundError:
                     pass
+
+    if len(board_priority) > 0:
+        # Board flash priorities have been set, re-arrange the order in which
+        # they are flashed to preserve the required conditions.
+        domains_ordered = []
+        for p in board_priority:
+            for d in domains:
+                tmp_build_dir = d.build_dir
+                if tmp_build_dir is None:
+                    tmp_build_dir = get_build_dir(user_args)
+                cache = load_cmake_cache(tmp_build_dir, user_args)
+                board = cache['CACHED_BOARD']
+
+                if board == p:
+                    domains_ordered.append(d)
+                    domains.remove(d)
+
+        domains = domains_ordered
 
     for d in domains:
         do_run_common_image(command, user_args, user_runner_args, d.build_dir, used_cmds)
@@ -219,7 +251,6 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
         build_dir = get_build_dir(user_args)
     cache = load_cmake_cache(build_dir, user_args)
     board = cache['CACHED_BOARD']
-
 
     # Load runners.yaml.
     yaml_path = runners_yaml_path(build_dir, board)
@@ -246,13 +277,21 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
     # and if so, remove them for all but the first iteration of the flash
     # runner per unique board name.
     try:
-        if len(used_cmds[board]) > 0 and len(runner_args) > 0:
+        if len(used_cmds) > 0 and len(runner_args) > 0:
             for a in runner_args:
-                if a in used_cmds[board]:
-                    if used_cmds[board][a] is True:
-                        runner_args.pop(runner_args.index(a))
-                    else:
-                        used_cmds[board][a] = True
+                i = 0
+                while (i < len(used_cmds)):
+                    try:
+                        if used_cmds[i][a] and type(used_cmds[i][a].index(board)):
+                            if used_cmds[i]['Ran'] == False:
+                                used_cmds[i]['Ran'] = True
+                            else:
+                                runner_args.pop(runner_args.index(a))
+                    except ValueError:
+                        pass
+
+                    i = i + 1
+
     except KeyError:
         pass
 
@@ -262,6 +301,8 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
     # - user-provided command line arguments
     final_argv = runners_yaml['args'][runner_name] + runner_args
 
+    print(board)
+    print(runner_args)
     # 'user_args' contains parsed arguments which are:
     #
     # 1. provided on the command line, and
@@ -300,22 +341,22 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
 
     # Use that RunnerConfig to create the ZephyrBinaryRunner instance
     # and call its run().
-    try:
-        runner = runner_cls.create(runner_config, args)
-        runner.run(command_name)
-    except ValueError as ve:
-        log.err(str(ve), fatal=True)
-        dump_traceback()
-        raise CommandError(1)
-    except MissingProgram as e:
-        log.die('required program', e.filename,
-                'not found; install it or add its location to PATH')
-    except RuntimeError as re:
-        if not user_args.verbose:
-            log.die(re)
-        else:
-            log.err('verbose mode enabled, dumping stack:', fatal=True)
-            raise
+#    try:
+#        runner = runner_cls.create(runner_config, args)
+#        runner.run(command_name)
+#    except ValueError as ve:
+#        log.err(str(ve), fatal=True)
+#        dump_traceback()
+#        raise CommandError(1)
+#    except MissingProgram as e:
+#        log.die('required program', e.filename,
+#                'not found; install it or add its location to PATH')
+#    except RuntimeError as re:
+#        if not user_args.verbose:
+#            log.die(re)
+#        else:
+#            log.err('verbose mode enabled, dumping stack:', fatal=True)
+#            raise
 
 def get_build_dir(args, die_if_none=True):
     # Get the build directory for the given argument list and environment.

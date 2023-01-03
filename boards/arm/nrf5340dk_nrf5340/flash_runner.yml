@@ -1,2 +1,22 @@
+board_flash_priority:
+  - nrf5340dk_nrf5340_cpunet
+  - nrf5340dk_nrf5340_cpuapp
+  - nrf5340dk_nrf5340_cpuapp_ns
 board_single_commands:
-  - --recover
+  - --recover: [
+      nrf5340dk_nrf5340_cpunet,
+    ]
+  - --recover: [
+      nrf5340dk_nrf5340_cpuapp,
+      nrf5340dk_nrf5340_cpuapp_ns,
+    ]
+board_delay_reset:
+  - [
+      nrf5340dk_nrf5340_cpuapp,
+      nrf5340dk_nrf5340_cpuapp_ns,
+    ]
+
+
+# X need a way to link boards, e.g. ns and non-ns so that above applies to both - DONE
+# X need a way to prioritise boards, e.g. net first, secure next, non-secure after - DONE
+# need a way to prevent reset until final image is flashed, also needs above linkage
