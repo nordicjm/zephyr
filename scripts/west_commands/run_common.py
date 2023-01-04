@@ -1,4 +1,5 @@
 # Copyright (c) 2018 Open Source Foundries Limited.
+# Copyright (c) 2023 Nordic Semiconductor ASA
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -154,6 +155,8 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
     used_cmds = []
     board_priority = []
     processed_boards = {}
+    board_image_count = {}
+    board_reset = []
 
     if user_args.context:
         dump_context(command, user_args, user_runner_args)
@@ -189,6 +192,16 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
             cache = load_cmake_cache(build_dir, user_args)
             board = cache['CACHED_BOARD']
 
+            try:
+                if board_image_count[board]:
+                    board_image_count[board][1] = board_image_count[board][1] + 1
+
+            except KeyError:
+                # This sets up the default entry, the first element is number
+                # of images flashed so far and second element is total number
+                # of images for a given board.
+                board_image_count[board] = [0, 1]
+
             # Load board flash runner configuration (if it exists) and store
             # single-use commands in a dictionary so that they get executed
             # once per unique board name.
@@ -200,11 +213,9 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
                 try:
                     with open(board_runner_test_file, 'r') as f:
                         board_runner_test_yaml = yaml.safe_load(f.read())
-#                    used_cmds[processed_boards] = {}
                     processed_boards[cache['BOARD_DIR']] = True
 
                     try:
-                        print(type(board_runner_test_yaml))
                         for c in board_runner_test_yaml['board_single_commands']:
                             used_cmds.append(len(used_cmds))
                             used_cmds[len(used_cmds)-1] = c
@@ -221,6 +232,13 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
                     except KeyError:
                         pass
 
+                    try:
+                        for c in board_runner_test_yaml['board_delay_reset']:
+                            board_reset.append(c)
+
+                    except KeyError:
+                        pass
+
                 except FileNotFoundError:
                     pass
 
@@ -229,7 +247,7 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
         # they are flashed to preserve the required conditions.
         domains_ordered = []
         for p in board_priority:
-            for d in domains:
+            for d in domains.copy():
                 tmp_build_dir = d.build_dir
                 if tmp_build_dir is None:
                     tmp_build_dir = get_build_dir(user_args)
@@ -240,17 +258,26 @@ def do_run_common(command, user_args, user_runner_args, domains=None):
                     domains_ordered.append(d)
                     domains.remove(d)
 
+        # Add in rest of boards in their natural order.
+        for d in domains:
+            domains_ordered.append(d)
+
         domains = domains_ordered
 
     for d in domains:
-        do_run_common_image(command, user_args, user_runner_args, d.build_dir, used_cmds)
+        do_run_common_image(command, user_args, user_runner_args, d.build_dir,
+                            used_cmds, board_image_count, board_reset)
 
-def do_run_common_image(command, user_args, user_runner_args, build_dir=None, used_cmds=None):
+def do_run_common_image(command, user_args, user_runner_args, build_dir=None,
+                        used_cmds=None, board_image_count=None, board_reset=None):
     command_name = command.name
     if build_dir is None:
         build_dir = get_build_dir(user_args)
     cache = load_cmake_cache(build_dir, user_args)
     board = cache['CACHED_BOARD']
+
+    if board_image_count is not None:
+        board_image_count[board][0] = board_image_count[board][0] + 1
 
     # Load runners.yaml.
     yaml_path = runners_yaml_path(build_dir, board)
@@ -295,14 +322,44 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
     except KeyError:
         pass
 
+    # If flashing multiple images, the runner supports reset after flashing and
+    # the board has enabled this functionality, check if the board should be
+    # reset or not. If this is not specified in the board file, leave it up to
+    # the runner's default configuration to decide if a reset should occur.
+    if runner_cls.capabilities().reset is True:
+        reset = True
+        if board_image_count is not None:
+            try:
+                for b in board_reset:
+                    if type(b.index(board)):
+                        for d in b:
+                            try:
+                                if board_image_count[d][0] != board_image_count[d][1]:
+                                    # Remaining images to be flashed, prevent
+                                    # reset for this flash.
+                                    reset = False
+                                    break
+
+                            except KeyError:
+                                # OK to skip waiting for images to be flashed
+                                # for targets that are not part of this
+                                # project.
+                                pass
+
+                        if reset is True:
+                            runner_args.append('--reset')
+                        else:
+                            runner_args.append('--no-reset')
+
+            except ValueError:
+                pass
+
     # Arguments in this order to allow specific to override general:
     #
     # - runner-specific runners.yaml arguments
     # - user-provided command line arguments
     final_argv = runners_yaml['args'][runner_name] + runner_args
 
-    print(board)
-    print(runner_args)
     # 'user_args' contains parsed arguments which are:
     #
     # 1. provided on the command line, and
@@ -341,22 +398,22 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None, us
 
     # Use that RunnerConfig to create the ZephyrBinaryRunner instance
     # and call its run().
-#    try:
-#        runner = runner_cls.create(runner_config, args)
-#        runner.run(command_name)
-#    except ValueError as ve:
-#        log.err(str(ve), fatal=True)
-#        dump_traceback()
-#        raise CommandError(1)
-#    except MissingProgram as e:
-#        log.die('required program', e.filename,
-#                'not found; install it or add its location to PATH')
-#    except RuntimeError as re:
-#        if not user_args.verbose:
-#            log.die(re)
-#        else:
-#            log.err('verbose mode enabled, dumping stack:', fatal=True)
-#            raise
+    try:
+        runner = runner_cls.create(runner_config, args)
+        runner.run(command_name)
+    except ValueError as ve:
+        log.err(str(ve), fatal=True)
+        dump_traceback()
+        raise CommandError(1)
+    except MissingProgram as e:
+        log.die('required program', e.filename,
+                'not found; install it or add its location to PATH')
+    except RuntimeError as re:
+        if not user_args.verbose:
+            log.die(re)
+        else:
+            log.err('verbose mode enabled, dumping stack:', fatal=True)
+            raise
 
 def get_build_dir(args, die_if_none=True):
     # Get the build directory for the given argument list and environment.
