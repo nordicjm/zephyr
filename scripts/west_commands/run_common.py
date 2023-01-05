@@ -381,6 +381,7 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None,
     # - runner-specific runners.yaml arguments
     # - user-provided command line arguments
     final_argv = runners_yaml['args'][runner_name] + runner_args
+    print(runner_args)
 
     # 'user_args' contains parsed arguments which are:
     #
@@ -420,22 +421,24 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None,
 
     # Use that RunnerConfig to create the ZephyrBinaryRunner instance
     # and call its run().
-    try:
-        runner = runner_cls.create(runner_config, args)
-        runner.run(command_name)
-    except ValueError as ve:
-        log.err(str(ve), fatal=True)
-        dump_traceback()
-        raise CommandError(1)
-    except MissingProgram as e:
-        log.die('required program', e.filename,
-                'not found; install it or add its location to PATH')
-    except RuntimeError as re:
-        if not user_args.verbose:
-            log.die(re)
-        else:
-            log.err('verbose mode enabled, dumping stack:', fatal=True)
-            raise
+    print(runner_config)
+    print(args)
+#    try:
+#        runner = runner_cls.create(runner_config, args)
+#        runner.run(command_name)
+#    except ValueError as ve:
+#        log.err(str(ve), fatal=True)
+#        dump_traceback()
+#        raise CommandError(1)
+#    except MissingProgram as e:
+#        log.die('required program', e.filename,
+#                'not found; install it or add its location to PATH')
+#    except RuntimeError as re:
+#        if not user_args.verbose:
+#            log.die(re)
+#        else:
+#            log.err('verbose mode enabled, dumping stack:', fatal=True)
+#            raise
 
 def get_build_dir(args, die_if_none=True):
     # Get the build directory for the given argument list and environment.

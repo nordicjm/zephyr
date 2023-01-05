@@ -21,6 +21,6 @@ board_delay_reset:
       nrf5340dk_nrf5340_cpuapp,
       nrf5340dk_nrf5340_cpuapp_ns,
     ]
-  - [
-      nrf5340dk_nrf5340_cpunet,
-    ]
+#  - [
+#      nrf5340dk_nrf5340_cpunet,
+#    ]
