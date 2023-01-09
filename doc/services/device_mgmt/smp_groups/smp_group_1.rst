@@ -323,7 +323,8 @@ CBOR data of successful response:
 .. code-block:: none
 
     {
-        (str,opt)"off"  : (uint)
+        (str,opt)"off"      : (uint)
+        (str,opt)"changed"  : (bool)
     }
 
 In case of error the CBOR data takes the form:
@@ -340,19 +341,28 @@ where:
 .. table::
     :align: center
 
-    +-----------------------+---------------------------------------------------+
-    | "off"                 | offset of last successfully written byte of update|
-    +-----------------------+---------------------------------------------------+
-    | "rc"                  | :ref:`mcumgr_smp_protocol_status_codes`           |
-    |                       | only appears if non-zero (error condition).       |
-    +-----------------------+---------------------------------------------------+
-    | "rsn"                 | Optional string that clarifies reason for an      |
-    |                       | error; specifically useful for error code ``1``,  |
-    |                       | unknown error                                     |
-    +-----------------------+---------------------------------------------------+
+    +-----------------------+-----------------------------------------------------+
+    | "off"                 | offset of last successfully written byte of update. |
+    +-----------------------+-----------------------------------------------------+
+    | "changed"             | will be set to true if the underlying filesize has  |
+    |                       | changed, this is likely to indicate that the file   |
+    |                       | has been changed by something else and that the     |
+    |                       | client should restart the upload as continuing in   |
+    |                       | this state would likely result in a corrupt file.   |
+    +-----------------------+-----------------------------------------------------+
+    | "rc"                  | :ref:`mcumgr_smp_protocol_status_codes`             |
+    |                       | only appears if non-zero (error condition).         |
+    +-----------------------+-----------------------------------------------------+
+    | "rsn"                 | Optional string that clarifies reason for an        |
+    |                       | error; specifically useful for error code ``1``,    |
+    |                       | unknown error                                       |
+    +-----------------------+-----------------------------------------------------+
 
 The "off" field is only included in responses to successfully processed requests;
-if "rc" is negative the "off' may not appear.
+if "rc" is negative then "off" may not appear.
+The "changed" field is only included in responses to successfully processed
+requests whereby the size of the underlying file has changed;
+if "rc" is negative or if no issue occured, then "changed" may not appear.
 
 Image erase
 ***********
