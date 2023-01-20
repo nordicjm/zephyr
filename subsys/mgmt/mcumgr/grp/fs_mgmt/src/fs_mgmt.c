@@ -439,12 +439,12 @@ static int fs_mgmt_file_upload(struct smp_streamer *ctxt)
 
 	/* Verify that the data offset matches the expected offset (i.e. current size of file) */
 	if (off > 0 && off != fs_mgmt_ctxt.off) {
-		/*
-		 * Offset mismatch, send expected offset with note that file has changed,
-		 * including new filesize
-		 */
-		ok = fs_mgmt_file_rsp(zse, MGMT_ERR_EOK, fs_mgmt_ctxt.off) &&
-		     zcbor_tstr_put_lit(zse, "changed")			   &&
+		/* Offset mismatch, send file length with note that file has changed */
+		ok = zcbor_tstr_put_lit(zse, "rc")		&&
+		     zcbor_int32_put(zse, MGMT_ERR_EUNKNOWN)	&&
+		     zcbor_tstr_put_lit(zse, "len")		&&
+		     zcbor_uint64_put(zse, fs_mgmt_ctxt.off)	&&
+		     zcbor_tstr_put_lit(zse, "changed")		&&
 		     zcbor_bool_put(zse, true);
 
 		rc = (ok ? MGMT_ERR_EOK : MGMT_ERR_EMSGSIZE);
