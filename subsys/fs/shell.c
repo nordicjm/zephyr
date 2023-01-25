@@ -561,6 +561,9 @@ this_write = sizeof(random_data);
 		i += this_write;
 	}
 
+//sync
+fs_sync(&file);
+
 	fs_close(&file);
 
 //time output here
