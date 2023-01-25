@@ -98,7 +98,9 @@
 &uart0 {
 	compatible = "nordic,nrf-uart";
 	status = "okay";
-	current-speed = <115200>;
+/*	current-speed = <115200>;*/
+	current-speed = <460800>;
+hw-flow-control;
 	pinctrl-0 = <&uart0_default>;
 	pinctrl-1 = <&uart0_sleep>;
 	pinctrl-names = "default", "sleep";
@@ -167,7 +169,7 @@
 		reg = <0>;
 		writeoc = "pp4io";
 		readoc = "read4io";
-		sck-frequency = <8000000>;
+		sck-frequency = <32000000>;
 		jedec-id = [c2 28 17];
 		size = <67108864>;
 		has-dpd;
@@ -201,15 +203,6 @@
 		 * The flash starting at 0x000f8000 and ending at
 		 * 0x000fffff is reserved for use by the application.
 		 */
-
-		/*
-		 * Storage partition will be used by FCB/NVS
-		 * if enabled. 32K
-		 */
-		storage_partition: partition@f8000 {
-			label = "storage";
-			reg = <0x000f8000 0x00008000>;
-		};
 	};
 };
 
@@ -230,8 +223,8 @@
 			reg = <0x000E0000 0x00020000>;
 		};
 		/* 7MB */
-		lfs_partition: partition@100000 {
-			label = "lfs_storage";
+		storage_partition: partition@100000 {
+			label = "storage";
 			reg = <0x00100000 0x00700000>;
 		};
 	};

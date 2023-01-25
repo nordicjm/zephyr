@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019-2021, Nordic Semiconductor ASA
+ * Copyright (c) 2021, Laird Connectivity
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,6 +24,18 @@ LOG_MODULE_REGISTER(qspi_nor, CONFIG_FLASH_LOG_LEVEL);
 #include <nrfx_qspi.h>
 #include <hal/nrf_clock.h>
 #include <hal/nrf_gpio.h>
+
+#define SPI_NOR_CMD_RDCR 0x15
+
+#define QSPI_CR_HIGH_PERFORMANCE_BIT ((uint8_t)BIT(1))
+
+typedef enum qspi_configuration_register {
+	QSPI_CR_INDEX_SR = 0,
+	QSPI_CR_INDEX_CR_A,
+	QSPI_CR_INDEX_CR_B,
+
+	QSPI_CR_INDEX_COUNT
+} qspi_configuration_register_t;
 
 struct qspi_nor_data {
 #ifdef CONFIG_MULTITHREADING
@@ -508,6 +521,29 @@ static int qspi_rdsr(const struct device *dev, uint8_t sr_num)
 	return (ret < 0) ? ret : sr;
 }
 
+/* RDCR wrapper.  Negative value is error. */
+static int qspi_rdcr(const struct device *dev, uint8_t *cr)
+{
+	__ALIGN(4) uint8_t cr_align[2];
+	memcpy(cr_align, cr, sizeof(cr_align));
+
+	const struct qspi_buf cr_buf = {
+		.buf = cr_align,
+		.len = sizeof(cr_align),
+	};
+	struct qspi_cmd cmd = {
+		.op_code = SPI_NOR_CMD_RDCR,
+		.rx_buf = &cr_buf,
+	};
+	int ret = qspi_send_cmd(dev, &cmd, false);
+
+	if (ret >= 0) {
+		memcpy(cr, cr_align, sizeof(cr_align));
+	}
+
+	return ret;
+}
+
 /* Wait until RDSR confirms write is not in progress. */
 static int qspi_wait_while_writing(const struct device *dev)
 {
@@ -672,6 +708,12 @@ static int qspi_nrfx_configure(const struct device *dev)
 {
 	struct qspi_nor_data *dev_data = dev->data;
 	const struct qspi_nor_config *dev_config = dev->config;
+	struct qspi_nor_config other;
+
+memcpy(&other, dev_config, sizeof(struct qspi_nor_config));
+
+	uint32_t qspi_restore_speed = 0;
+	bool high_performance_mode = false;
 
 #if defined(CONFIG_SOC_SERIES_NRF53X)
 	/* When the QSPI peripheral is activated, during the nrfx_qspi driver
@@ -682,9 +724,25 @@ static int qspi_nrfx_configure(const struct device *dev)
 	nrf_clock_hfclk192m_div_set(NRF_CLOCK, BASE_CLOCK_DIV);
 #endif
 
-	nrfx_err_t res = nrfx_qspi_init(&dev_config->nrfx_cfg,
+	if (other.nrfx_cfg.phy_if.sck_freq < NRF_QSPI_FREQ_32MDIV4) {
+		/* Desired QSPI frequency is above 8MHz, need to enable
+		 * high-performance mode to use this
+		 */
+		qspi_restore_speed = other.nrfx_cfg.phy_if.sck_freq;
+		high_performance_mode = true;
+		other.nrfx_cfg.phy_if.sck_freq = NRF_QSPI_FREQ_32MDIV4;
+}
+
+/*	nrfx_err_t res = nrfx_qspi_init(&dev_config->nrfx_cfg,
 					qspi_handler,
 					dev_data);
+} else {*/
+LOG_ERR("QSPI speed: %d", other.nrfx_cfg.phy_if.sck_freq);
+
+	nrfx_err_t res = nrfx_qspi_init(&other.nrfx_cfg,
+					qspi_handler,
+					dev_data);
+//}
 
 #if defined(CONFIG_SOC_SERIES_NRF53X)
 	/* Restore the default /4 divider after the QSPI initialization. */
@@ -724,7 +782,7 @@ static int qspi_nrfx_configure(const struct device *dev)
 	 */
 #if !IS_EQUAL(INST_0_QER, JESD216_DW15_QER_VAL_NONE)
 		nrf_qspi_prot_conf_t const *prot_if =
-			&dev_config->nrfx_cfg.prot_if;
+			&other.nrfx_cfg.prot_if;
 		bool qe_value = (prot_if->writeoc == NRF_QSPI_WRITEOC_PP4IO) ||
 				(prot_if->writeoc == NRF_QSPI_WRITEOC_PP4O)  ||
 				(prot_if->readoc == NRF_QSPI_READOC_READ4IO) ||
@@ -782,6 +840,91 @@ static int qspi_nrfx_configure(const struct device *dev)
 			LOG_ERR("E4BA cmd issue failed: %d.", ret);
 		} else {
 			LOG_DBG("E4BA cmd issued.");
+		}
+	}
+
+	if (high_performance_mode == true) {
+		/* Enable high-performance mode volatile bit by reading
+		 * configuration register and setting the required bit
+		 */
+LOG_ERR("HP...");
+		uint8_t cr[QSPI_CR_INDEX_COUNT];
+
+		ret = qspi_rdsr(dev, 1);
+		if (ret < 0) {
+			LOG_ERR("RDSR failed: %d", ret);
+			return ret;
+		}
+
+		cr[QSPI_CR_INDEX_SR] = (uint8_t)ret;
+		ret = qspi_rdcr(dev, &cr[QSPI_CR_INDEX_CR_A]);
+
+		if (ret < 0) {
+			LOG_ERR("RDCR failed: %d", ret);
+			return ret;
+		}
+		LOG_DBG("RDCR %02x LH need %d: %s", cr[QSPI_CR_INDEX_CR_B],
+			(cr[QSPI_CR_INDEX_CR_B] | QSPI_CR_HIGH_PERFORMANCE_BIT),
+			((cr[QSPI_CR_INDEX_CR_B] & QSPI_CR_HIGH_PERFORMANCE_BIT)
+			!= QSPI_CR_HIGH_PERFORMANCE_BIT) ?
+			"updating" : "no-change");
+
+		if ((cr[QSPI_CR_INDEX_CR_B] & QSPI_CR_HIGH_PERFORMANCE_BIT) !=
+		    QSPI_CR_HIGH_PERFORMANCE_BIT) {
+			/* Ultra-low power mode, switch to high-performance
+			 * mode and write it back
+			 */
+LOG_ERR("Is ULP...");
+			cr[QSPI_CR_INDEX_CR_B] |= QSPI_CR_HIGH_PERFORMANCE_BIT;
+
+			ret = 0;
+			const struct qspi_buf cr_buf = {
+				.buf = cr,
+				.len = sizeof(cr),
+			};
+			struct qspi_cmd cmd = {
+				.op_code = SPI_NOR_CMD_WRSR,
+				.tx_buf = &cr_buf,
+			};
+
+			ret = qspi_send_cmd(dev, &cmd, true);
+
+			/* Writing SR can take some time, and further commands
+			 * sent while it's happening can be corrupted. Wait.
+			 */
+			if (ret == 0) {
+				ret = qspi_wait_while_writing(dev);
+			}
+
+			if (ret < 0) {
+				LOG_ERR("HP set failed: %d", ret);
+			}
+		}
+
+		/* Read back CR to ensure it has been set correctly */
+		memset(cr, 0, sizeof(cr));
+		ret = qspi_rdcr(dev, &cr[QSPI_CR_INDEX_CR_A]);
+		if ((cr[QSPI_CR_INDEX_CR_B] & QSPI_CR_HIGH_PERFORMANCE_BIT) ==
+		    QSPI_CR_HIGH_PERFORMANCE_BIT) {
+			/* Now that high performance mode is enabled, close
+			 * QSPI and re-open with original configuration
+			 */
+LOG_ERR("reopen - QSPI speed: %d", dev_config->nrfx_cfg.phy_if.sck_freq);
+			nrfx_qspi_uninit();
+			other.nrfx_cfg.phy_if.sck_freq = qspi_restore_speed;
+			res = nrfx_qspi_init(&dev_config->nrfx_cfg, qspi_handler,
+					     dev_data);
+			ret = qspi_get_zephyr_ret_code(res);
+		} else {
+			/* Bit set failed, continue with slower QSPI access
+			 * speed as faster usage is not possible
+			 */
+			LOG_ERR("QSPI high-performance mode set failed, RDCR "
+				"got %02x need %02x. QSPI speed set to "
+				"32MHz/%d", cr[QSPI_CR_INDEX_CR_B],
+				(cr[QSPI_CR_INDEX_CR_B] |
+				QSPI_CR_HIGH_PERFORMANCE_BIT),
+				other.nrfx_cfg.phy_if.sck_freq);
 		}
 	}
 
