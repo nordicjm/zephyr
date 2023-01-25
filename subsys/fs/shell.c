@@ -477,6 +477,108 @@ static int cmd_write(const struct shell *shell, size_t argc, char **argv)
 	return 0;
 }
 
+static int cmd_erase_write_test(const struct shell *shell, size_t argc, char **argv)
+{
+	char path[MAX_PATH_LEN];
+	uint8_t buf[BUF_CNT];
+	uint8_t buf_len;
+	struct fs_file_t file;
+	int err;
+uint32_t size;
+uint32_t count;
+uint8_t random_data[128];
+uint32_t i;
+uint32_t loop = 0;
+
+//erase_write_test <path> <size> <count>
+
+	create_abs_path(argv[1], path, sizeof(path));
+	size = strtol(argv[2], NULL, 0);
+	count = strtol(argv[3], NULL, 0);
+
+i = 0;
+while (i < sizeof(random_data)) {
+random_data[i] = (uint8_t)(i % 255);
+++i;
+}
+
+//loop start here
+uint64_t this_tick;
+uint64_t end_tick;
+uint64_t total_tick = 0;
+
+while (loop < count) {
+
+//time start here
+this_tick = k_uptime_get();
+
+	fs_file_t_init(&file);
+	err = fs_open(&file, path, FS_O_CREATE | FS_O_WRITE);
+	if (err) {
+		shell_error(shell, "Failed to open %s (%d)", path, err);
+		return -ENOEXEC;
+	}
+
+//truncate
+err = fs_truncate(&file, 0);
+
+	if (err == -ENOTSUP) {
+		fs_close(&file);
+
+		err = fs_unlink(path);
+		if (err) {
+			shell_error(shell, "Failed to delete %s (%d)", path, err);
+			return -ENOEXEC;
+		}
+
+		err = fs_open(&file, path, FS_O_CREATE | FS_O_WRITE);
+		if (err) {
+			shell_error(shell, "Failed to open %s (%d)", path, err);
+			return -ENOEXEC;
+		}
+	} else if (err) {
+		shell_error(shell, "Failed to truncate %s (%d)", path, err);
+		fs_close(&file);
+		return -ENOEXEC;
+	}
+
+//write
+	i = 0;
+	while (i < size) {
+uint32_t this_write = size - i;
+if (this_write > sizeof(random_data)) {
+this_write = sizeof(random_data);
+}
+
+		err = fs_write(&file, random_data, this_write);
+		if (err < 0) {
+			shell_error(shell, "Failed to write %s (%d)",
+				      path, err);
+			fs_close(&file);
+			return -ENOEXEC;
+		}
+
+		i += this_write;
+	}
+
+	fs_close(&file);
+
+//time output here
+end_tick = k_uptime_delta(&this_tick);
+total_tick += end_tick;
+                shell_print(shell, "Loop #%u done in %llu ticks.", loop, end_tick);
+
+//loop end here
+++loop;
+}
+
+//output stats here
+                shell_print(shell, "Total tick count: %llu", total_tick);
+                shell_print(shell, "Tick per loop: %llu", (total_tick / (uint64_t)loop));
+
+	return 0;
+}
+
 #if defined(CONFIG_FAT_FILESYSTEM_ELM)		\
 	|| defined(CONFIG_FILE_SYSTEM_LITTLEFS)
 static char *mntpt_prepare(char *mntpt)
@@ -584,6 +686,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(sub_fs,
 	SHELL_CMD_ARG(statvfs, NULL, "Show file system state", cmd_statvfs, 2, 0),
 	SHELL_CMD_ARG(trunc, NULL, "Truncate file", cmd_trunc, 2, 255),
 	SHELL_CMD_ARG(write, NULL, "Write file", cmd_write, 3, 255),
+	SHELL_CMD_ARG(erase_write_test, NULL, "Erase/write file test", cmd_erase_write_test, 3, 255),
 	SHELL_SUBCMD_SET_END
 );
 
