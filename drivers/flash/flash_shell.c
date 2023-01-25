@@ -17,7 +17,7 @@
 
 /* Buffer is only needed for bytes that follow command and offset */
 #define BUF_ARRAY_CNT (CONFIG_SHELL_ARGC_MAX - 2)
-#define TEST_ARR_SIZE 0x1000
+#define TEST_ARR_SIZE 0x4000
 
 /* This only issues compilation error when it would not be possible
  * to extract at least one byte from command line arguments, yet
@@ -255,6 +255,229 @@ static int cmd_test(const struct shell *shell, size_t argc, char *argv[])
 	return result;
 }
 
+static int cmd_read_test(const struct shell *shell, size_t argc, char *argv[])
+{
+	const struct device *flash_dev;
+	uint32_t repeat;
+	int result;
+	uint32_t addr;
+	uint32_t size;
+
+	result = parse_helper(shell, &argc, &argv, &flash_dev, &addr);
+	if (result) {
+		return result;
+	}
+
+	size = strtoul(argv[2], NULL, 16);
+	repeat = strtoul(argv[3], NULL, 16);
+	if (size > TEST_ARR_SIZE) {
+		shell_error(shell, "<size> must be at most 0x%x.",
+			    TEST_ARR_SIZE);
+		return -EINVAL;
+	}
+
+	result = 0;
+
+uint64_t this_tick;
+uint64_t end_tick;
+uint64_t total_tick = 0;
+
+uint32_t loops = 0;
+	while (repeat--) {
+this_tick = k_uptime_get();
+		result = flash_read(flash_dev, addr, test_arr, size);
+end_tick = k_uptime_delta(&this_tick);
+
+		if (result) {
+			shell_error(shell, "read internal ERROR!");
+			break;
+		}
+
+++loops;
+		shell_print(shell, "Loop #%u done in %llu ticks.", loops, end_tick);
+total_tick += end_tick;
+	}
+
+	if (result == 0) {
+		shell_print(shell, "Total tick count: %llu", total_tick);
+		shell_print(shell, "Tick per loop: %llu", (total_tick / (uint64_t)loops));
+	}
+
+	return result;
+}
+
+static int cmd_write_test(const struct shell *shell, size_t argc, char *argv[])
+{
+	const struct device *flash_dev;
+	uint32_t repeat;
+	int result;
+	uint32_t addr;
+	uint32_t size;
+
+	result = parse_helper(shell, &argc, &argv, &flash_dev, &addr);
+	if (result) {
+		return result;
+	}
+
+	size = strtoul(argv[2], NULL, 16);
+	repeat = strtoul(argv[3], NULL, 16);
+	if (size > TEST_ARR_SIZE) {
+		shell_error(shell, "<size> must be at most 0x%x.",
+			    TEST_ARR_SIZE);
+		return -EINVAL;
+	}
+
+	for (uint32_t i = 0; i < size; i++) {
+		test_arr[i] = (uint8_t)i;
+	}
+
+	result = 0;
+
+uint64_t this_tick;
+uint64_t end_tick;
+uint64_t total_tick = 0;
+
+uint32_t loops = 0;
+	while (repeat--) {
+this_tick = k_uptime_get();
+		result = flash_write(flash_dev, addr, test_arr, size);
+end_tick = k_uptime_delta(&this_tick);
+
+		if (result) {
+			shell_error(shell, "write internal ERROR!");
+			break;
+		}
+
+++loops;
+		shell_print(shell, "Loop #%u done in %llu ticks.", loops, end_tick);
+total_tick += end_tick;
+	}
+
+	if (result == 0) {
+		shell_print(shell, "Total tick count: %llu", total_tick);
+		shell_print(shell, "Tick per loop: %llu", (total_tick / (uint64_t)loops));
+	}
+
+	return result;
+}
+
+static int cmd_erase_test(const struct shell *shell, size_t argc, char *argv[])
+{
+	const struct device *flash_dev;
+	uint32_t repeat;
+	int result;
+	uint32_t addr;
+	uint32_t size;
+
+	result = parse_helper(shell, &argc, &argv, &flash_dev, &addr);
+	if (result) {
+		return result;
+	}
+
+	size = strtoul(argv[2], NULL, 16);
+	repeat = strtoul(argv[3], NULL, 16);
+	if (size > TEST_ARR_SIZE) {
+		shell_error(shell, "<size> must be at most 0x%x.",
+			    TEST_ARR_SIZE);
+		return -EINVAL;
+	}
+
+	for (uint32_t i = 0; i < size; i++) {
+		test_arr[i] = (uint8_t)i;
+	}
+
+	result = 0;
+
+uint64_t this_tick;
+uint64_t end_tick;
+uint64_t total_tick = 0;
+
+uint32_t loops = 0;
+	while (repeat--) {
+this_tick = k_uptime_get();
+		result = flash_erase(flash_dev, addr, size);
+end_tick = k_uptime_delta(&this_tick);
+
+		if (result) {
+			shell_error(shell, "Erase Failed, code %d.", result);
+			break;
+		}
+
+++loops;
+		shell_print(shell, "Loop #%u done in %llu ticks.", loops, end_tick);
+total_tick += end_tick;
+	}
+
+	if (result == 0) {
+		shell_print(shell, "Total tick count: %llu", total_tick);
+		shell_print(shell, "Tick per loop: %llu", (total_tick / (uint64_t)loops));
+	}
+
+	return result;
+}
+
+static int cmd_erase_write_test(const struct shell *shell, size_t argc, char *argv[])
+{
+	const struct device *flash_dev;
+	uint32_t repeat;
+	int result;
+	int result2;
+	uint32_t addr;
+	uint32_t size;
+
+	result = parse_helper(shell, &argc, &argv, &flash_dev, &addr);
+	if (result) {
+		return result;
+	}
+
+	size = strtoul(argv[2], NULL, 16);
+	repeat = strtoul(argv[3], NULL, 16);
+	if (size > TEST_ARR_SIZE) {
+		shell_error(shell, "<size> must be at most 0x%x.",
+			    TEST_ARR_SIZE);
+		return -EINVAL;
+	}
+
+	for (uint32_t i = 0; i < size; i++) {
+		test_arr[i] = (uint8_t)i;
+	}
+
+	result = 0;
+
+uint64_t this_tick;
+uint64_t end_tick;
+uint64_t total_tick = 0;
+
+uint32_t loops = 0;
+	while (repeat--) {
+this_tick = k_uptime_get();
+		result = flash_erase(flash_dev, addr, size);
+		result2 = flash_write(flash_dev, addr, test_arr, size);
+end_tick = k_uptime_delta(&this_tick);
+
+		if (result) {
+			shell_error(shell, "Erase Failed, code %d.", result);
+			break;
+		}
+
+		if (result2) {
+			shell_error(shell, "write internal ERROR!");
+			break;
+		}
+
+++loops;
+		shell_print(shell, "Loop #%u done in %llu ticks.", loops, end_tick);
+total_tick += end_tick;
+	}
+
+	if (result == 0) {
+		shell_print(shell, "Total tick count: %llu", total_tick);
+		shell_print(shell, "Tick per loop: %llu", (total_tick / (uint64_t)loops));
+	}
+
+	return result;
+}
+
 static int set_bypass(const struct shell *sh, shell_bypass_cb_t bypass)
 {
 	static bool in_use;
@@ -462,6 +685,18 @@ SHELL_STATIC_SUBCMD_SET_CREATE(flash_cmds,
 	SHELL_CMD_ARG(page_info, &dsub_device_name,
 		"[<device>] <address>",
 		cmd_page_info, 2, 1),
+	SHELL_CMD_ARG(read_test, &dsub_device_name,
+		"[<device>] <address> <size> <repeat count>",
+		cmd_read_test, 4, 1),
+	SHELL_CMD_ARG(write_test, &dsub_device_name,
+		"[<device>] <address> <size> <repeat count>",
+		cmd_write_test, 4, 1),
+	SHELL_CMD_ARG(erase_test, &dsub_device_name,
+		"[<device>] <address> <size> <repeat count>",
+		cmd_erase_test, 4, 1),
+	SHELL_CMD_ARG(erase_write_test, &dsub_device_name,
+		"[<device>] <address> <size> <repeat count>",
+		cmd_erase_write_test, 4, 1),
 	SHELL_SUBCMD_SET_END
 );
 
