@@ -1,10 +1,14 @@
-# Copyright (c) 2022 Nordic Semiconductor ASA
+# Copyright (c) 2022-2023 Nordic Semiconductor ASA
 
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_SERIES
 	default "nrf52"
 	depends on SOC_SERIES_NRF52X
+
+config SOC_SERIES
+	default "nrf53"
+	depends on SOC_SERIES_NRF53X
 
 config SOC_FAMILY_NRF
 	bool
@@ -27,6 +31,7 @@ config SOC_SERIES_NRF52X
 
 config SOC_SERIES_NRF53X
 	bool
+	select SOC_FAMILY_NRF
 	help
 	 Enable support for NRF53 MCU series
 

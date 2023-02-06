@@ -3,30 +3,16 @@
 # Copyright (c) 2019 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_SERIES_NRF53X
 config SOC_NRF5340_CPUAPP
 	bool
 	select CPU_HAS_NRF_IDAU
 	select CPU_HAS_FPU
 	select ARMV8_M_DSP
+	select CONFIG_ARM_TRUSTZONE_M
 
 config SOC_NRF5340_CPUNET
 	bool
 	select HAS_NO_PM
-
-choice
-	prompt "nRF53x MCU Selection"
-
-config SOC_NRF5340_CPUAPP_QKAA
-	bool "NRF5340_CPUAPP_QKAA"
-	select SOC_NRF5340_CPUAPP
-
-config SOC_NRF5340_CPUNET_QKAA
-	bool "NRF5340_CPUNET_QKAA"
-	select SOC_NRF5340_CPUNET
-
-endchoice
-
 
 if SOC_NRF5340_CPUAPP
 
@@ -208,4 +194,3 @@ ipm_num = 15
 rsource "Kconfig.sync_rtc_ipm"
 
 endif # NRF53_SYNC_RTC
-endif # SOC_SERIES_NRF53X

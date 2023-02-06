@@ -5,9 +5,6 @@
 
 if SOC_NRF5340_CPUAPP_QKAA
 
-config SOC
-	default "nRF5340_CPUAPP_QKAA"
-
 config NUM_IRQS
 	default 69
 
