@@ -69,3 +69,7 @@ if(NOT SOC_DIR)
           "${SOC_ROOT}\n"
   )
 endif()
+
+if(SYSBUILD)
+  set(SOC_PATH_USE "${SOC_DIR}/${ARCH}/${SOC_PATH}" CACHE STRING "test" FORCE)
+endif()

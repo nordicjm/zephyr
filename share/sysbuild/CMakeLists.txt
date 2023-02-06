@@ -18,7 +18,7 @@ set(APP_DIR ${APP_DIR} CACHE PATH "Main Application Source Directory")
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
 # List of Zephyr and sysbuild CMake modules we need for sysbuild.
 # Note: sysbuild_kconfig will internally load kconfig CMake module.
-set(zephyr_modules extensions sysbuild_extensions python west root zephyr_module boards shields sysbuild_kconfig)
+set(zephyr_modules extensions sysbuild_extensions python west root zephyr_module boards shields sysbuild_kconfig soc)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE} COMPONENTS ${zephyr_modules})
 
@@ -70,12 +70,16 @@ add_subdirectory(bootloader)
 include(${BOARD_DIR}/sysbuild.cmake OPTIONAL)
 
 # This allows image specific sysbuild.cmake to be processed.
+set(SOC_DIRS)
 list(LENGTH IMAGES images_length)
 while(NOT "${images_length}" EQUAL "${processed_length}")
   foreach(image ${IMAGES})
     if(NOT image IN_LIST images_sysbuild_processed)
       ExternalProject_Get_property(${image} SOURCE_DIR)
       include(${SOURCE_DIR}/sysbuild.cmake OPTIONAL)
+set(SOC_PATH_USE)
+sysbuild_get(SOC_PATH_USE IMAGE ${image} CACHE)
+list(APPEND SOC_DIRS ${SOC_PATH_USE})
       list(APPEND images_sysbuild_processed ${image})
     endif()
   endforeach()
@@ -90,5 +94,13 @@ while(NOT "${images_length}" EQUAL "${processed_length}")
   endif()
   set(processed_length ${processed_length_new})
 endwhile()
+
+# Check all SoC directories for sysbuild files to use
+list(REMOVE_DUPLICATES SOC_DIRS)
+foreach(dir ${SOC_DIRS})
+  if(EXISTS ${dir}/sysbuild.cmake)
+    include(${dir}/sysbuild.cmake)
+  endif()
+endforeach()
 
 include(cmake/domains.cmake)
