@@ -106,6 +106,7 @@ endfunction()
 #   ExternalZephyrProject_Add(APPLICATION <name>
 #                             SOURCE_DIR <dir>
 #                             [BOARD <board> [BOARD_REVISION <revision>]]
+#                             [CORE <core>]
 #                             [MAIN_APP]
 #   )
 #
@@ -118,6 +119,7 @@ endfunction()
 # BOARD <board>:             Use <board> for application build instead user defined BOARD.
 # BOARD_REVISION <revision>: Use <revision> of <board> for application (only valid if
 #                            <board> is also supplied).
+# CORE <core>:               Use <core> of selected board for image.
 # MAIN_APP:                  Flag indicating this application is the main application
 #                            and where user defined settings should be passed on as-is
 #                            except for multi image build flags.
@@ -125,7 +127,7 @@ endfunction()
 #                            MAIN_APP unmodified.
 #
 function(ExternalZephyrProject_Add)
-  cmake_parse_arguments(ZBUILD "MAIN_APP" "APPLICATION;BOARD;BOARD_REVISION;SOURCE_DIR" "" ${ARGN})
+  cmake_parse_arguments(ZBUILD "MAIN_APP" "APPLICATION;BOARD;BOARD_REVISION;CORE;SOURCE_DIR" "" ${ARGN})
 
   if(ZBUILD_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR
@@ -195,6 +197,44 @@ function(ExternalZephyrProject_Add)
   if(ZBUILD_MAIN_APP)
     list(APPEND sysbuild_cache_strings "SYSBUILD_MAIN_APP:BOOL=True\n")
   endif()
+
+
+  # Use a lookup to see what the core's name is
+  if(DEFINED ZBUILD_CORE)
+    if(DEFINED ZBUILD_BOARD)
+      # Different board name provided, first find this boards root directory
+      foreach(root ${BOARD_ROOT})
+        find_path(NEW_BOARD_DIR
+                  NAMES ${ZBUILD_BOARD}_defconfig
+                  PATHS ${root}/boards/*/*
+                  NO_DEFAULT_PATH
+        )
+      endforeach()
+    else()
+      set(NEW_BOARD_DIR ${BOARD_DIR})
+    endif()
+
+    # Ensure board directory and board.check file exist
+    if(NOT EXISTS ${NEW_BOARD_DIR})
+      message(FATAL_ERROR "New board directory was not found")
+    endif()
+
+    if(NOT EXISTS ${NEW_BOARD_DIR}/board.check)
+      message(FATAL_ERROR "There is no board.check file for this board")
+    endif()
+
+    # Then perform the lookup
+    set(NEW_BOARD)
+    set(CORE ${ZBUILD_CORE})
+    include(${NEW_BOARD_DIR}/board.check)
+
+    if(DEFINED NEW_BOARD)
+      set(ZBUILD_BOARD ${NEW_BOARD})
+    else()
+      message(FATAL_ERROR "Core ${ZBUILD_CORE} entry was not found")
+    endif()
+  endif()
+
 
   if(DEFINED ZBUILD_BOARD)
     # Only set image specific board if provided.

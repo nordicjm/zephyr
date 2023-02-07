@@ -1,0 +1,7 @@
+if("${CORE}" STREQUAL "radio")
+  set(NEW_BOARD "nrf5340dk_nrf5340_cpunet")
+elseif("${CORE}" STREQUAL "application_secure")
+  set(NEW_BOARD "nrf5340dk_nrf5340_cpuapp")
+elseif("${CORE}" STREQUAL "application_non-secure")
+  set(NEW_BOARD "nrf5340dk_nrf5340_cpuapp_ns")
+endif()
