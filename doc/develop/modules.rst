@@ -550,7 +550,7 @@ When a module has a :file:`module.yml` file, it will automatically be included i
 the Zephyr build system. The path to the module is then accessible through Kconfig
 and CMake variables.
 
-Normal modules
+Zephyr modules
 --------------
 
 In both Kconfig and CMake, the variable ``ZEPHYR_<MODULE_NAME>_MODULE_DIR``
@@ -655,6 +655,34 @@ PARENT_SCOPE of the CMakeLists.txt file. For example, to append ``bar`` to the
 
   list(APPEND FOO_LIST bar)
   set(FOO_LIST ${FOO_LIST} PARENT_SCOPE)
+
+Sysbuild module ordering
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is important to take note of the order in which sysbuild runs, configures
+and includes modules so that code can be created that has access to the
+required resources that it needs to operate on. The order is as follows:
+
+#. Sysbuild limited zephyr package find (modules: ``zephyr_modules``,
+   ``extensions``, ``sysbuild_extensions``, ``python``, ``west``, ``root``,
+   ``zephyr_module``, ``boards``, ``shields``, ``sysbuild_kconfig`` - note that
+   ``sysbuild_`` prefixes indicate that these modules differ from the normal
+   zephyr modules)l
+#. Sysbuild variable setup for main application (variable ``APP_DIR`` is set).
+#. Sysbuild module CMake files are included (variables
+   ``SYSBUILD_CURRENT_MODULE_DIR`` and ``SYSBUILD_CURRENT_CMAKE_DIR`` are set
+   for each included module - the order of modules being included is not
+   guaranteed).
+#. Bootloader configuration variables are set.
+#. Main application configuration is generated, and image name appended to
+   ``IMAGES`` list.
+#. Bootloader (if enabled) configuration is generated, and image name prepended
+   to ``IMAGES`` list.
+#. Board ``sysbuild.cmake`` file is included (if it exists).
+#. All images in the ``IMAGES`` list are checked for ``sysbuild.cmake`` files
+   in-order, which are then included if they exist.
+#. All images in the ``IMAGES`` list are configured in-order.
+#. Domains for images are generated.
 
 Zephyr module dependencies
 ==========================
