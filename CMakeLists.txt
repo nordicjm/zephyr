@@ -1884,3 +1884,9 @@ add_subdirectory_ifdef(
   CONFIG_MAKEFILE_EXPORTS
   cmake/makefile_exports
   )
+
+set(BLOBA)
+#set(BLOBA "${CONFIG_};${CONFIG_}")
+set(BLOBA "${CONFIG_KERNEL_BIN_NAME};")
+file(WRITE ${PROJECT_BINARY_DIR}/sysbuild_tmp.watch "${BLOBA}")
+zephyr_file_copy(${PROJECT_BINARY_DIR}/sysbuild_tmp.watch ${PROJECT_BINARY_DIR}/sysbuild.watch ONLY_IF_DIFFERENT)

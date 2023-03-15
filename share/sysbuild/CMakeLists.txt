@@ -126,6 +126,8 @@ foreach(image ${IMAGES})
   )
 
   ExternalZephyrProject_Cmake(APPLICATION ${image})
+
+#${image}/zephyr/sysbuild.watch
 endforeach()
 sysbuild_module_call(POST_CMAKE MODULES ${SYSBUILD_MODULE_NAMES} IMAGES ${IMAGES})
 
