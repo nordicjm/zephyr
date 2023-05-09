@@ -30,8 +30,8 @@ class NrfJprogBinaryRunner(NrfBinaryRunner):
     def do_create(cls, cfg, args):
         return NrfJprogBinaryRunner(cfg, args.nrf_family, args.softreset,
                                     args.dev_id, erase=args.erase,
-                                    tool_opt=args.tool_opt, force=args.force,
-                                    recover=args.recover)
+                                    reset=args.reset, tool_opt=args.tool_opt,
+                                    force=args.force, recover=args.recover)
 
     def do_get_boards(self):
         snrs = self.check_output(['nrfjprog', '--ids'])
@@ -70,6 +70,11 @@ class NrfJprogBinaryRunner(NrfBinaryRunner):
                 cmd.append('--sectoranduicrerase')
             else:
                 raise RuntimeError(f'Invalid erase mode: {erase}')
+
+            reset = _op['reset']
+            if reset == 'RESET_SYSTEM':
+                print("LAH")
+                cmd.append('--reset')
 
             if _op.get('qspi_erase_mode'):
                 # In the future there might be multiple QSPI erase modes

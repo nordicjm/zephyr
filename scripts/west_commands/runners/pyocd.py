@@ -18,7 +18,7 @@ class PyOcdBinaryRunner(ZephyrBinaryRunner):
 
     def __init__(self, cfg, target,
                  pyocd='pyocd',
-                 dev_id=None, flash_addr=0x0, erase=False, flash_opts=None,
+                 dev_id=None, flash_addr=0x0, erase=False, reset=True, flash_opts=None,
                  gdb_port=DEFAULT_PYOCD_GDB_PORT,
                  telnet_port=DEFAULT_PYOCD_TELNET_PORT, tui=False,
                  pyocd_config=None,
@@ -36,6 +36,7 @@ class PyOcdBinaryRunner(ZephyrBinaryRunner):
         self.pyocd = pyocd
         self.flash_addr_args = ['-a', hex(flash_addr)] if flash_addr else []
         self.erase = erase
+        self.reset = reset
         self.gdb_cmd = [cfg.gdb] if cfg.gdb is not None else None
         self.gdb_port = gdb_port
         self.telnet_port = telnet_port
@@ -77,7 +78,7 @@ class PyOcdBinaryRunner(ZephyrBinaryRunner):
     @classmethod
     def capabilities(cls):
         return RunnerCaps(commands={'flash', 'debug', 'debugserver', 'attach'},
-                          dev_id=True, flash_addr=True, erase=True,
+                          dev_id=True, flash_addr=True, erase=True, reset=True,
                           tool_opt=True)
 
     @classmethod
@@ -123,7 +124,7 @@ class PyOcdBinaryRunner(ZephyrBinaryRunner):
         ret = PyOcdBinaryRunner(
             cfg, args.target,
             pyocd=args.pyocd,
-            flash_addr=flash_addr, erase=args.erase, flash_opts=args.flash_opt,
+            flash_addr=flash_addr, erase=args.erase, reset=args.reset, flash_opts=args.flash_opt,
             gdb_port=args.gdb_port, telnet_port=args.telnet_port, tui=args.tui,
             dev_id=args.dev_id, daparg=args.daparg,
             frequency=args.frequency,
@@ -175,6 +176,9 @@ class PyOcdBinaryRunner(ZephyrBinaryRunner):
                self.tool_opt_args +
                self.flash_extra +
                [fname])
+
+        if self.reset is not None and self.reset is not True:
+            cmd.append('--no-reset')
 
         self.logger.info('Flashing file: {}'.format(fname))
         self.check_call(cmd)

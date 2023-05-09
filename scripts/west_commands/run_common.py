@@ -246,6 +246,8 @@ def do_run_common_image(command, user_args, user_runner_args, build_dir=None):
     # Use that RunnerConfig to create the ZephyrBinaryRunner instance
     # and call its run().
     try:
+#        print(runner_config)
+#        print(args)
         runner = runner_cls.create(runner_config, args)
         runner.run(command_name)
     except ValueError as ve:

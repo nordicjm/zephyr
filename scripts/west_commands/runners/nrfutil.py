@@ -15,10 +15,10 @@ from runners.nrf_common import NrfBinaryRunner
 class NrfUtilBinaryRunner(NrfBinaryRunner):
     '''Runner front-end for nrfutil.'''
 
-    def __init__(self, cfg, family, softreset, dev_id, erase=False,
+    def __init__(self, cfg, family, softreset, dev_id, erase=False, reset=True,
                  tool_opt=[], force=False, recover=False):
 
-        super().__init__(cfg, family, softreset, dev_id, erase,
+        super().__init__(cfg, family, softreset, dev_id, erase, reset,
                          tool_opt, force, recover)
         self._ops = []
         self._op_id = 1
@@ -34,7 +34,7 @@ class NrfUtilBinaryRunner(NrfBinaryRunner):
     @classmethod
     def do_create(cls, cfg, args):
         return NrfUtilBinaryRunner(cfg, args.nrf_family, args.softreset,
-                                   args.dev_id, erase=args.erase,
+                                   args.dev_id, erase=args.erase, reset=args.reset,
                                    tool_opt=args.tool_opt, force=args.force,
                                    recover=args.recover)
 
@@ -89,6 +89,7 @@ class NrfUtilBinaryRunner(NrfBinaryRunner):
         hex_dir = Path(self.hex_).parent
         json_file = os.fspath(hex_dir / f'generated_nrfutil_batch.json')
 
+        print(batch)
         with open(json_file, "w") as f:
             f.write(batch)
 

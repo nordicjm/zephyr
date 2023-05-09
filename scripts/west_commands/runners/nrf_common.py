@@ -28,7 +28,7 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
     '''Runner front-end base class for nrf tools.'''
 
     def __init__(self, cfg, family, softreset, dev_id, erase=False,
-                 tool_opt=[], force=False, recover=False):
+                 reset=True, tool_opt=[], force=False, recover=False):
         super().__init__(cfg)
         self.hex_ = cfg.hex_file
         if family and not family.endswith('_FAMILY'):
@@ -37,6 +37,10 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
         self.softreset = softreset
         self.dev_id = dev_id
         self.erase = bool(erase)
+        if reset is None:
+            self.reset = True
+        else:
+            self.reset = bool(reset)
         self.force = force
         self.recover = bool(recover)
 
@@ -47,7 +51,7 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
     @classmethod
     def capabilities(cls):
         return RunnerCaps(commands={'flash'}, dev_id=True, erase=True,
-                          tool_opt=True)
+                          reset=True, tool_opt=True)
 
     @classmethod
     def dev_id_help(cls) -> str:
@@ -257,7 +261,7 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
             # nRF53 requires special treatment due to the extra coprocessor.
             self.program_hex_nrf53(erase_arg, qspi_erase_opt)
         else:
-            self.op_program(self.hex_, erase_arg, qspi_erase_opt, defer=True)
+            self.op_program(self.hex_, erase_arg, self.reset, qspi_erase_opt, defer=True)
 
         self.flush(force=False)
 
@@ -291,7 +295,7 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
         # If there is nothing in the hex file for the network core,
         # only the application core is programmed.
         if not self.hex_refers_region(net_flash_start, net_flash_end):
-            self.op_program(self.hex_, erase_arg, qspi_erase_opt, defer=True,
+            self.op_program(self.hex_, erase_arg, self.reset, qspi_erase_opt, defer=True,
                             core='NRFDL_DEVICE_CORE_APPLICATION')
         # If there is some content that addresses a region beyond the network
         # core flash range, two hex files are generated and the two cores
@@ -321,13 +325,13 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
             net_hex.write_hex_file(net_hex_file)
             app_hex.write_hex_file(app_hex_file)
 
-            self.op_program(net_hex_file, erase_arg, None, defer=True,
+            self.op_program(net_hex_file, erase_arg, self.reset, None, defer=True,
                             core='NRFDL_DEVICE_CORE_NETWORK')
-            self.op_program(app_hex_file, erase_arg, qspi_erase_opt, defer=True,
+            self.op_program(app_hex_file, erase_arg, self.reset, qspi_erase_opt, defer=True,
                             core='NRFDL_DEVICE_CORE_APPLICATION')
         # Otherwise, only the network core is programmed.
         else:
-            self.op_program(self.hex_, erase_arg, None, defer=True,
+            self.op_program(self.hex_, erase_arg, self.reset, None, defer=True,
                             core='NRFDL_DEVICE_CORE_NETWORK')
 
     def reset_target(self):
@@ -343,11 +347,16 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
     def do_require(self):
         ''' Ensure the tool is installed '''
 
-    def op_program(self, hex_file, erase, qspi_erase, defer=False, core=None):
+    def op_program(self, hex_file, erase, reset, qspi_erase, defer=False, core=None):
         args = {'firmware': {'file': hex_file, 'format': 'NRFDL_FW_INTEL_HEX'},
                 'chip_erase_mode': erase, 'verify': 'VERIFY_READ'}
         if qspi_erase:
             args['qspi_erase_mode'] = qspi_erase
+        if reset == True:
+            args['reset'] = 'RESET_SYSTEM'
+        else:
+            args['reset'] = 'RESET_NONE'
+
         self.exec_op('program', defer, core, **args)
 
     def exec_op(self, op, defer=False, core=None, **kwargs):
@@ -398,7 +407,8 @@ class NrfBinaryRunner(ZephyrBinaryRunner):
         if self.recover:
             self.recover_target()
         self.program_hex()
-        self.reset_target()
+        if self.reset is True:
+            self.reset_target()
         # All done, now flush any outstanding ops
         self.flush(force=True)
 
