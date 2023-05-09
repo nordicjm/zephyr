@@ -135,6 +135,7 @@
 */
 
 	aliases {
+		led0 = &led1red;
 		led1r = &led1red;
 		led1g = &led1green;
 		led1b = &led1blue;
