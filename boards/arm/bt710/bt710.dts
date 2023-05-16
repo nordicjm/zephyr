@@ -267,7 +267,7 @@
 		has-dpd;
 		t-enter-dpd = <10000>;
 		t-exit-dpd = <35000>;
-		jedec-id = [c2 28 13];
+		jedec-id = [c2 28 14];
 	};
 };
 
