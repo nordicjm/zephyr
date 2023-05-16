@@ -251,19 +251,19 @@
 	};
 };
 
-&spi1 {
-	compatible = "nordic,nrf-spi";
+&spi3 {
+	compatible = "nordic,nrf-spim";
 	status = "okay";
-	pinctrl-0 = <&spi1_default>;
-	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-0 = <&spi3_default>;
+	pinctrl-1 = <&spi3_sleep>;
 	pinctrl-names = "default", "sleep";
 	cs-gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
 
-	mx25r4035: mx25r4035fzuil0@0 {
+	mx25r8035: mx25r8035fzuil0@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		spi-max-frequency = <8000000>;
-		size = <0x400000>;
+		spi-max-frequency = <32000000>;
+		size = <0x800000>;
 		has-dpd;
 		t-enter-dpd = <10000>;
 		t-exit-dpd = <35000>;
@@ -297,7 +297,7 @@
 	};
 };
 
-&mx25r4035 {
+&mx25r8035 {
 	partitions {
 		compatible = "fixed-partitions";
 		#address-cells = <1>;
@@ -309,10 +309,10 @@
 			reg = <0x00000000 0x0006C000>;
 		};
 
-		/* 80KB */
+		/* 592KB */
 		lfs_partition: partition@6c000 {
 			label = "lfs_storage";
-			reg = <0x0006c000 0x00014000>;
+			reg = <0x0006c000 0x00094000>;
 		};
 	};
 };
