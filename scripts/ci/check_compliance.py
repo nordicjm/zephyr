@@ -620,6 +620,7 @@ flagged.
         "BOOT_SERIAL_ENTRANCE_GPIO", # Used in (sysbuild-based) test
         "BOOT_SERIAL_IMG_GRP_HASH",  # Used in documentation
         "BOOT_SHARE_DATA",           # Used in Kconfig text
+        "BOOT_SHARE_DATA_BOOTINFO",
         "BOOT_SIGNATURE_KEY_FILE",   # MCUboot setting used by sysbuild
         "BOOT_SIGNATURE_TYPE_ECDSA_P256", # MCUboot setting used by sysbuild
         "BOOT_SIGNATURE_TYPE_ED25519",    # MCUboot setting used by sysbuild
