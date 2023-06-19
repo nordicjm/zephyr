@@ -242,6 +242,10 @@ Libraries / Subsystems
     :c:struct:`mgmt_group` when registering a transport. See
     :c:type:`smp_translate_error_fn` for function details.
 
+  * Added MCUmgr settings management group, which allows for manipulation of
+    zephyr settings from a remote device, see :ref:`mcumgr_smp_group_3` for
+    details.
+
 HALs
 ****
 
