@@ -417,6 +417,11 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 		cbor_nb_reader_init(streamer->reader, req);
 		cbor_nb_writer_init(streamer->writer, rsp);
 
+		/* Set the version of the source message in the streamer object so that groups
+		 * can use this to determine if they can handle the request.
+		 */
+		streamer->source_header_version = req_hdr.nh_version;
+
 		/* Process the request payload and build the response. */
 		rc = smp_handle_single_req(streamer, &req_hdr, &handler_found, &rsn);
 		if (rc != 0) {
