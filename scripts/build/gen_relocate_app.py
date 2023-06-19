@@ -523,6 +523,7 @@ def create_dict_wrt_mem():
         # Split file names by semicolons, to support generator expressions
         file_glob_list = file_list.split(';')
         file_name_list = []
+        print(file_glob_list)
         # Use glob matching on each file in the list
         for file_glob in file_glob_list:
             glob_results = glob.glob(file_glob)

@@ -7,5 +7,9 @@ if(CONFIG_HELLO_WORLD_DRIVER)
   zephyr_library()
   zephyr_library_sources(
     hello_world_driver.c
+    hello_world_driver_2.c
     )
 endif()
+
+
+message("is: ${ZEPHYR_CURRENT_LIBRARY}")

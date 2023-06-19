@@ -14,3 +14,5 @@ project(out_of_tree_driver)
 target_sources(app PRIVATE
   src/main.c
   )
+
+zephyr_code_relocate(LIBRARY samples__application_development__out_of_tree_driver__hello_world_module__zephyr LOCATION RAM)

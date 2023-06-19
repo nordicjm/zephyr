@@ -14,6 +14,8 @@
  * implementation. See the header file of the same name for details.
  */
 
+extern int get_something();
+
 static struct hello_world_dev_data {
 	uint32_t foo;
 } data;
@@ -27,7 +29,7 @@ static int init(const struct device *dev)
 
 static void print_impl(const struct device *dev)
 {
-	printk("Hello World from the kernel: %d\n", data.foo);
+	printk("Hello World from the kernel: %d - %d\n", data.foo, get_something());
 
 	__ASSERT(data.foo == 5, "Device was not initialized!");
 }
