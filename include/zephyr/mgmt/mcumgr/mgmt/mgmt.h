@@ -52,8 +52,8 @@ enum mcumgr_group_t {
 	/** Statistic management group, used for retieving statistics */
 	MGMT_GROUP_ID_STAT,
 
-	/** System configuration group (unused) */
-	MGMT_GROUP_ID_CONFIG,
+	/** Settings management (config) group, used for reading/writing settings */
+	MGMT_GROUP_ID_SETTINGS,
 
 	/** Log management group (unused) */
 	MGMT_GROUP_ID_LOG,
