@@ -248,7 +248,8 @@
 		writeoc = "pp";
 		/* MX25R64 supports all readoc options */
 		/* Thingy:53 supports only fastread and read2io options */
-		readoc = "read2io";
+/*		readoc = "read2io";*/
+		readoc = "fastread";
 		sck-frequency = <8000000>;
 		jedec-id = [c2 28 17];
 		sfdp-bfp = [
@@ -258,9 +259,9 @@
 			30 b0 30 b0  f7 c4 d5 5c  00 be 29 ff  f0 d0 ff ff
 		];
 		size = <67108864>;
-		has-dpd;
+/*		has-dpd;
 		t-enter-dpd = <10000>;
-		t-exit-dpd = <35000>;
+		t-exit-dpd = <35000>;*/
 	};
 };
 

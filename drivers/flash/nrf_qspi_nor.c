@@ -400,6 +400,7 @@ doneinit = true;
 #ifndef CONFIG_MCUBOOT
 if (doneinit) {
 z_impl_nrf_qspi_nor_xip_enable(dev, true);
+//nrf_qspi_xip_set(NRF_QSPI, true);
 }
 #endif
 
@@ -1238,6 +1239,8 @@ static int qspi_nor_configure(const struct device *dev)
  */
 static int qspi_nor_init(const struct device *dev)
 {
+return -5;
+
 	const struct qspi_nor_config *dev_config = dev->config;
 	int ret = pinctrl_apply_state(dev_config->pcfg, PINCTRL_STATE_DEFAULT);
 
