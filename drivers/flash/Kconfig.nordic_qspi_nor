@@ -38,4 +38,8 @@ config NORDIC_QSPI_NOR_STACK_WRITE_BUFFER_SIZE
 	  data is larger than the configured limit.  Must be a
 	  multiple of 4.  The feature is disabled when set to 0.
 
+config NORDIC_QSPI_NOR_XIP_ADDRESS
+	hex "XIP register address value"
+	default 0x0
+
 endif # NORDIC_QSPI_NOR

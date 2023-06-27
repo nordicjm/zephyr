@@ -377,6 +377,10 @@ static int qspi_device_init(const struct device *dev)
 	k_sem_give(&dev_data->count);
 #endif
 
+#ifndef CONFIG_MCUBOOT
+bool doneinit = false;
+#endif
+
 	if (!qspi_initialized) {
 		const struct qspi_nor_config *dev_config = dev->config;
 
@@ -385,9 +389,19 @@ static int qspi_device_init(const struct device *dev)
 				     dev_data);
 		ret = qspi_get_zephyr_ret_code(res);
 		qspi_initialized = (ret == 0);
+
+#ifndef CONFIG_MCUBOOT
+doneinit = true;
+#endif
 	}
 
 	qspi_unlock(dev);
+
+#ifndef CONFIG_MCUBOOT
+if (doneinit) {
+z_impl_nrf_qspi_nor_xip_enable(dev, true);
+}
+#endif
 
 	return ret;
 #endif
@@ -1360,6 +1374,10 @@ static int qspi_nor_pm_action(const struct device *dev,
 		}
 #endif
 
+	if (dev_data->xip_enabled) {
+			return -EBUSY;
+	}
+
 		if (nrfx_qspi_mem_busy_check() != NRFX_SUCCESS) {
 			return -EBUSY;
 		}
@@ -1420,6 +1438,7 @@ void z_impl_nrf_qspi_nor_xip_enable(const struct device *dev, bool enable)
 #endif
 	qspi_lock(dev);
 	dev_data->xip_enabled = enable;
+
 	qspi_unlock(dev);
 
 	qspi_device_uninit(dev);
@@ -1455,6 +1474,7 @@ PINCTRL_DT_DEFINE(QSPI_NODE);
 static const struct qspi_nor_config qspi_nor_dev_config = {
 	.nrfx_cfg.skip_gpio_cfg = true,
 	.nrfx_cfg.skip_psel_cfg = true,
+/*.nrfx_cfg.xip_offset = CONFIG_NORDIC_QSPI_NOR_XIP_ADDRESS,*/
 	.pcfg = PINCTRL_DT_DEV_CONFIG_GET(QSPI_NODE),
 	.nrfx_cfg.prot_if = {
 		.readoc = COND_CODE_1(DT_INST_NODE_HAS_PROP(0, readoc),
