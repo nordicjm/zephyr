@@ -6,6 +6,7 @@
 
 #define DT_DRV_COMPAT nordic_qspi_nor
 
+#include <zephyr/irq.h>
 #include <errno.h>
 #include <zephyr/drivers/flash.h>
 #include <zephyr/init.h>
@@ -636,6 +637,9 @@ static int qspi_erase(const struct device *dev, uint32_t addr, uint32_t size)
 		return -EINVAL;
 	}
 
+uint32_t lockkey;
+lockkey = irq_lock();
+
 	int rv = 0;
 	const struct qspi_nor_config *params = dev->config;
 
@@ -696,6 +700,8 @@ out_trans_unlock:
 
 out:
 	qspi_device_uninit(dev);
+irq_unlock(lockkey);
+
 	return rv;
 }
 
@@ -1128,6 +1134,9 @@ static int qspi_nor_write(const struct device *dev, off_t addr,
 		return -EINVAL;
 	}
 
+uint32_t lockkey;
+lockkey = irq_lock();
+
 	nrfx_err_t res = NRFX_SUCCESS;
 
 	int rc = qspi_device_init(dev);
@@ -1161,6 +1170,7 @@ static int qspi_nor_write(const struct device *dev, off_t addr,
 	rc = qspi_get_zephyr_ret_code(res);
 out:
 	qspi_device_uninit(dev);
+irq_unlock(lockkey);
 	return rc;
 }
 
@@ -1239,7 +1249,7 @@ static int qspi_nor_configure(const struct device *dev)
  */
 static int qspi_nor_init(const struct device *dev)
 {
-return -5;
+//return -5;
 
 	const struct qspi_nor_config *dev_config = dev->config;
 	int ret = pinctrl_apply_state(dev_config->pcfg, PINCTRL_STATE_DEFAULT);
