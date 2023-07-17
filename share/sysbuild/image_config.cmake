@@ -13,6 +13,9 @@ if((NOT image_board) OR ("${image_BOARD}" STREQUAL "${BOARD}"))
     set_config_string(${image} CONFIG_MCUBOOT_SIGNATURE_KEY_FILE
                                "${SB_CONFIG_BOOT_SIGNATURE_KEY_FILE}"
     )
+    set_config_string(${image} CONFIG_MCUBOOT_ENCRYPTION_KEY_FILE
+                               "${SB_CONFIG_BOOT_ENCRYPTION_KEY_FILE}"
+    )
   else()
     set(keytypes CONFIG_BOOT_SIGNATURE_TYPE_NONE
                  CONFIG_BOOT_SIGNATURE_TYPE_RSA
