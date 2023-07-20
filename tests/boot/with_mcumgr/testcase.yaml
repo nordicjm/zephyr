@@ -7,18 +7,26 @@ common:
   integration_platforms:
     - nrf52840dk_nrf52840
   timeout: 600
+  slow: true
 tests:
   boot.with_mcumgr.test_upgrade:
-    tags: pytest mcuboot mcumgr
+    tags:
+      - pytest
+      - mcuboot
+      - mcumgr
     harness: pytest
     harness_config:
-      pytest_args: ["-k=test_upgrade.py"]
+      pytest_args: ["-k=test_upgrade"]
 
   boot.with_mcumgr.test_downgrade_prevention:
-    tags: pytest mcuboot mcumgr
+    tags:
+      - pytest
+      - mcuboot
+      - mcumgr
     harness: pytest
     harness_config:
       pytest_args: ["-k=test_downgrade_prevention"]
     extra_args:
-      - OVERLAY_CONFIG="overlay-mcuboot-version.conf"
       - mcuboot_CONFIG_MCUBOOT_DOWNGRADE_PREVENTION=y
+    extra_configs:
+      - CONFIG_MCUBOOT_IMGTOOL_SIGN_VERSION="1.1.1+1"

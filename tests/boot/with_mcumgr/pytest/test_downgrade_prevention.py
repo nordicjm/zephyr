@@ -5,18 +5,16 @@ from __future__ import annotations
 
 import time
 import logging
-import pytest  # noqa # pylint: disable=unused-import
 
 from pathlib import Path
-from twister_harness.device.device_abstract import DeviceAbstract
-from mcumgr import McuMgr
-from test_upgrade import wait_for_message
+from twister_harness import Device, MCUmgr
+from conftest import wait_for_message
 
 
 logger = logging.getLogger(__name__)
 
 
-def test_downgrade_prevention(dut: DeviceAbstract, mcumgr: McuMgr, builddir):
+def test_downgrade_prevention(dut: Device, mcumgr: MCUmgr):
     """
     Verify that the application is not downgraded
     1) Device flashed with MCUboot and an application that contains SMP server.
@@ -35,7 +33,7 @@ def test_downgrade_prevention(dut: DeviceAbstract, mcumgr: McuMgr, builddir):
     assert wait_for_message(dut, "version: 1.1.1")
 
     logger.info('Find second image to upload with mcumgr')
-    second_image = (Path(builddir) / 'smp_svr' / 'zephyr' / 'zephyr.signed.bin').resolve()
+    second_image = (Path(dut.device_config.build_dir) / 'smp_svr' / 'zephyr' / 'zephyr.signed.bin').resolve()
     assert second_image.is_file()
 
     logger.info('Upload second image with mcumgr')
@@ -45,7 +43,7 @@ def test_downgrade_prevention(dut: DeviceAbstract, mcumgr: McuMgr, builddir):
     second_hash = mcumgr.get_hash_to_test()
     mcumgr.image_test(second_hash)
     mcumgr.reset_device()
-    assert wait_for_message(dut, "Image in slot 1 erased due to downgrade prevention")
+    assert wait_for_message(dut, "erased due to downgrade prevention")
     assert wait_for_message(dut, "Jumping to the first image slot")
     time.sleep(1)
 
