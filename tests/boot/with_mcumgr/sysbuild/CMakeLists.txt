@@ -1,0 +1,7 @@
+function(${SYSBUILD_CURRENT_MODULE_NAME}_pre_domains)
+  message(WARNING "yoho ${IMAGES}")
+  list(REMOVE_ITEM IMAGES smp_svr)
+  message(WARNING "yoho3 ${IMAGES}")
+  set(IMAGES ${IMAGES})
+  set(IMAGES ${IMAGES} PARENT_SCOPE)
+endfunction(${SYSBUILD_CURRENT_MODULE_NAME}_pre_domains)

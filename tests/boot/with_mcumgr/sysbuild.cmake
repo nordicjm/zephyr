@@ -1,9 +1,9 @@
-# Add the mcuboot key file to the secondary swapped app
-# This must be done here to ensure that the same key file is used for signing
-# both the primary and secondary apps
-set(smp_svr_CONFIG_MCUBOOT_SIGNATURE_KEY_FILE
-    \"${SB_CONFIG_BOOT_SIGNATURE_KEY_FILE}\" CACHE STRING
-    "Signature key file for signing" FORCE)
+#
+set(SYSBUILD_CURRENT_MODULE_NAME TEST_APP)
+set(SYSBUILD_CURRENT_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR}/sysbuild)
+set(SYSBUILD_CURRENT_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR}/sysbuild)
+set(SYSBUILD_MODULE_NAMES ${SYSBUILD_MODULE_NAMES} ${SYSBUILD_CURRENT_MODULE_NAME})
+add_subdirectory(${SYSBUILD_CURRENT_CMAKE_DIR} ${CMAKE_BINARY_DIR}/modules/${SYSBUILD_CURRENT_MODULE_NAME})
 
 # Add the swapped app to the build
 ExternalZephyrProject_Add(
@@ -11,6 +11,4 @@ ExternalZephyrProject_Add(
   SOURCE_DIR ${ZEPHYR_BASE}/samples/subsys/mgmt/mcumgr/smp_svr
 )
 
-# Do not add the swapped app to the list of images to flash,
-# just invoke the CMake configure step to build the secondary app
-ExternalZephyrProject_Cmake(APPLICATION "smp_svr")
+set(IMAGES ${IMAGES} smp_svr)
