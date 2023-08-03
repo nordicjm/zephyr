@@ -282,6 +282,7 @@ class Build(Forceable):
             extra_dtc_overlay_files = []
             extra_overlay_confs = []
             extra_conf_files = []
+            required_snippets = []
             for section in [common, item]:
                 if not section:
                     continue
@@ -291,7 +292,8 @@ class Build(Forceable):
                         'extra_configs',
                         'extra_conf_files',
                         'extra_overlay_confs',
-                        'extra_dtc_overlay_files'
+                        'extra_dtc_overlay_files',
+                        'required_snippets'
                         ]:
                     extra = section.get(data)
                     if not extra:
@@ -314,6 +316,9 @@ class Build(Forceable):
                     elif data == 'extra_dtc_overlay_files':
                         extra_dtc_overlay_files.extend(arg_list)
                         continue
+                    elif data == 'required_snippets':
+                        required_snippets.extend(arg_list)
+                        continue
 
                     if self.args.cmake_opts:
                         self.args.cmake_opts.extend(args)
@@ -331,6 +336,9 @@ class Build(Forceable):
 
         if extra_overlay_confs:
             args.append(f"OVERLAY_CONFIG=\"{';'.join(extra_overlay_confs)}\"")
+
+        if required_snippets:
+            args.append(f"SNIPPET=\"{';'.join(required_snippets)}\"")
         # Build the final argument list
         args_expanded = ["-D{}".format(a.replace('"', '')) for a in args]
 

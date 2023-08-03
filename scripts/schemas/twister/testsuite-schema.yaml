@@ -243,6 +243,11 @@ mapping:
           "extra_sections":
             type: any
             required: false
+          "required_snippets":
+            type: seq
+            required: false
+            sequence:
+              - type: str
           "filter":
             type: str
             required: false
