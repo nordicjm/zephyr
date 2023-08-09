@@ -1820,6 +1820,10 @@ if(CONFIG_CHECK_INIT_PRIORITIES)
     )
 endif()
 
+if(CONFIG_BOOTLOADER_MCUBOOT OR CONFIG_MCUBOOT)
+  include(${CMAKE_CURRENT_LIST_DIR}/cmake/mcuboot_keys.cmake)
+endif()
+
 # Generate and use MCUboot related artifacts as needed.
 if(CONFIG_BOOTLOADER_MCUBOOT)
   get_target_property(signing_script zephyr_property_target SIGNING_SCRIPT)
