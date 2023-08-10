@@ -45,6 +45,12 @@
 #endif
 #endif
 
+#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS) && (CONFIG_HEAP_MEM_POOL_SIZE > 0)
+#include <zephyr/sys/sys_heap.h>
+
+extern struct sys_heap _system_heap;
+#endif
+
 LOG_MODULE_REGISTER(mcumgr_os_grp, CONFIG_MCUMGR_GRP_OS_LOG_LEVEL);
 
 #ifdef CONFIG_REBOOT
@@ -365,6 +371,35 @@ os_mgmt_mcumgr_params(struct smp_streamer *ctxt)
 	     zcbor_uint32_put(zse, CONFIG_MCUMGR_TRANSPORT_NETBUF_SIZE)	&&
 	     zcbor_tstr_put_lit(zse, "buf_count")		&&
 	     zcbor_uint32_put(zse, CONFIG_MCUMGR_TRANSPORT_NETBUF_COUNT);
+
+	return ok ? MGMT_ERR_EOK : MGMT_ERR_EMSGSIZE;
+}
+#endif
+
+#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS) && (CONFIG_HEAP_MEM_POOL_SIZE > 0)
+/**
+ * Command handler: os memory pool
+ */
+static int os_mgmt_memory_pool(struct smp_streamer *ctxt)
+{
+	bool ok;
+	zcbor_state_t *zse = ctxt->writer->zs;
+        struct sys_memory_stats stats;
+
+        sys_heap_runtime_stats_get(&_system_heap, &stats);
+
+	ok = zcbor_tstr_put_lit(zse, "system_heap")						&&
+	     zcbor_map_start_encode(zse, 10)							&&
+	     zcbor_tstr_put_lit(zse, "blksiz")							&&
+	     zcbor_int32_put(zse, sizeof(uint32_t))						&&
+	     zcbor_tstr_put_lit(zse, "nblks")							&&
+	     zcbor_int32_put(zse, (CONFIG_HEAP_MEM_POOL_SIZE / sizeof(uint32_t)))		&&
+	     zcbor_tstr_put_lit(zse, "nfree")							&&
+	     zcbor_int32_put(zse, (stats.free_bytes / sizeof(uint32_t)))			&&
+	     zcbor_tstr_put_lit(zse, "min")							&&
+	     zcbor_int32_put(zse, (CONFIG_HEAP_MEM_POOL_SIZE - stats.max_allocated_bytes)
+			     / sizeof(uint32_t))						&&
+	     zcbor_map_end_encode(zse, 10);
 
 	return ok ? MGMT_ERR_EOK : MGMT_ERR_EMSGSIZE;
 }
@@ -731,6 +766,12 @@ static const struct mgmt_handler os_mgmt_group_handlers[] = {
 #ifdef CONFIG_MCUMGR_GRP_OS_INFO
 	[OS_MGMT_ID_INFO] = {
 		os_mgmt_info, NULL
+	},
+#endif
+
+#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS) && (CONFIG_HEAP_MEM_POOL_SIZE > 0)
+	[OS_MGMT_ID_MPSTAT] = {
+		os_mgmt_memory_pool, NULL
 	},
 #endif
 };
