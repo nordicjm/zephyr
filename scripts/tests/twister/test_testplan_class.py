@@ -35,6 +35,7 @@ def test_testplan_add_testsuites(class_testplan):
                           'test_a.check_1',
                           'test_a.check_2',
                           'test_d.check_1',
+                          'test_e.check_1',
                           'sample_test.app',
                           'test_config.main']
     testsuite_list = []
@@ -77,7 +78,8 @@ def test_get_all_testsuites(class_testplan, all_testsuites_dict):
                       'test_a.check_2.unit_1a', 'test_a.check_2.unit_1b',
                       'test_b.check_1', 'test_b.check_2', 'test_c.check_1',
                       'test_c.check_2', 'test_d.check_1.unit_1a',
-                      'test_d.check_1.unit_1b', 'test_config.main']
+                      'test_d.check_1.unit_1b', 'test_e.check_1.unit_1a',
+                      'test_config.main']
     assert sorted(plan.get_all_tests()) == sorted(expected_tests)
 
 def test_get_platforms(class_testplan, platforms_list):
