@@ -55,45 +55,7 @@ config RETENTION_BOOT_MODE
 	  byte must be created and set as the "zephyr,boot-mode" chosen node
 	  via device tree.
 
-menuconfig RETENTION_BOOTLOADER_CONFIG
-	bool "Bootloader configuration"
-	depends on SETTINGS
-	help
-	  Adds a bootloader configuration sharing system which allows for
-	  retreiving information from the bootloader when data sharing is
-	  enabled via the settings system with the "blinfo" prefix.
-
-if RETENTION_BOOTLOADER_CONFIG
-
-# Workaround for not being able to have commas in macro arguments
-DT_CHOSEN_BOOTLOADER_CONFIG := zephyr,bootloader-config
-
-config RETENTION_BOOTLOADER_CONFIG_TYPE_MCUBOOT
-	bool "MCUboot"
-	depends on !MCUBOOT && BOOTLOADER_MCUBOOT
-	depends on $(dt_chosen_enabled,$(DT_CHOSEN_BOOTLOADER_CONFIG))
-	select MCUBOOT_BOOTUTIL_LIB
-	help
-	  Adds a bootloader configuration sharing system for MCUboot and
-	  applications which allows applications to read the configurion of
-	  MCUboot and the running image. This can be used by applications so
-	  that they know how to e.g. handle firmware updates and place them
-	  into the correct slot.
-
-	  In order to use this, a retention area must be created and set as
-	  the "zephyr,bootloader-config" chosen node via device tree, MCUboot
-	  must be built with the same "zephyr,bootloader-config" DTS node and
-	  have CONFIG_BOOT_SHARE_DATA and CONFIG_BOOT_SHARE_DATA_BOOTINFO
-	  enabled, or the shared information will not be accessible.
-
-config RETENTION_BOOTLOADER_CONFIG_INIT_PRIORITY
-	int "Bootloader configuration init priority"
-	default 87
-	help
-	  Bootloader configuration initialization priority (must be higher
-	  than init priorities for for retention subsystem).
-
-endif
+source "subsys/retention/Kconfig.blinfo"
 
 endmenu
 
@@ -102,3 +64,4 @@ module-str = retention
 source "subsys/logging/Kconfig.template.log_config"
 
 endif # RETENTION
+

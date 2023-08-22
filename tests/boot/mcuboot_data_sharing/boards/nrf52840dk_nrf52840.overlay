@@ -13,18 +13,16 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			boot_config0: boot_config@0 {
+			boot_info0: boot_info@0 {
 				compatible = "zephyr,retention";
 				status = "okay";
 				reg = <0x0 0x100>;
-				prefix = [08 04];
-				checksum = <1>;
 			};
 		};
 	};
 
 	chosen {
-		zephyr,bootloader-config = &boot_config0;
+		zephyr,bootloader-info = &boot_info0;
 	};
 };
 
