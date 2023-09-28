@@ -128,6 +128,9 @@ Build system and infrastructure
   be used to include a snippet when a test is ran (and exclude any boards from
   running that the snippet cannot be applied to).
 
+* Added support for snippet roots being automatically detected and used if they
+  exist in module directories.
+
 * Interrupts
 
   * Added support for shared interrupts
