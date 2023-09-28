@@ -65,6 +65,15 @@ function(zephyr_process_snippets)
     file(REAL_PATH ${snippet_dir} real_snippet_dir)
     list(APPEND real_snippet_root ${real_snippet_dir})
   endforeach()
+
+  # Search through all modules for any that have a snippets directory
+  foreach(module_name ${ZEPHYR_MODULE_NAMES})
+    string(TOUPPER "${module_name}" module_name)
+    if(EXISTS "${ZEPHYR_${module_name}_MODULE_DIR}/snippets")
+      list(APPEND real_snippet_root "${ZEPHYR_${module_name}_MODULE_DIR}")
+    endif()
+  endforeach()
+
   set(SNIPPET_ROOT ${real_snippet_root})
   list(REMOVE_DUPLICATES SNIPPET_ROOT)
   set(SNIPPET_ROOT "${SNIPPET_ROOT}" PARENT_SCOPE)
