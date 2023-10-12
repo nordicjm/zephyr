@@ -50,6 +50,8 @@ static struct fs_mount_t littlefs_mnt = {
 };
 #endif
 
+extern void do_app_settings();
+
 int main(void)
 {
 	int rc = STATS_INIT_AND_REG(smp_svr_stats, STATS_SIZE_32,
@@ -82,6 +84,8 @@ int main(void)
 	 * compile which is convenient when testing firmware upgrade.
 	 */
 	LOG_INF("build time: " __DATE__ " " __TIME__);
+
+	do_app_settings();
 
 	/* The system work queue handles all incoming mcumgr requests.  Let the
 	 * main thread idle while the mcumgr server runs.
