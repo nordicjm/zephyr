@@ -1825,16 +1825,27 @@ if(NOT CMAKE_C_COMPILER_ID STREQUAL "ARMClang")
   )
 endif()
 
-# Generate and use MCUboot related artifacts as needed.
-if(CONFIG_BOOTLOADER_MCUBOOT)
-  get_target_property(signing_script zephyr_property_target SIGNING_SCRIPT)
-  if(NOT signing_script)
-    set_target_properties(zephyr_property_target PROPERTIES SIGNING_SCRIPT ${CMAKE_CURRENT_LIST_DIR}/cmake/mcuboot.cmake)
-  endif()
+# Question: should sysbuild reign supreme over all modules and application config, or should module/application take highest priority?
+
+# Check for a signing file, this can be set by the application, through sysbuild or to the default
+# MCUboot signing script if MCUboot is enabled. The order is as follows with the first having the
+# highest priority:
+# * Application/module specified via the SIGNING_SCRIPT target property
+# * Sysbuild specified via the SIGNING_SCRIPT variable
+# * MCUboot default
+# * No signing script
+get_target_property(signing_script zephyr_property_target SIGNING_SCRIPT)
+
+if(SYSBUILD AND NOT signing_script)
+  zephyr_get(signing_script VAR SIGNING_SCRIPT SYSBUILD)
+endif()
+
+# Generate and use MCUboot related artifacts as needed
+if(CONFIG_BOOTLOADER_MCUBOOT AND NOT signing_script)
+  set(signing_script ${CMAKE_CURRENT_LIST_DIR}/cmake/mcuboot.cmake)
 endif()
 
 # Include signing script, if set
-get_target_property(signing_script zephyr_property_target SIGNING_SCRIPT)
 if(signing_script)
   message(STATUS "Including signing script: ${signing_script}")
 
