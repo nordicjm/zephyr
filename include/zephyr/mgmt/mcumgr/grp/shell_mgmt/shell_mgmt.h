@@ -13,9 +13,20 @@ extern "C" {
 #endif
 
 /**
+ * @file
+ * @brief MCUmgr shell_mgmt API
+ * @defgroup mcumgr_shell_mgmt MCUmgr shell_mgmt API
+ * @ingroup mcumgr
+ * @{
+ */
+
+/**
  * Command IDs for shell management group.
  */
-#define SHELL_MGMT_ID_EXEC   0
+enum shell_mgmt_id_t {
+	/** Execute shell command */
+	SHELL_MGMT_ID_EXEC   = 0
+};
 
 /**
  * Command result codes for shell management group.
@@ -33,6 +44,10 @@ enum shell_mgmt_err_code_t {
 	/** No command to execute was provided. */
 	SHELL_MGMT_ERR_EMPTY_COMMAND,
 };
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

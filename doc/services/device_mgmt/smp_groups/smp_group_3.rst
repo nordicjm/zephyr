@@ -4,7 +4,7 @@ Settings (Config) Management Group
 ##################################
 
 Settings management group (known as Configuration Manager in the original MCUmgr repository)
-defines the following commands:
+defines the following commands (:c:enum:`settings_mgmt_id_t`):
 
 .. table::
     :align: center

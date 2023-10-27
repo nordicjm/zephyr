@@ -6,7 +6,7 @@ Shell management
 Shell management allows passing commands to the shell subsystem over the SMP
 protocol.
 
-Shell management group defines following commands:
+Shell management group defines the following commands (:c:enum:`shell_mgmt_id_t`):
 
 .. table::
     :align: center

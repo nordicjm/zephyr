@@ -13,10 +13,23 @@ extern "C" {
 #endif
 
 /**
+ * @file
+ * @brief MCUmgr stat_mgmt API
+ * @defgroup mcumgr_stat_mgmt MCUmgr stat_mgmt API
+ * @ingroup mcumgr
+ * @{
+ */
+
+/**
  * Command IDs for statistics management group.
  */
-#define STAT_MGMT_ID_SHOW   0
-#define STAT_MGMT_ID_LIST   1
+enum stat_mgmt_id_t {
+	/** Fetch group data */
+	STAT_MGMT_ID_SHOW   = 0,
+
+	/** List groups */
+	STAT_MGMT_ID_LIST   = 1
+};
 
 /**
  * Command result codes for statistics management group.
@@ -48,6 +61,10 @@ struct stat_mgmt_entry {
 	const char *name;
 	uint64_t value;
 };
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

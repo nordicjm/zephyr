@@ -15,6 +15,7 @@
 #include <zcbor_common.h>
 
 /**
+ * @file
  * @brief MCUmgr img_mgmt API
  * @defgroup mcumgr_img_mgmt MCUmgr img_mgmt API
  * @ingroup mcumgr
@@ -50,12 +51,25 @@ extern "C" {
 /**
  * Command IDs for image management group.
  */
-#define IMG_MGMT_ID_STATE	0
-#define IMG_MGMT_ID_UPLOAD	1
-#define IMG_MGMT_ID_FILE	2
-#define IMG_MGMT_ID_CORELIST	3
-#define IMG_MGMT_ID_CORELOAD	4
-#define IMG_MGMT_ID_ERASE	5
+enum img_mgmt_id_t {
+	/** Get/set image status */
+	IMG_MGMT_ID_STATE	= 0,
+
+	/** Upload image */
+	IMG_MGMT_ID_UPLOAD	= 1,
+
+	/** File (not implemented) */
+	IMG_MGMT_ID_FILE	= 2,
+
+	/** Core list (not implemented) */
+	IMG_MGMT_ID_CORELIST	= 3,
+
+	/** Core load (not implemented) */
+	IMG_MGMT_ID_CORELOAD	= 4,
+
+	/** Erase slot */
+	IMG_MGMT_ID_ERASE	= 5
+};
 
 /**
  * Command result codes for image management group.

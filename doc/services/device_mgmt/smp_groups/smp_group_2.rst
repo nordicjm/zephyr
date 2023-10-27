@@ -6,7 +6,7 @@ Statistics management
 Statistics management allows to obtain data gathered by Statistics subsystem
 of Zephyr, enabled with :kconfig:option:`CONFIG_STATS`.
 
-Statistics management group defines commands:
+Statistics management group defines the following commands (:c:enum:`stat_mgmt_id_t`):
 
 .. table::
     :align: center

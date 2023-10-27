@@ -6,7 +6,7 @@ File management
 The file management group provides commands that allow to upload and download files
 to/from a device.
 
-File management group defines following commands:
+File management group defines the following commands (:c:enum:`fs_mgmt_id_t`):
 
 .. table::
     :align: center

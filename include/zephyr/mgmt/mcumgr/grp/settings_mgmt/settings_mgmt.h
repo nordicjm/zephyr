@@ -12,12 +12,29 @@ extern "C" {
 #endif
 
 /**
+ * @file
+ * @brief MCUmgr settings_mgmt API
+ * @defgroup mcumgr_settings_mgmt MCUmgr settings_mgmt API
+ * @ingroup mcumgr
+ * @{
+ */
+
+/**
  * Command IDs for settings management group.
  */
-#define SETTINGS_MGMT_ID_READ_WRITE		0
-#define SETTINGS_MGMT_ID_DELETE			1
-#define SETTINGS_MGMT_ID_COMMIT			2
-#define SETTINGS_MGMT_ID_LOAD_SAVE		3
+enum settings_mgmt_id_t {
+	/** Read/write setting */
+	SETTINGS_MGMT_ID_READ_WRITE		= 0,
+
+	/** Delete setting */
+	SETTINGS_MGMT_ID_DELETE			= 1,
+
+	/** Commit settings */
+	SETTINGS_MGMT_ID_COMMIT			= 2,
+
+	/** Load/save settings */
+	SETTINGS_MGMT_ID_LOAD_SAVE		= 3
+};
 
 /**
  * Command result codes for settings management group.
@@ -47,6 +64,10 @@ enum settings_mgmt_ret_code_t {
 	/** The provided key name does not support being deleted. */
 	SETTINGS_MGMT_ERR_DELETE_NOT_SUPPORTED,
 };
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

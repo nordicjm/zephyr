@@ -14,13 +14,32 @@ extern "C" {
 #endif
 
 /**
+ * @file
+ * @brief MCUmgr fs_mgmt API
+ * @defgroup mcumgr_fs_mgmt MCUmgr fs_mgmt API
+ * @ingroup mcumgr
+ * @{
+ */
+
+/**
  * Command IDs for file system management group.
  */
-#define FS_MGMT_ID_FILE				0
-#define FS_MGMT_ID_STAT				1
-#define FS_MGMT_ID_HASH_CHECKSUM		2
-#define FS_MGMT_ID_SUPPORTED_HASH_CHECKSUM	3
-#define FS_MGMT_ID_OPENED_FILE			4
+enum fs_mgmt_id_t {
+	/** File upload/download */
+	FS_MGMT_ID_FILE				= 0,
+
+	/** File status (file size) */
+	FS_MGMT_ID_STAT				= 1,
+
+	/** Hash or checksum of file */
+	FS_MGMT_ID_HASH_CHECKSUM		= 2,
+
+	/** List of support hashes and checksums */
+	FS_MGMT_ID_SUPPORTED_HASH_CHECKSUM	= 3,
+
+	/** Close opened file */
+	FS_MGMT_ID_OPENED_FILE			= 4
+};
 
 /**
  * Command result codes for file system management group.
@@ -83,6 +102,10 @@ enum fs_mgmt_err_code_t {
 	/** The operation cannot be performed because the file is empty with no contents. */
 	FS_MGMT_ERR_FILE_EMPTY,
 };
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }

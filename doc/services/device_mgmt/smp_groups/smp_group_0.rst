@@ -3,7 +3,7 @@
 Default/OS Management Group
 ###########################
 
-OS management group defines following commands:
+OS management group defines the following commands (:c:enum:`os_mgmt_id_t`):
 
 .. table::
     :align: center
