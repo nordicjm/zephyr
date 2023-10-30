@@ -111,6 +111,17 @@ config FLASH_LOAD_OFFSET
 
 	  If unsure, leave at the default value 0.
 
+config FLASH_LOAD_OVERHEAD_SIZE
+	hex "Kernel reserved overhead size"
+	default 0
+	help
+	  If non-zero, this option reduces the maximum size that the Zephyr image is allowed to
+	  occupy, this is to allow for additional image storage which are created and used by
+	  other systems such as bootloaders (for MCUboot, this would include the image swap
+	  fields and TLV storage at the end of the image).
+
+	  If unsure, leave at the default value 0.
+
 config FLASH_LOAD_SIZE
 	# Only user-configurable when USE_DT_CODE_PARTITION is disabled
 	hex "Kernel load size" if !USE_DT_CODE_PARTITION
