@@ -481,13 +481,15 @@ endfunction()
 # `EXTRA_ARGS` can be used to pass extra arguments to the hook.
 #
 # Valid <hook> values:
-# PRE_CMAKE   : Invoke pre-CMake call for modules before CMake configure is invoked for images
-# POST_CMAKE  : Invoke post-CMake call for modules after CMake configure has been invoked for images
-# PRE_DOMAINS : Invoke pre-domains call for modules before creating domains yaml.
-# POST_DOMAINS: Invoke post-domains call for modules after creation of domains yaml.
+# PRE_CMAKE       : Invoke pre-CMake call for modules before CMake configure is invoked for images
+# POST_CMAKE      : Invoke post-CMake call for modules after CMake configure has been invoked for images
+# PRE_IMAGE_CMAKE : Invoke pre-CMake call for modules before CMake configure is invoked for each image
+# POST_IMAGE_CMAKE: Invoke post-CMake call for modules after CMake configure has been invoked for each image
+# PRE_DOMAINS     : Invoke pre-domains call for modules before creating domains yaml.
+# POST_DOMAINS    : Invoke post-domains call for modules after creation of domains yaml.
 #
 function(sysbuild_module_call)
-  set(options "PRE_CMAKE;POST_CMAKE;PRE_DOMAINS;POST_DOMAINS")
+  set(options "PRE_CMAKE;POST_CMAKE;PRE_IMAGE_CMAKE;POST_IMAGE_CMAKE;PRE_DOMAINS;POST_DOMAINS")
   set(multi_args "MODULES;IMAGES;EXTRA_ARGS")
   cmake_parse_arguments(SMC "${options}" "${test_args}" "${multi_args}" ${ARGN})
 
