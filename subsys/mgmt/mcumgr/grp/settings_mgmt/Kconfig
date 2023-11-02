@@ -13,9 +13,50 @@ menuconfig MCUMGR_GRP_SETTINGS
 
 if MCUMGR_GRP_SETTINGS
 
+menu "Supported commands"
+
+config MCUMGR_GRP_SETTINGS_CMD_READ
+	bool "Read"
+	default y
+	help
+	  Enables reading from settings (command ID 0, read op-code).
+
+config MCUMGR_GRP_SETTINGS_CMD_WRITE
+	bool "Write"
+	default y
+	help
+	  Enables writing to settings (command ID 0, write op-code).
+
+config MCUMGR_GRP_SETTINGS_CMD_DELETE
+	bool "Delete"
+	default y
+	help
+	  Enables deleting settings (command ID 1, write op-code).	  
+
+config MCUMGR_GRP_SETTINGS_CMD_COMMIT
+	bool "Commit"
+	default y
+	help
+	  Enables committing settings (command ID 2, write op-code).
+
+config MCUMGR_GRP_SETTINGS_CMD_LOAD
+	bool "Load"
+	default y
+	help
+	  Enables loading settings (command ID 3, read op-code).
+
+config MCUMGR_GRP_SETTINGS_CMD_SAVE
+	bool "Save"
+	default y
+	help
+	  Enables saving settings (command ID 3, write op-code).
+
+endmenu
+
 choice MCUMGR_GRP_SETTINGS_BUFFER_TYPE
 	prompt "Buffer type"
 	default MCUMGR_GRP_SETTINGS_BUFFER_TYPE_STACK
+	depends on MCUMGR_GRP_SETTINGS_CMD_READ || MCUMGR_GRP_SETTINGS_CMD_WRITE || MCUMGR_GRP_SETTINGS_CMD_DELETE
 	help
 	  Selects if the stack or heap will be used for variables that are
 	  needed when processing requests.
@@ -43,6 +84,7 @@ endchoice
 config MCUMGR_GRP_SETTINGS_NAME_LEN
 	int "Maximum setting name length"
 	default 32
+	depends on MCUMGR_GRP_SETTINGS_CMD_READ || MCUMGR_GRP_SETTINGS_CMD_WRITE || MCUMGR_GRP_SETTINGS_CMD_DELETE
 	help
 	  Maximum length of a key to lookup, this will be the size of the
 	  variable if placed on the stack or the maximum allocated size of the
@@ -51,6 +93,7 @@ config MCUMGR_GRP_SETTINGS_NAME_LEN
 config MCUMGR_GRP_SETTINGS_VALUE_LEN
 	int "Maximum setting value length"
 	default 32
+	depends on MCUMGR_GRP_SETTINGS_CMD_READ || MCUMGR_GRP_SETTINGS_CMD_WRITE
 	help
 	  Maximum length of a value to read, this will be the size of the
 	  variable if placed on the stack or the allocated size of the

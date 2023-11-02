@@ -20,7 +20,52 @@ menuconfig MCUMGR_GRP_OS
 
 if MCUMGR_GRP_OS
 
-if REBOOT
+menu "Supported commands"
+
+config MCUMGR_GRP_OS_CMD_ECHO
+        bool "Echo"
+        default y
+        help
+          Enables echoing data (command ID 0, read/write op-code).
+
+config MCUMGR_GRP_OS_CMD_TASK_STATISTICS
+        bool "Task staistics"
+        default y
+	select MCUMGR_SMP_CBOR_MIN_ENCODING_LEVEL_3 if ZCBOR_CANONICAL
+	depends on THREAD_MONITOR
+        help
+          Enables viewing sttistics on tasks (command ID 2, read op-code).
+
+config MCUMGR_GRP_OS_CMD_RESET
+        bool "Reset"
+        default y
+        help
+          Enables resetting/rebooting the device (command ID 5, write op-code).
+
+config MCUMGR_GRP_OS_CMD_MCUMGR_PARAMETERS
+        bool "MCUmgr parameters"
+        default y
+        help
+          Enables fetching the MCUmgr parameters that the firmware was compiled with (command
+	  ID 6, read op-code).
+
+config MCUMGR_GRP_OS_CMD_OS_APPLICATION_INFO
+        bool "OS/Application info"
+        default y
+        help
+          Enables retrieving system information including kernel version, processor architecture
+	  and board name (similar to the unix/linux uname command) (command ID 7, read op-code).
+
+config MCUMGR_GRP_OS_CMD_BOOTLOADER_INFO
+        bool "Bootloader info"
+        default y
+        help
+          Enables quering MCUmgr about bootloader used by the device and various bootloader
+	  parameters (command ID 8, read op-code).
+
+endmenu
+
+if REBOOT && MCUMGR_GRP_OS_CMD_RESET
 
 config MCUMGR_GRP_OS_RESET_MS
 	int "Delay before executing reset command (ms)"
