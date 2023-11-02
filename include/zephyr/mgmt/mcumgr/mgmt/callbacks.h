@@ -188,14 +188,20 @@ enum img_mgmt_group_events {
  * MGMT event opcodes for operating system management group.
  */
 enum os_mgmt_group_events {
-	/** Callback when a reset command has been received, data is os_mgmt_reset_data. */
+	/** Callback when a reset command has been received, data is os_mgmt_reset_data(). */
 	MGMT_EVT_OP_OS_MGMT_RESET		= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_OS, 0),
 
-	/** Callback when an info command is processed, data is os_mgmt_info_check. */
+	/** Callback when an info command is processed, data is os_mgmt_info_check(). */
 	MGMT_EVT_OP_OS_MGMT_INFO_CHECK		= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_OS, 1),
 
-	/** Callback when an info command needs to output data, data is os_mgmt_info_append. */
+	/** Callback when an info command needs to output data, data is os_mgmt_info_append(). */
 	MGMT_EVT_OP_OS_MGMT_INFO_APPEND		= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_OS, 2),
+
+	/** Callback when a datetime get command has been received. */
+	MGMT_EVT_OP_OS_MGMT_DATETIME_GET	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_OS, 3),
+
+	/** Callback when a datetime set command has been received, data is struct rtc_time(). */
+	MGMT_EVT_OP_OS_MGMT_DATETIME_SET	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_OS, 4),
 
 	/** Used to enable all os_mgmt_group events. */
 	MGMT_EVT_OP_OS_MGMT_ALL			= MGMT_DEF_EVT_OP_ALL(MGMT_EVT_GRP_OS),
