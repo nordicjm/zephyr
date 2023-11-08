@@ -22,7 +22,7 @@ void smp_make_hdr(struct smp_hdr *rsp_hdr, size_t len, bool version2, bool write
 		.nh_op = (write == true ? MGMT_OP_WRITE : MGMT_OP_READ),
 		.nh_group = sys_cpu_to_be16(MGMT_GROUP_ID_OS),
 		.nh_seq = 1,
-		.nh_id = OS_MGMT_ID_DATETIME,
+		.nh_id = OS_MGMT_ID_DATETIME_STR,
 	};
 }
 
@@ -55,9 +55,9 @@ bool create_mcumgr_datetime_set_packet(zcbor_state_t *zse, bool version2, struct
 		(uint8_t)time->tm_mon, (uint8_t)time->tm_mday, (uint8_t)time->tm_hour,
 		(uint8_t)time->tm_min, (uint8_t)time->tm_sec);
 
-	ok = zcbor_map_start_encode(zse, 2)	&&
+	ok = zcbor_map_start_encode(zse, 2)		&&
 	     zcbor_tstr_put_lit(zse, "datetime")	&&
-	     zcbor_tstr_put_term(zse, tmp_str)	&&
+	     zcbor_tstr_put_term(zse, tmp_str)		&&
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
