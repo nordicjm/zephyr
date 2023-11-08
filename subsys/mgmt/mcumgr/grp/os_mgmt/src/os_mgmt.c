@@ -125,7 +125,7 @@ struct datetime_parser {
 #endif
 
 /* Minimum/maximum size of a datetime string that a client can provide */
-#define RTC_DATETIME_MIN_STRING_SIZE 24
+#define RTC_DATETIME_MIN_STRING_SIZE 19
 #define RTC_DATETIME_MAX_STRING_SIZE 26
 #endif
 
