@@ -1,0 +1,43 @@
+<name>_defconfig
+Kconfig.defconfig
+
+Kconfig.<name> for multiple identifiers
+board.cmake for multiple identifiers
+
+Kconfig.<name>_<soc> to Kconfig.<name> if soc name removal
+Kconfig.<name> if soc name removal
+Kconfig if soc name removal
+
+
+
+
+
+TODO boards: arm: X: Convert to v2
+
+Converts the board to hwmv2
+
+
+/tmp/move.sh -b nrf52840dongle_nrf52840 -n nrf52840dongle -f boards/arm/nrf52840dongle_nrf52840/ -s nrf52840 -g boards/v2/nordic_nrf/nrf52840dongle -h "Nordic Semiconductor"
+git commit -s
+/tmp/move.sh -b nrf21540dk_nrf52840 -n nrf21540dk -f boards/arm/nrf21540dk_nrf52840/ -s nrf52840 -g boards/v2/nordic_nrf/nrf21540dk -h "Nordic Semiconductor"
+git commit -s
+/tmp/move.sh -b reel_board -n reel_board -f boards/arm/reel_board/ -s nrf52840 -g boards/v2/phytec/reel_board -h "PHYTEC Messtechnik GmbH"
+git commit -s
+/tmp/move.sh -b nrf52840_papyr -n nrf52840_papyr -f boards/arm/nrf52840_papyr/ -s nrf52840 -g boards/v2/electronut_labs/nrf52840_papyr -h "Electronut Labs"
+git commit -s
+/tmp/move.sh -b nrf52840_blip -n nrf52840_blip -f boards/arm/nrf52840_blip/ -s nrf52840 -g boards/v2/electronut_labs/nrf52840_blip -h "Electronut Labs"
+git commit -s
+/tmp/move.sh -b nrf52840_mdk -n nrf52840_mdk -f boards/arm/nrf52840_mdk/ -s nrf52840 -g boards/v2/maker_diary/nrf52840_mdk -h "Maker Diary"
+git commit -s
+/tmp/move.sh -b nrf52840_mdk_usb_dongle -n nrf52840_mdk_usb_dongle -f boards/arm/nrf52840_mdk_usb_dongle/ -s nrf52840 -g boards/v2/maker_diary/nrf52840_mdk_usb_dongle -h "Maker Diary"
+git commit -s
+/tmp/move.sh -b we_proteus3ev_nrf52840 -n we_proteus3ev -f boards/arm/we_proteus3ev_nrf52840/ -s nrf52840 -g boards/v2/wurth_elektronik/we_proteus3ev -h "Würth Elektronik"
+git commit -s
+
+
+xiao_ble
+
+
+rm -rf * && cmake -GNinja -DBOARD=x .. && ninja
+nrf52840_mdk
+we_proteus3ev/nrf52840
