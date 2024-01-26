@@ -11,8 +11,9 @@
 #
 # Outputs with examples::
 #
-#   PROJECT_VERSION           1.14.99.07
-#   KERNEL_VERSION_STRING    "1.14.99-extraver"
+#   PROJECT_VERSION                    1.14.99.07
+#   KERNEL_VERSION_STRING             "1.14.99-extraver"
+#   KERNEL_VERSION_EXTENDED_STRING    "1.14.99-extraver+7"
 #
 #   KERNEL_VERSION_MAJOR      1
 #   KERNEL_VERSION_MINOR        14
@@ -80,6 +81,7 @@ foreach(type file IN ZIP_LISTS VERSION_TYPE VERSION_FILE)
   else()
     set(${type}_VERSION_STRING     "${${type}_VERSION_WITHOUT_TWEAK}")
   endif()
+  set(${type}_VERSION_EXTENDED_STRING "${${type}_VERSION_STRING}+${${type}_VERSION_TWEAK}}")
 
   if(type STREQUAL KERNEL)
     set(PROJECT_VERSION_MAJOR      ${${type}_VERSION_MAJOR})
@@ -116,5 +118,6 @@ foreach(type file IN ZIP_LISTS VERSION_TYPE VERSION_FILE)
   unset(MAJOR)
   unset(MINOR)
   unset(PATCH)
+  unset(TWEAK)
   unset(${type}_VERSION_WITHOUT_TWEAK)
 endforeach()
