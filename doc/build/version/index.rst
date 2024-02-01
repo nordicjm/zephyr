@@ -104,6 +104,11 @@ following defines are available:
 |                             |                   | ``EXTRAVERSION`` |br|                                |                         |
 |                             |                   | ``VERSION_TWEAK`` |br|                               |                         |
 +-----------------------------+-------------------+------------------------------------------------------+-------------------------+
+| APP_VERSION_TWEAK_STRING    | String (quoted)   | ``VERSION_MAJOR``, |br|                              | "1.2.3+4"               |
+|                             |                   | ``VERSION_MINOR``, |br|                              |                         |
+|                             |                   | ``PATCHLEVEL``, |br|                                 |                         |
+|                             |                   | ``VERSION_TWEAK`` |br|                               |                         |
++-----------------------------+-------------------+------------------------------------------------------+-------------------------+
 | APP_BUILD_VERSION           | String (unquoted) | None (value of ``git describe --abbrev=12 --always`` | v3.3.0-18-g2c85d9224fca |
 |                             |                   | from application repository)                         |                         |
 +-----------------------------+-------------------+------------------------------------------------------+-------------------------+
@@ -133,6 +138,11 @@ The following variables are available for usage in Kconfig files:
 |                                |           | ``VERSION_MINOR``, |br|  |                  |
 |                                |           | ``PATCHLEVEL``, |br|     |                  |
 |                                |           | ``EXTRAVERSION``, |br|   |                  |
+|                                |           | ``VERSION_TWEAK``        |                  |
++--------------------------------+-----------+--------------------------+------------------+
+| $(APP_VERSION_TWEAK_STRING)    | String    | ``VERSION_MAJOR``, |br|  | 1.2.3+4          |
+|                                |           | ``VERSION_MINOR``, |br|  |                  |
+|                                |           | ``PATCHLEVEL``, |br|     |                  |
 |                                |           | ``VERSION_TWEAK``        |                  |
 +--------------------------------+-----------+--------------------------+------------------+
 
@@ -172,6 +182,11 @@ The following variable are available for usage in CMake files:
 |                             |                 | ``EXTRAVERSION``, |br|                            |                  |
 |                             |                 | ``VERSION_TWEAK``                                 |                  |
 +-----------------------------+-----------------+---------------------------------------------------+------------------+
+| APP_VERSION_TWEAK_STRING    | String          | ``VERSION_MAJOR``, |br|                           | 1.2.3+4          |
+|                             |                 | ``VERSION_MINOR``, |br|                           |                  |
+|                             |                 | ``PATCHLEVEL``, |br|                              |                  |
+|                             |                 | ``VERSION_TWEAK``                                 |                  |
++-----------------------------+-----------------+---------------------------------------------------+------------------+
 
 Use in MCUboot-supported applications
 =====================================
@@ -179,6 +194,3 @@ Use in MCUboot-supported applications
 No additional configuration needs to be done to the target application so long as it is configured
 to support MCUboot and a signed image is generated, the version information will be automatically
 included in the image data.
-
-The format used for signing is ``VERSION_MAJOR`` . ``VERSION_MINOR`` . ``PATCHLEVEL``, the tweak
-version field is not currently used.
