@@ -13,12 +13,12 @@ This application demonstrates how to use RPMsg Service in Zephyr. It is designed
 to demonstrate how to integrate RPMsg Service with Zephyr both from a build
 perspective and code.
 
-Building the application for nrf5340dk_nrf5340_cpuapp
+Building the application for nrf5340dk/nrf5340/cpuapp
 *****************************************************
 
 .. zephyr-app-commands::
    :zephyr-app: samples/subsys/ipc/rpmsg_service
-   :board: nrf5340dk_nrf5340_cpuapp
+   :board: nrf5340dk/nrf5340/cpuapp
    :goals: debug
 
 Building the application for mps2_an521
@@ -75,17 +75,17 @@ serial port, one is master another is remote:
    Remote core received a message: 98
    RPMsg Service demo ended.
 
-Building the application for bl5340_dvk_cpuapp
-**********************************************
+Building the application for bl5340_dvk/nrf5340/cpuapp
+******************************************************
 
 .. zephyr-app-commands::
    :zephyr-app: samples/subsys/ipc/rpmsg_service
-   :board: bl5340_dvk_cpuapp
+   :board: bl5340_dvk/nrf5340/cpuapp
    :goals: debug
 
 .. zephyr-app-commands::
    :zephyr-app: samples/subsys/ipc/rpmsg_service
-   :board: bl5340_dvk_cpunet
+   :board: bl5340_dvk/nrf5340/cpunet
    :goals: debug
 
 Open a serial terminal (for example Minicom or PuTTY) and connect to the board
