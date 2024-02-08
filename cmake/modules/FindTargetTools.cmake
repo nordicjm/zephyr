@@ -83,6 +83,10 @@ add_custom_target(compiler)
 add_custom_target(compiler-cpp)
 add_custom_target(linker)
 
+if("${ARCH}" STREQUAL "posix" AND "${COMPILER}" STREQUAL "gcc")
+  set(COMPILER "host-gcc")
+endif()
+
 if(NOT (COMPILER STREQUAL "host-gcc"))
   include(${TOOLCHAIN_ROOT}/cmake/toolchain/${ZEPHYR_TOOLCHAIN_VARIANT}/target.cmake)
 endif()
