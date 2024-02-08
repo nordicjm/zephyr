@@ -1,0 +1,7 @@
+board:
+  name: native_sim
+  vendor: native
+  socs:
+  - name: posix
+    variants:
+    - name: '64'

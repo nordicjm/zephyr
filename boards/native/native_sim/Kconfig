@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_NATIVE_SIM
-	bool "Native simulator (Single Core)"
+	bool
 	select POSIX_ARCH_CONSOLE
 	select NATIVE_LIBRARY
 	select NATIVE_POSIX_TIMER
-	depends on SOC_POSIX
+	select SOC_POSIX
 	imply BOARD_NATIVE_POSIX if NATIVE_SIM_NATIVE_POSIX_COMPAT
+	help
+	  Native simulator (Single Core)
 
 if BOARD_NATIVE_SIM
 

@@ -1,0 +1,9 @@
+# Copyright (c) 2023 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_NATIVE_SIM_POSIX_64
+	bool
+	select 64BIT
+	help
+	  Will produce a console Linux process which can be executed natively
+	  as a 64-bit executable.

@@ -1,4 +1,4 @@
-identifier: native_sim_64
+identifier: native_sim/posix/64
 name: Native Simulation port - 64-bit
 type: native
 simulation: native
