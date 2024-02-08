@@ -1,0 +1,11 @@
+board:
+  name: bsim
+  vendor: native
+  socs:
+  - name: posix
+    variants:
+    - name: nrf52833
+    - name: nrf5340
+      variants:
+      - name: cpuapp
+      - name: cpunet

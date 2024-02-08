@@ -8,7 +8,7 @@ if SOC_SERIES_BSIM_NRFXX
 # must be read also from here.
 source "soc/common/nordic_nrf/Kconfig.peripherals"
 
-source "boards/boards_legacy/$(ARCH)/common/extra_args/Kconfig"
+rsource "../common/extra_args/Kconfig"
 
 endif # SOC_SERIES_BSIM_NRFXX
 
@@ -53,6 +53,6 @@ endif # BOARD_NRF5340BSIM_NRF5340_CPUNET
 if SOC_SERIES_BSIM_NRF53X
 
 # Let's reuse the RTC sync options so applications which use it can be reused as is
-source "soc/soc_legacy/arm/nordic_nrf/nrf53/Kconfig.sync_rtc"
+source "soc/nordic_nrf/nrf53/Kconfig.sync_rtc"
 
 endif # SOC_SERIES_BSIM_NRF53X

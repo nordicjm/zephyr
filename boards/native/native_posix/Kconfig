@@ -22,6 +22,6 @@ config NATIVE_POSIX_SLOWDOWN_TO_REAL_TIME
 	  case the zephyr kernel and application cannot tell the difference unless they
 	  interact with some other driver/device which runs at real time.
 
-source "boards/boards_legacy/$(ARCH)/common/sdl/Kconfig"
+rsource "../common/sdl/Kconfig"
 
 endif # BOARD_NATIVE_POSIX

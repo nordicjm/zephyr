@@ -45,7 +45,7 @@ config NATIVE_POSIX_SLOWDOWN_TO_REAL_TIME
 	  Transitional option which allows applications which targeted native_posix
 	  to set the correct native_sim option (CONFIG_NATIVE_SIM_SLOWDOWN_TO_REAL_TIME)
 
-source "boards/boards_legacy/$(ARCH)/common/sdl/Kconfig"
-source "boards/boards_legacy/$(ARCH)/common/extra_args/Kconfig"
+rsource "../common/sdl/Kconfig"
+rsource "../common/extra_args/Kconfig"
 
 endif # BOARD_NATIVE_SIM
