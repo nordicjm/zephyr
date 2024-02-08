@@ -14,4 +14,6 @@ zephyr_library_include_directories(
   ${ZEPHYR_BASE}/arch/posix/include
   )
 
+zephyr_include_directories(.)
+
 set(SOC_LINKER_SCRIPT ${ZEPHYR_BASE}/include/zephyr/arch/posix/linker.ld CACHE INTERNAL "")
