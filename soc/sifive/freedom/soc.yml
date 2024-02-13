@@ -1,0 +1,12 @@
+family:
+- name: sifive_freedom
+  series:
+  - name: e300
+    socs:
+    - name: e340
+  - name: u500
+    socs:
+    - name: u540
+  - name: u700
+    socs:
+    - name: u740

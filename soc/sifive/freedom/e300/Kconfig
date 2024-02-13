@@ -4,10 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 config SOC_SERIES_SIFIVE_FREEDOM_E300
-	bool "SiFive Freedom E300 SOC implementation"
 	select RISCV
 	select RISCV_PRIVILEGED
 	select RISCV_HAS_PLIC
-	select SOC_FAMILY_SIFIVE_FREEDOM
-	help
-	  Enable support for SiFive Freedom FE300 SOC
+
+config SOC_SIFIVE_FREEDOM_E340
+	select ATOMIC_OPERATIONS_C
+	select INCLUDE_RESET_VECTOR
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_A
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI

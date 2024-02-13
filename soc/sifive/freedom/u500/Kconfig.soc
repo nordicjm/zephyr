@@ -1,0 +1,22 @@
+# RISCV_SIFIVE_FREEDOM SOC implementation
+
+# Copyright (c) 2017 Jean-Paul Etienne <fractalclone@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_SIFIVE_FREEDOM_U500
+	bool
+	select SOC_FAMILY_SIFIVE_FREEDOM
+	help
+	  SiFive Freedom U500 SOC implementation
+
+config SOC_SIFIVE_FREEDOM_U540
+	bool
+	select SOC_SERIES_SIFIVE_FREEDOM_U500
+	help
+	  SiFive Freedom U540 SOC implementation
+
+config SOC_SERIES
+	default "u500" if SOC_SERIES_SIFIVE_FREEDOM_U500
+
+config SOC
+	default "u540" if SOC_SIFIVE_FREEDOM_U540
