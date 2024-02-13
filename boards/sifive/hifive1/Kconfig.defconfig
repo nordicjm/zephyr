@@ -1,10 +1,13 @@
-# Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-if BOARD_HIFIVE1_REVB
+if BOARD_HIFIVE1_E340_A
 
-config BOARD
-	default "hifive1_revb"
+config SYS_CLOCK_TICKS_PER_SEC
+	default 128
+
+endif # BOARD_HIFIVE1_E340_A
+
+if BOARD_HIFIVE1_E340_B
 
 config HAS_FLASH_LOAD_OFFSET
 	default y
@@ -18,4 +21,4 @@ config FLASH_LOAD_OFFSET
 config SYS_CLOCK_TICKS_PER_SEC
 	default 128
 
-endif
+endif # BOARD_HIFIVE1_E340_B

@@ -1,0 +1,11 @@
+board:
+  name: hifive1
+  vendor: SiFive
+  revision:
+    format: letter
+    default: "A"
+    revisions:
+      - name: "A"
+      - name: "B"
+  socs:
+  - name: e340

@@ -5,7 +5,7 @@
 
 #include <sifive/riscv32-fe310.dtsi>
 #include <zephyr/dt-bindings/i2c/i2c.h>
-#include "hifive1_revb-pinctrl.dtsi"
+#include "hifive1-pinctrl.dtsi"
 
 / {
 	model = "SiFive HiFive 1 Rev B";

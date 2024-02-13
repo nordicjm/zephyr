@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_HIFIVE1
+	select SOC_SIFIVE_FREEDOM_E340
+	select RISCV_CORE_E31 if BOARD_HIFIVE1_E340_B
