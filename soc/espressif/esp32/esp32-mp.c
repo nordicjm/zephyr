@@ -62,7 +62,7 @@ static struct k_spinlock loglock;
  */
 void smp_log(const char *msg)
 {
-#ifndef CONFIG_SOC_ESP32_PROCPU
+#ifndef CONFIG_SOC_ESP32_CPUPRO
 	k_spinlock_key_t key = k_spin_lock(&loglock);
 
 	while (*msg) {

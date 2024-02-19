@@ -1,8 +1,6 @@
 # Copyright (c) 2023 Espressif Systems (Shanghai) Co., Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_FAMILY_ESP32
-
 config ESPTOOLPY_FLASHFREQ_80M
 	bool
 
@@ -11,6 +9,8 @@ config FLASH_SIZE
 
 config FLASH_BASE_ADDRESS
 	hex
+
+if SOC_SERIES_ESP32 || SOC_SERIES_ESP32S2 || SOC_SERIES_ESP32S3
 
 config ESP_SPIRAM
 	bool "Support for external, SPI-connected RAM"
@@ -212,4 +212,4 @@ config SPIRAM
 
 endmenu # SPI RAM config
 
-endif # SOC_FAMILY_ESP32
+endif # SOC_SERIES_ESP32 || SOC_SERIES_ESP32S2 || SOC_SERIES_ESP32S3

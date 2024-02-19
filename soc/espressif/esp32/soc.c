@@ -31,9 +31,9 @@
 #include "esp_app_format.h"
 #include "hal/wdt_hal.h"
 
-#ifndef CONFIG_SOC_ESP32_PROCPU
+#ifndef CONFIG_SOC_ESP32_CPUPRO
 #include "esp_clk_internal.h"
-#endif /* CONFIG_SOC_ESP32_PROCPU */
+#endif /* CONFIG_SOC_ESP32_CPUPRO */
 
 #ifdef CONFIG_MCUBOOT
 #include "bootloader_init.h"
@@ -43,7 +43,7 @@
 extern void z_cstart(void);
 extern void esp_reset_reason_init(void);
 
-#ifdef CONFIG_SOC_ESP32_PROCPU
+#ifdef CONFIG_SOC_ESP32_CPUPRO
 extern const unsigned char esp32_appcpu_fw_array[];
 
 void IRAM_ATTR esp_start_appcpu(void)
@@ -80,7 +80,7 @@ void IRAM_ATTR esp_start_appcpu(void)
 
 	esp_appcpu_start((void *)entry_addr);
 }
-#endif /* CONFIG_SOC_ESP32_PROCPU */
+#endif /* CONFIG_SOC_ESP32_CPUPRO */
 
 /*
  * This is written in C rather than assembly since, during the port bring up,
@@ -135,7 +135,7 @@ void __attribute__((section(".iram1"))) __esp_platform_start(void)
 	wdt_hal_disable(&rtc_wdt_ctx);
 	wdt_hal_write_protect_enable(&rtc_wdt_ctx);
 
-#ifndef CONFIG_SOC_ESP32_PROCPU
+#ifndef CONFIG_SOC_ESP32_CPUPRO
 	/* Configures the CPU clock, RTC slow and fast clocks, and performs
 	 * RTC slow clock calibration.
 	 */
@@ -144,7 +144,7 @@ void __attribute__((section(".iram1"))) __esp_platform_start(void)
 
 	esp_timer_early_init();
 
-#if CONFIG_SOC_ESP32_PROCPU
+#if CONFIG_SOC_ESP32_CPUPRO
 	/* start the ESP32 APP CPU */
 	esp_start_appcpu();
 #endif

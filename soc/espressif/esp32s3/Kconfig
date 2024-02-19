@@ -1,57 +1,33 @@
 # Copyright (c) 2023 Espressif Systems (Shanghai) Co., Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
+config SOC_SERIES_ESP32S3
+	select XTENSA
+	select DYNAMIC_INTERRUPTS
+	select ARCH_SUPPORTS_COREDUMP
+	select CLOCK_CONTROL
+	select PINCTRL
+	select XIP if !MCUBOOT
+	select HAS_ESPRESSIF_HAL
+	select CPU_HAS_FPU
+
 if SOC_SERIES_ESP32S3
+
+config SOC_ESP32S3_PROCPU
+	bool "Application runs in ESP32S3 PROCPU (core 0)"
+	help
+	  When this SOC is enabled, it will run application on PROCPU (core 0). It will automatically
+	  enable AMP support by building, flashing and loading APPCPU (core 1) image if exists.
+
+config SOC_ESP32S3_APPCPU
+	bool "Application runs in ESP32S3 APPCPU (core 1)"
+	help
+	  When this SOC is enabled, it will run application on APPCPU (core 1). It is expected that
+	  there is another image running on PROCPU (core 0) to trigger the AMP support.
 
 config IDF_TARGET_ESP32S3
 	bool "ESP32S3 as target SOC"
 	default y
-
-config SOC_TOOLCHAIN_NAME
-	string
-	default "espressif_esp32s3"
-
-choice SOC_PART_NUMBER
-	prompt "ESP32-S3 SOC Selection"
-
-	# SoC with/without embedded flash
-	config SOC_ESP32S3_R2
-		bool "ESP32S3_R2"
-	config SOC_ESP32S3_R8
-		bool "ESP32S3_R8"
-	config SOC_ESP32S3_R8V
-		bool "ESP32S3_R8V"
-	config SOC_ESP32S3_FN8
-		bool "ESP32S3_FN8"
-	config SOC_ESP32S3_PICO_N8R2
-		bool "ESP32S3_PICO_N8R2"
-	config SOC_ESP32S3_PICO_N8R8
-		bool "ESP32S3_PICO_N8R8"
-	# SiP with flash and/or psram
-	config SOC_ESP32S3_MINI_N8
-		bool "ESP32S3_MINI_N8"
-	config SOC_ESP32S3_MINI_N4R2
-		bool "ESP32S3_MINI_N4R2"
-	config SOC_ESP32S3_WROOM_N4
-		bool "ESP32S3_WROOM_N4"
-	config SOC_ESP32S3_WROOM_N8
-		bool "ESP32S3_WROOM_N8"
-	config SOC_ESP32S3_WROOM_N16
-		bool "ESP32S3_WROOM_N16"
-	config SOC_ESP32S3_WROOM_N4R8
-		bool "ESP32S3_WROOM_N4R8"
-	config SOC_ESP32S3_WROOM_N8R8
-		bool "ESP32S3_WROOM_N8R8"
-	config SOC_ESP32S3_WROOM_N16R8
-		bool "ESP32S3_WROOM_N16R8"
-	config SOC_ESP32S3_WROOM_N4R2
-		bool "ESP32S3_WROOM_N4R2"
-	config SOC_ESP32S3_WROOM_N8R2
-		bool "ESP32S3_WROOM_N8R2"
-	config SOC_ESP32S3_WROOM_N16R2
-		bool "ESP32S3_WROOM_N16R2"
-
-endchoice # SOC_PART_NUMBER
 
 config ESP32S3_APPCPU_IRAM
 	hex "ESP32S3 APPCPU IRAM size"

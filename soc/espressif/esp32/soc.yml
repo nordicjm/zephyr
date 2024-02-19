@@ -1,6 +1,0 @@
-family:
-- name: espressif_esp32
-  series:
-  - name: esp32c3
-    socs:
-    - name: esp32c3
