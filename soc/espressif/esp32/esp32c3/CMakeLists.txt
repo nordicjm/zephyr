@@ -8,6 +8,8 @@ zephyr_sources(
   loader.c
   )
 
+zephyr_include_directories(.)
+
 zephyr_library_sources_ifdef(CONFIG_PM power.c)
 zephyr_library_sources_ifdef(CONFIG_POWEROFF poweroff.c)
 

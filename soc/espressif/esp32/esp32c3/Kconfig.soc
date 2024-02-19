@@ -1,0 +1,51 @@
+# Copyright (c) 2023 Espressif Systems (Shanghai) Co., Ltd.
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_ESP32C3
+	bool
+	select SOC_FAMILY_ESPRESSIF_ESP32
+	help
+	  ESP32C3
+
+config SOC_ESP32C3
+	bool
+	select SOC_SERIES_ESP32C3
+	help
+	  ESP32C3
+
+config SOC_ESP32C3_FX4
+	bool
+	select SOC_SERIES_ESP32C3
+	help
+	  ESP32C3_FX4
+
+config SOC_ESP32C3_MINI_N4
+	bool
+	select SOC_SERIES_ESP32C3
+	help
+	  ESP32C3_MINI_N4
+
+config SOC_ESP32C3_WROOM_02_N4
+	bool
+	select SOC_SERIES_ESP32C3
+	help
+	  ESP32C3_WROOM_02_N4
+
+config SOC_ESP32C3_WROOM_02_N8
+	bool
+	select SOC_SERIES_ESP32C3
+	help
+	  ESP32C3_WROOM_02_N8
+
+config SOC_SERIES
+	default "esp32c3" if SOC_SERIES_ESP32C3
+
+config SOC
+	default "esp32c3" if SOC_SERIES_ESP32C3
+
+config SOC_PART_NUMBER
+	default "esp32c3_fx4" if SOC_ESP32C3_FX4
+	default "esp32c3_mini_n4" if SOC_ESP32C3_MINI_N4
+	default "esp32c3_wroom_02_n4" if SOC_ESP32C3_WROOM_02_N4
+	default "esp32c3_wroom_02_n8" if SOC_ESP32C3_WROOM_02_N8
+	default "esp32c3" if SOC_ESP32C3
