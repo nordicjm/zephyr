@@ -1,0 +1,5 @@
+board:
+  name: esp32_devkitc_wrover
+  vendor: Espressif
+  socs:
+  - name: esp32_wrover_e_n4r8
