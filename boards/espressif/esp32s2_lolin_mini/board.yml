@@ -1,0 +1,5 @@
+board:
+  name: esp32s2_lolin_mini
+  vendor: Espressif
+  socs:
+  - name: esp32s2_fn4r2
