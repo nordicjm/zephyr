@@ -5,9 +5,6 @@
 
 if BOARD_ESP32_DEVKITC_WROOM
 
-config BOARD
-	default "esp32_devkitc_wroom"
-
 config HEAP_MEM_POOL_ADD_SIZE_BOARD
 	int
 	default 65535 if WIFI && BT
@@ -21,10 +18,7 @@ endchoice
 
 endif # BOARD_ESP32_DEVKITC_WROOM
 
-if BOARD_ESP32_DEVKITC_WROOM_APPCPU
-
-config BOARD
-	default "esp32_devkitc_wroom_appcpu"
+if BOARD_ESP32_DEVKITC_WROOM_ESP32_CPUAPP
 
 config HEAP_MEM_POOL_ADD_SIZE_BOARD
 	default 4096
@@ -32,7 +26,7 @@ config HEAP_MEM_POOL_ADD_SIZE_BOARD
 config KERNEL_BIN_NAME
 	default "esp32_appcpu_firmware"
 
-endif # BOARD_ESP32_DEVKITC_WROOM_APPCPU
+endif # BOARD_ESP32_DEVKITC_WROOM_ESP32_CPUAPP
 
 config ENTROPY_GENERATOR
 	default y
