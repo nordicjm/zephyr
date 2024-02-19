@@ -3,12 +3,14 @@
 
 # ESP32S3 Core board configuration
 config BOARD_ESP32S3_LUATOS_CORE
-	bool "ESP32S3 LuatOS Core Board with ch343 enabled"
-	depends on SOC_SERIES_ESP32S3
+	bool
+	default y
+	select SOC_SERIES_ESP32S3
 
 config BOARD_ESP32S3_LUATOS_CORE_USB
-	bool "ESP32S3 LuatOS Core Board with ch343 disabled"
-	depends on SOC_SERIES_ESP32S3
+	bool
+	default y
+	select SOC_SERIES_ESP32S3
 
 choice SOC_PART_NUMBER
 	default SOC_ESP32S3_MINI_N8
