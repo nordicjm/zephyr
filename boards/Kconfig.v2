@@ -1,9 +1,10 @@
-# Copyright (c) 2022 Nordic Semiconductor ASA
+# Copyright (c) 2022-2024 Nordic Semiconductor ASA
 
 # SPDX-License-Identifier: Apache-2.0
 
 BOARD_STRING := $(sanitize_upper,$(BOARD))
 BOARD_FULL_STRING := $(sanitize_upper,$(BOARD)$(BOARD_IDENTIFIER))
+BOARD_QUALIFIERS := $(substring,$(BOARD_IDENTIFIER),1)
 
 config BOARD_$(BOARD_STRING)
 	def_bool y
@@ -14,5 +15,25 @@ config BOARD_$(BOARD_FULL_STRING)
 	def_bool y
 	help
 	  Kconfig symbol identifying the board including full board identifier.
+
+config BOARD_QUALIFIERS
+	string
+	default "$(BOARD_QUALIFIERS)"
+	help
+	  Contains the qualifiers of the board being used without the name of the board itself.
+
+	  For example, if building for ``nrf5340dk/nrf5340/cpuapp`` then this will contain the
+	  value ``nrf5340/cpuapp``.
+
+config BOARD_TARGET
+	string
+	default "$(BOARD)@$(BOARD_REVISION)$(BOARD_IDENTIFIER)" if "$(BOARD_REVISION)" != ""
+	default "$(BOARD)$(BOARD_IDENTIFIER)"
+	help
+	  Contains the board target (full string including name, revision, soc, cluster and
+	  variant) of the board being used.
+
+	  For example, if building for ``nrf5340dk/nrf5340/cpuapp`` then this will contain the
+	  value ``nrf5340dk/nrf5340/cpuapp``.
 
 osource "$(BOARD_DIR)/Kconfig.$(BOARD)"
