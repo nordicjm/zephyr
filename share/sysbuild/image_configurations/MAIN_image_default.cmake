@@ -20,3 +20,5 @@ if(SB_CONFIG_BOOTLOADER_MCUBOOT)
     set_config_bool(${ZCMAKE_APPLICATION} CONFIG_MCUBOOT_GENERATE_UNSIGNED_IMAGE n)
   endif()
 endif()
+
+include(image_configurations/ALL_image_default.cmake)

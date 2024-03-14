@@ -27,3 +27,5 @@ foreach(loopkeytype ${keytypes})
     set_config_bool(${ZCMAKE_APPLICATION} ${loopkeytype} n)
   endif()
 endforeach()
+
+include(image_configurations/ALL_image_default.cmake)

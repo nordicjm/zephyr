@@ -41,4 +41,9 @@ config WARN_DEPRECATED
 	  Print a warning when the Kconfig tree is parsed if any deprecated
 	  features are enabled.
 
+config COMPILER_WARNINGS_AS_ERRORS
+	bool "Treat warnings as errors"
+	help
+	  Turn on "warning as error" toolchain flags for all images if set.
+
 rsource "images/Kconfig"
