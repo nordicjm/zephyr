@@ -1,0 +1,1 @@
+"mcuboot":"/tmp/aa/bootloader/mcuboot":"/tmp/aa/bootloader/mcuboot/boot/zephyr/sysbuild"

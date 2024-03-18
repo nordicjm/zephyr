@@ -49,7 +49,7 @@ class Boards(WestCommand):
             The following arguments are available:
 
             - name: board name
-            - identifiers: board identifiers
+            - qualifiers: board qualifiers
             - arch: board architecture
             - dir: directory that contains the board definition
             '''))
@@ -87,10 +87,10 @@ class Boards(WestCommand):
             if name_re is not None and not name_re.search(board.name):
                 continue
             log.inf(args.format.format(name=board.name, arch=board.arch,
-                                       dir=board.dir, hwm=board.hwm, identifiers=''))
+                                       dir=board.dir, hwm=board.hwm, qualifiers=''))
 
         for board in list_boards.find_v2_boards(args):
             if name_re is not None and not name_re.search(board.name):
                 continue
             log.inf(args.format.format(name=board.name, dir=board.dir, hwm=board.hwm,
-                                       identifiers=list_boards.board_v2_identifiers_csv(board)))
+                                       qualifiers=list_boards.board_v2_qualifiers_csv(board)))

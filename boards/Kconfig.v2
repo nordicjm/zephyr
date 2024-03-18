@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 BOARD_STRING := $(sanitize_upper,$(BOARD))
-BOARD_FULL_STRING := $(sanitize_upper,$(BOARD)$(BOARD_IDENTIFIER))
+BOARD_FULL_STRING := $(sanitize_upper,$(BOARD)$(BOARD_QUALIFIERS))
 
 config BOARD_$(BOARD_STRING)
 	def_bool y
@@ -13,6 +13,6 @@ config BOARD_$(BOARD_STRING)
 config BOARD_$(BOARD_FULL_STRING)
 	def_bool y
 	help
-	  Kconfig symbol identifying the board including full board identifier.
+	  Kconfig symbol identifying the board including full board qualifiers.
 
 osource "$(BOARD_DIR)/Kconfig.$(BOARD)"

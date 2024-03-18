@@ -392,7 +392,7 @@ __set_comp_west_projs()
 
 __set_comp_west_boards()
 {
-	boards="$(__west_x boards --format={identifiers} "$@")\n$(__west_x boards --format={name} "$@")"
+	boards="$(__west_x boards --format={qualifiers} "$@")\n$(__west_x boards --format={name} "$@")"
 	__set_comp ${boards//,/\ }
 }
 

@@ -269,40 +269,40 @@ def add_args_formatting(parser):
                         help='''CMake Format string to use to list each board''')
 
 
-def variant_v2_identifiers(variant, identifier):
-    identifiers = [identifier + '/' + variant.name]
+def variant_v2_qualifiers(variant, qualifier):
+    qualifiers = [qualifier + '/' + variant.name]
     for v in variant.variants:
-        identifiers.extend(variant_v2_identifiers(v, identifier + '/' + variant.name))
-    return identifiers
+        qualifiers.extend(variant_v2_qualifiers(v, qualifier + '/' + variant.name))
+    return qualifiers
 
 
-def board_v2_identifiers(board):
-    identifiers = []
+def board_v2_qualifiers(board):
+    qualifiers = []
 
     for s in board.socs:
         if s.cpuclusters:
             for c in s.cpuclusters:
                 id_str = board.name + '/' + s.name + '/' + c.name
-                identifiers.append(id_str)
+                qualifiers.append(id_str)
                 for v in c.variants:
-                    identifiers.extend(variant_v2_identifiers(v, id_str))
+                    qualifiers.extend(variant_v2_qualifiers(v, id_str))
         else:
             id_str = board.name + '/' + s.name
-            identifiers.append(id_str)
+            qualifiers.append(id_str)
             for v in s.variants:
-                identifiers.extend(variant_v2_identifiers(v, id_str))
+                qualifiers.extend(variant_v2_qualifiers(v, id_str))
 
     if not board.socs:
-        identifiers.append(board.name)
+        qualifiers.append(board.name)
 
     for v in board.variants:
-        identifiers.extend(variant_v2_identifiers(v, board.name))
-    return identifiers
+        qualifiers.extend(variant_v2_qualifiers(v, board.name))
+    return qualifiers
 
 
-def board_v2_identifiers_csv(board):
+def board_v2_qualifiers_csv(board):
     # Return in csv (comma separated value) format
-    return ",".join(board_v2_identifiers(board))
+    return ",".join(board_v2_qualifiers(board))
 
 
 def dump_v2_boards(args):
@@ -314,7 +314,7 @@ def dump_v2_boards(args):
         boards = find_v2_boards(args)
 
     for b in boards:
-        identifiers = board_v2_identifiers(b)
+        qualifiers = board_v2_qualifiers(b)
         if args.cmakeformat is not None:
             notfound = lambda x: x or 'NOTFOUND'
             info = args.cmakeformat.format(
@@ -328,7 +328,7 @@ def dump_v2_boards(args):
                 REVISIONS='REVISIONS;' + ';'.join(
                           [x.name for x in b.revisions]),
                 SOCS='SOCS;' + ';'.join([s.name for s in b.socs]),
-                IDENTIFIERS='IDENTIFIERS;' + ';'.join(identifiers)
+                QUALIFIERS='QUALIFIERS;' + ';'.join(qualifiers)
             )
             print(info)
         else:
@@ -353,7 +353,7 @@ def dump_boards(args):
                     REVISIONS='REVISIONS;NOTFOUND',
                     VARIANT_DEFAULT='VARIANT_DEFAULT;NOTFOUND',
                     SOCS='SOCS;',
-                    IDENTIFIERS='IDENTIFIERS;'
+                    QUALIFIERS='QUALIFIERS;'
                 )
                 print(info)
             else:

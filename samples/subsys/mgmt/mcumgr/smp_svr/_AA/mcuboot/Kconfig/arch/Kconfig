@@ -1,0 +1,11 @@
+# Load arch Kconfig descriptions.
+osource "/tmp/aa/zephyr/arch/x86/Kconfig"
+osource "/tmp/aa/zephyr/arch/xtensa/Kconfig"
+osource "/tmp/aa/zephyr/arch/sparc/Kconfig"
+osource "/tmp/aa/zephyr/arch/riscv/Kconfig"
+osource "/tmp/aa/zephyr/arch/posix/Kconfig"
+osource "/tmp/aa/zephyr/arch/nios2/Kconfig"
+osource "/tmp/aa/zephyr/arch/mips/Kconfig"
+osource "/tmp/aa/zephyr/arch/arm64/Kconfig"
+osource "/tmp/aa/zephyr/arch/arm/Kconfig"
+osource "/tmp/aa/zephyr/arch/arc/Kconfig"

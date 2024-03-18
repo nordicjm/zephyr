@@ -204,7 +204,7 @@ function __zephyr_west_complete_board
     end
 
     # HWMv2
-    set -l boards (west 2>/dev/null boards --format="{identifiers}")
+    set -l boards (west 2>/dev/null boards --format="{qualifiers}")
     for board in $boards
         set -l b (string split "," $board)
         for variant in $b

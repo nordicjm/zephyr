@@ -123,7 +123,7 @@ set(DTS_CMAKE                   ${PROJECT_BINARY_DIR}/dts.cmake)
 set(VENDOR_PREFIXES             dts/bindings/vendor-prefixes.txt)
 
 if(NOT DEFINED DTS_SOURCE)
-  zephyr_build_string(dts_board_string BOARD ${BOARD} BOARD_IDENTIFIER ${BOARD_IDENTIFIER} MERGE)
+  zephyr_build_string(dts_board_string BOARD ${BOARD} BOARD_QUALIFIERS ${BOARD_QUALIFIERS} MERGE)
   foreach(str ${dts_board_string})
     if(EXISTS ${BOARD_DIR}/${str}.dts)
       set(DTS_SOURCE ${BOARD_DIR}/${str}.dts)
@@ -136,7 +136,7 @@ if(EXISTS ${DTS_SOURCE})
   # We found a devicetree. Check for a board revision overlay.
   if(DEFINED BOARD_REVISION)
     zephyr_build_string(dts_board_string BOARD ${BOARD}
-                                         BOARD_IDENTIFIER ${BOARD_IDENTIFIER}
+                                         BOARD_QUALIFIERS ${BOARD_QUALIFIERS}
                                          BOARD_REVISION ${BOARD_REVISION}
     )
     if(EXISTS ${BOARD_DIR}/${dts_board_string}.overlay)

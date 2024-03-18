@@ -1530,7 +1530,7 @@ endfunction()
 # Usage:
 #   zephyr_build_string(<out-variable>
 #                       BOARD <board>
-#                       [BOARD_IDENTIFIER <identifier>]
+#                       [BOARD_QUALIFIERS <identifier>]
 #                       [BOARD_REVISION <revision>]
 #                       [BUILD <type>]
 #                       [MERGE [REVERSE]]
@@ -1553,17 +1553,17 @@ endfunction()
 # will return the string `alpha_1_0_0_debug` in `build_string` parameter.
 #
 # calling
-#   zephyr_build_string(build_string BOARD alpha BOARD_IDENTIFIER /soc/bar)
+#   zephyr_build_string(build_string BOARD alpha BOARD_QUALIFIERS /soc/bar)
 # will return the string `alpha_soc_bar` in `build_string` parameter.
 #
 # calling
-#   zephyr_build_string(build_string BOARD alpha BOARD_REVISION 1.0.0 BOARD_IDENTIFIER /soc/bar MERGE)
+#   zephyr_build_string(build_string BOARD alpha BOARD_REVISION 1.0.0 BOARD_QUALIFIERS /soc/bar MERGE)
 # will return a list of the following strings
 # `alpha_soc_bar_1_0_0;alpha_soc_bar;alpha_soc_1_0_0;alpha_soc;alpha_1_0_0;alpha` in `build_string` parameter.
 #
 function(zephyr_build_string outvar)
   set(options MERGE REVERSE)
-  set(single_args BOARD BOARD_IDENTIFIER BOARD_REVISION BUILD)
+  set(single_args BOARD BOARD_QUALIFIERS BOARD_REVISION BUILD)
 
   cmake_parse_arguments(BUILD_STR "${options}" "${single_args}" "" ${ARGN})
   if(BUILD_STR_UNPARSED_ARGUMENTS)
@@ -1580,14 +1580,14 @@ function(zephyr_build_string outvar)
     )
   endif()
 
-  if(DEFINED BUILD_STR_BOARD_IDENTIFIER AND NOT BUILD_STR_BOARD)
+  if(DEFINED BUILD_STR_BOARD_QUALIFIERS AND NOT BUILD_STR_BOARD)
     message(FATAL_ERROR
-      "zephyr_build_string(${ARGV0} <list> BOARD_IDENTIFIER ${BUILD_STR_BOARD_IDENTIFIER} ...)"
+      "zephyr_build_string(${ARGV0} <list> BOARD_QUALIFIERS ${BUILD_STR_BOARD_QUALIFIERS} ...)"
       " given without BOARD argument, please specify BOARD"
     )
   endif()
 
-  string(REPLACE "/" ";" str_segment_list "${BUILD_STR_BOARD}${BUILD_STR_BOARD_IDENTIFIER}")
+  string(REPLACE "/" ";" str_segment_list "${BUILD_STR_BOARD}${BUILD_STR_BOARD_QUALIFIERS}")
   string(REPLACE "." "_" revision_string "${BUILD_STR_BOARD_REVISION}")
 
   string(JOIN "_" ${outvar} ${str_segment_list} ${revision_string} ${BUILD_STR_BUILD})
@@ -2531,7 +2531,7 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
     set(single_args APPLICATION_ROOT)
   elseif(${ARGV0} STREQUAL CONF_FILES)
     set(options REQUIRED)
-    set(single_args BOARD BOARD_REVISION BOARD_IDENTIFIER DTS KCONF DEFCONFIG BUILD SUFFIX)
+    set(single_args BOARD BOARD_REVISION BOARD_QUALIFIERS DTS KCONF DEFCONFIG BUILD SUFFIX)
     set(multi_args CONF_FILES NAMES)
   endif()
 
@@ -2590,8 +2590,8 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
         set(FILE_BOARD_REVISION ${BOARD_REVISION})
       endif()
 
-      if(DEFINED BOARD_IDENTIFIER)
-        set(FILE_BOARD_IDENTIFIER ${BOARD_IDENTIFIER})
+      if(DEFINED BOARD_QUALIFIERS)
+        set(FILE_BOARD_QUALIFIERS ${BOARD_QUALIFIERS})
       endif()
     endif()
 
@@ -2602,7 +2602,7 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
       zephyr_build_string(filename_list
                           BOARD ${FILE_BOARD}
                           BOARD_REVISION ${FILE_BOARD_REVISION}
-                          BOARD_IDENTIFIER ${FILE_BOARD_IDENTIFIER}
+                          BOARD_QUALIFIERS ${FILE_BOARD_QUALIFIERS}
                           BUILD ${FILE_BUILD}
                           MERGE REVERSE
       )
