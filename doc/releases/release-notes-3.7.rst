@@ -59,6 +59,8 @@ Boards & SoC Support
 Build system and Infrastructure
 *******************************
 
+* :ref:`Board/SoC flashing configuration<flashing-soc-board-config>` settings have been added.
+
 Drivers and Sensors
 *******************
 
