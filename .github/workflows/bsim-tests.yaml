@@ -154,7 +154,7 @@ jobs:
         if: steps.check-bluetooth-files.outputs.any_changed == 'true' || steps.check-common-files.outputs.any_changed == 'true'
         run: |
           export ZEPHYR_BASE=${PWD}
-          # Build and run the BT tests for nrf52_bsim:
+          # Build and run the BT tests for nrf52_bsim/nrf52833:
           nice tests/bsim/bluetooth/compile.sh
           RESULTS_FILE=${ZEPHYR_BASE}/${bsim_bt_52_test_results_file} \
           TESTS_FILE=tests/bsim/bluetooth/tests.nrf52bsim.txt tests/bsim/run_parallel.sh
@@ -183,7 +183,7 @@ jobs:
         if: steps.check-uart-files.outputs.any_changed == 'true' || steps.check-common-files.outputs.any_changed == 'true'
         run: |
           echo "UART: Single device tests"
-          ./scripts/twister -T tests/drivers/uart/ --force-color --inline-logs -v -M -p nrf52_bsim \
+          ./scripts/twister -T tests/drivers/uart/ --force-color --inline-logs -v -M -p nrf52_bsim/nrf52833 \
             --fixture gpio_loopback -- -uart0_loopback
           echo "UART: Multi device tests"
           export ZEPHYR_BASE=${PWD}
