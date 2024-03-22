@@ -26,7 +26,7 @@ _generate_coverage_report.sh [-help]
   the variable TWISTER_COVERAGE_FILE, for example as:
   TWISTER_COVERAGE_FILE=\${ZEPHYR_BASE}/twister-out/coverage.info
   after having run twister, for example as
-  twister -p nrf52_bsim -T tests/bluetooth/ --coverage
+  twister -p nrf52_bsim/nrf52833 -T tests/bluetooth/ --coverage
 
   Note: Generating a coverage report for many tests is a lengthy process
 "

@@ -19,7 +19,7 @@ echo "Starting simulation. Hit Ctrl-C to exit."
 
 # Build it with e.g.
 # cd $ZEPHYR_BASE/tests/bluetooth/shell
-# west build -d build -b nrf52_bsim -S xterm-native-shell $ZEPHYR_BASE/tests/bluetooth/shell
+# west build -d build -b nrf52_bsim/nrf52833 -S xterm-native-shell $ZEPHYR_BASE/tests/bluetooth/shell
 default_image=${ZEPHYR_BASE}/tests/bluetooth/shell/build/zephyr/zephyr.exe
 
 num_devices=$1
