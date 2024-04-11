@@ -66,6 +66,10 @@ Boards & SoC Support
 Build system and Infrastructure
 *******************************
 
+  * A ``socs`` folder for applications has been introduced that allows for Kconfig fragments and
+    devicetree overlays that should apply to any board target using a particular SoC, or SoC and
+    board qualifier.
+
 Drivers and Sensors
 *******************
 
