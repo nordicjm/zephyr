@@ -76,10 +76,19 @@ zephyr_boilerplate_watch(CONF_FILE)
 
 zephyr_get(DTC_OVERLAY_FILE SYSBUILD LOCAL)
 
+# Look for SoC overlay files, these should be prepended before board overlay files
+# but after app.overlay, depending upon which files have been found
+zephyr_file(CONF_FILES ${APPLICATION_CONFIG_DIR}/socs DTS soc_overlay_files SOC SUFFIX ${FILE_SUFFIX})
+
 # If DTC_OVERLAY_FILE is not set by the user, look for board-specific overlays
 # in the 'boards' configuration subdirectory.
 if(NOT DEFINED DTC_OVERLAY_FILE)
   zephyr_file(CONF_FILES ${APPLICATION_CONFIG_DIR}/boards DTS DTC_OVERLAY_FILE SUFFIX ${FILE_SUFFIX})
+
+  if(DEFINED soc_overlay_files AND DEFINED DTC_OVERLAY_FILE)
+    list(PREPEND DTC_OVERLAY_FILE ${soc_overlay_files})
+    unset(soc_overlay_files)
+  endif()
 endif()
 
 # If still not found, search for other overlays in the configuration directory.
@@ -91,8 +100,13 @@ if(NOT DEFINED DTC_OVERLAY_FILE)
                 NAMES "app.overlay" SUFFIX ${FILE_SUFFIX}
     )
   endif()
-
 endif()
+
+if(DEFINED soc_overlay_files)
+  list(APPEND DTC_OVERLAY_FILE ${soc_overlay_files})
+endif()
+
+unset(soc_overlay_files)
 
 set(DTC_OVERLAY_FILE ${DTC_OVERLAY_FILE} CACHE STRING "If desired, you can \
 build the application using the DT configuration settings specified in an \
