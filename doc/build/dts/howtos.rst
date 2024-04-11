@@ -247,6 +247,10 @@ use as devicetree overlays:
 #. Otherwise, if :file:`<BOARD>.overlay` exists, it will be used, and the build
    system will stop looking for more files.
 #. Otherwise, if :file:`app.overlay` exists, it will be used.
+#. If the file :file:`socs/<SOC>.overlay` exists, it will be included as an
+   additional file
+#. If the file :file:`socs/<SOC>_<BOARD_QUALIFIERS>.overlay` exists, it will be
+   included as an additional file
 
 Extra devicetree overlays may be provided using ``EXTRA_DTC_OVERLAY_FILE`` which
 will still allow the build system to automatically use devicetree overlays
