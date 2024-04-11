@@ -1,0 +1,17 @@
+common:
+  tags:
+    - cmake
+  platform_allow:
+    - native_sim
+    - native_sim/native/64
+  integration_platforms:
+    - native_sim
+    - native_sim/native/64
+tests:
+  cmake.overlays.soc_folder_overlay.default:
+    extra_args:
+      - CONFIG_TEST_TYPE=0
+  cmake.overlays.soc_folder_overlay.suffix:
+    extra_args:
+      - CONFIG_TEST_TYPE=1
+      - FILE_SUFFIX=somesuffix
