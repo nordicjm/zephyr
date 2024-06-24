@@ -24,6 +24,14 @@
 		zephyr,code-partition = &slot0_partition;
 	};
 
+        leds {
+                compatible = "gpio-leds";
+                led1: led_1 {
+                        gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+                        label = "Blue LED 1";
+                };
+	};
+
 	buttons {
 		compatible = "gpio-keys";
 		button2: button_2 {
@@ -35,6 +43,7 @@
 
 	/* These aliases are provided for compatibility with samples */
 	aliases {
+                led0 = &led1;
 		sw0 = &button2;
 		lora0 = &lora0;
 		watchdog0 = &wdt0;
