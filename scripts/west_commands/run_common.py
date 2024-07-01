@@ -42,6 +42,10 @@ import zcmake
 # Don't change this, or output from argparse won't match up.
 INDENT = ' ' * 2
 
+IGNORED_RUN_ONCE_PRIORITY = -1
+SOC_FILE_RUN_ONCE_DEFAULT_PRIORITY = 0
+BOARD_FILE_RUN_ONCE_DEFAULT_PRIORITY = 10
+
 if log.VERBOSE >= log.VERBOSE_NORMAL:
     # Using level 1 allows sub-DEBUG levels of verbosity. The
     # west.log module decides whether or not to actually print the
@@ -95,6 +99,13 @@ class UsedFlashCommand:
 class ImagesFlashed:
     flashed: int = 0
     total: int = 0
+
+@dataclass
+class SocBoardFilesProcessing:
+    filename: str
+    board: bool = False
+    priority: int = IGNORED_RUN_ONCE_PRIORITY
+    yaml: object = None
 
 def command_verb(command):
     return "flash" if command.name == "flash" else "debug"
@@ -224,35 +235,46 @@ def do_run_common(command, user_args, user_runner_args, domain_file=None):
             # single-use commands in a dictionary so that they get executed
             # once per unique board name.
             if cache['BOARD_DIR'] not in processed_boards and 'SOC_FULL_DIR' in cache:
-                soc_yaml_file = Path(cache['SOC_FULL_DIR']) / 'soc.yml'
-                board_yaml_file = Path(cache['BOARD_DIR']) / 'board.yml'
-                group_type = 'boards'
+                highest_priority = IGNORED_RUN_ONCE_PRIORITY
+                check_files = []
+                # TODO: need a list of the paths to search provided by the build system here
+                check_files.append(SocBoardFilesProcessing(Path(cache['SOC_FULL_DIR']) / 'soc.yml'))
+                check_files.append(SocBoardFilesProcessing(Path(cache['BOARD_DIR']) / 'board.yml', True))
 
-                # Search for flash runner configuration, board takes priority over SoC
-                try:
-                    with open(board_yaml_file, 'r') as f:
-                        data_yaml = yaml.safe_load(f.read())
-
-                except FileNotFoundError:
-                    continue
-
-                if 'runners' not in data_yaml:
-                    # Check SoC file
-                    group_type = 'qualifiers'
+                for check in check_files:
                     try:
-                        with open(soc_yaml_file, 'r') as f:
-                            data_yaml = yaml.safe_load(f.read())
+                        with open(check.filename, 'r') as f:
+                            check.yaml = yaml.safe_load(f.read())
+
+                            if 'runners' not in check.yaml:
+                                continue
+                            elif check.board is False and 'run_once' not in check.yaml['runners']:
+                                continue
+
+                            if 'priority' in check.yaml['runners']:
+                                check;priority = check.yaml['runners']['priority']
+                            else:
+                                check.priority = BOARD_FILE_RUN_ONCE_DEFAULT_PRIORITY if check.board is True else SOC_FILE_RUN_ONCE_DEFAULT_PRIORITY
+
+                            if check.priority == highest_priority:
+                                log.wrn("Duplicate flash run once configuration found, this will not work")
+
+                            elif check.priority > highest_priority:
+                                highest_priority = check.priority
+                                highest_entry = check
 
                     except FileNotFoundError:
                         continue
 
+                group_type = 'boards' if highest_entry.board is True else 'qualifiers'
+
                 processed_boards.add(cache['BOARD_DIR'])
 
-                if 'runners' not in data_yaml or 'run_once' not in data_yaml['runners']:
-                    continue
+#                if 'runners' not in highest_entry.yaml or 'run_once' not in highest_entry.yaml['runners']:
+#                    continue
 
-                for cmd in data_yaml['runners']['run_once']:
-                    for data in data_yaml['runners']['run_once'][cmd]:
+                for cmd in highest_entry.yaml['runners']['run_once']:
+                    for data in highest_entry.yaml['runners']['run_once'][cmd]:
                         for group in data['groups']:
                             run_first = bool(data['run'] == 'first')
                             if group_type == 'qualifiers':
