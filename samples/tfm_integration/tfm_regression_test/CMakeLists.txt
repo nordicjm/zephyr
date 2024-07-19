@@ -51,6 +51,7 @@ ExternalProject_Add(tfm_regression_test_app
                 -DCROSS_COMPILE=${TFM_TOOLCHAIN_PATH}/${TFM_TOOLCHAIN_PREFIX}
                 -DQCBOR_PATH${QCBOR_PATH_TYPE}=${CONFIG_TFM_QCBOR_PATH}
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+                -DFETCHCONTENT_FULLY_DISCONNECTED=ON
     BUILD_COMMAND ${CMAKE_COMMAND} --build .
     INSTALL_COMMAND ""
     BUILD_ALWAYS True

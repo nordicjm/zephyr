@@ -80,6 +80,7 @@ ExternalProject_Add(tfm_psa_arch_test_app
                 -DQCBOR_PATH${QCBOR_PATH_TYPE}=${CONFIG_TFM_QCBOR_PATH}
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo
                 -DTEST_PSA_API=${TEST_PSA_API}
+                -DFETCHCONTENT_FULLY_DISCONNECTED=ON
     BUILD_COMMAND ${CMAKE_COMMAND} --build .
     INSTALL_COMMAND ""
     BUILD_ALWAYS True
