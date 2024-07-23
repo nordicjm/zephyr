@@ -1,0 +1,10 @@
+
+#define MIKROE_DEVICE mikrobus_2_spi
+#define MIKROE_ALIAS iis2dlpc_mikroe_accel13_click_spi_2
+#define MIKROE_SPI
+
+#include "mikroe_accel13_click_common.overlay"
+
+#undef MIKROE_DEVICE
+#undef MIKROE_ALIAS
+#undef MIKROE_SPI

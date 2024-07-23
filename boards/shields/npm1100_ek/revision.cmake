@@ -1,0 +1,5 @@
+if(NOT DEFINED shield_revision)
+  set(BOARD_REVISION "slot1")
+elseif(NOT shield_revision STREQUAL "slot1" AND NOT shield_revision STREQUAL "slot2")
+  message(FATAL_ERROR "Invalid shield revision for ${shield}: ${shield_revision}. Valid revisions are: slot1, slot2")
+endif()

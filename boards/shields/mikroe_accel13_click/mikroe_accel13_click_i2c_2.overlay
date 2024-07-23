@@ -1,0 +1,8 @@
+
+#define MIKROE_DEVICE mikrobus_2_i2c
+#define MIKROE_ALIAS iis2dlpc_mikroe_accel13_click_i2c_2
+
+#include "mikroe_accel13_click_common.overlay"
+
+#undef MIKROE_DEVICE
+#undef MIKROE_ALIAS

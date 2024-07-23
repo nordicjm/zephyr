@@ -35,6 +35,20 @@ include(extensions)
 # Check that SHIELD has not changed.
 zephyr_check_cache(SHIELD WATCH)
 
+function(parse_shield_components shield_in name_out revision_out qualifiers_out)
+  if(NOT "${${shield_in}}" MATCHES "^([^@/]+)(@[^@/]+)?(/[^@]+)?$")
+    message(FATAL_ERROR
+      "Invalid revision format for ${shield_in} (${${shield_in}}). "
+      "Valid format is: <shield>@<revision>/qualifiers"
+    )
+  endif()
+  string(REPLACE "@" "" shield_revision "${CMAKE_MATCH_2}")
+
+  set(${name_out}       ${CMAKE_MATCH_1}  PARENT_SCOPE)
+  set(${revision_out}   ${shield_revision} PARENT_SCOPE)
+  set(${qualifiers_out} ${CMAKE_MATCH_3}  PARENT_SCOPE)
+endfunction()
+
 if(SHIELD)
   message(STATUS "Shield(s): ${SHIELD}")
 endif()
@@ -63,51 +77,96 @@ foreach(root ${BOARD_ROOT})
   # We also create a SHIELD_DIR_${name} variable for each shield's directory.
   foreach(shields_refs ${shields_refs_list})
     get_filename_component(shield_path ${shields_refs} DIRECTORY)
-    file(GLOB shield_overlays RELATIVE ${shield_path} ${shield_path}/*.overlay)
-    foreach(overlay ${shield_overlays})
-      get_filename_component(shield ${overlay} NAME_WE)
-      list(APPEND SHIELD_LIST ${shield})
-      set(SHIELD_DIR_${shield} ${shield_path})
-    endforeach()
+string(REPLACE "\\" "/" normalized_shield_path "${shield_path}")
+string(REPLACE "/" ";" list_shield_path "${normalized_shield_path}")
+list(POP_BACK list_shield_path shield_name)
+      list(APPEND SHIELD_LIST ${shield_name})
+      set(SHIELD_DIR_${shield_name} ${shield_path})
+
+#    file(GLOB shield_overlays RELATIVE ${shield_path} ${shield_path}/*.overlay)
+#    foreach(overlay ${shield_overlays})
+#      get_filename_component(shield ${overlay} NAME_WE)
+#      list(APPEND SHIELD_LIST ${shield})
+#      set(SHIELD_DIR_${shield} ${shield_path})
+#    endforeach()
   endforeach()
 endforeach()
 
 # Process shields in-order
 if(DEFINED SHIELD)
   foreach(s ${SHIELD_AS_LIST})
-    if(NOT ${s} IN_LIST SHIELD_LIST)
+
+parse_shield_components(
+  s
+  shield shield_revision shield_qualifiers
+)
+
+    if(NOT ${shield} IN_LIST SHIELD_LIST)
       continue()
     endif()
 
     list(REMOVE_ITEM SHIELD-NOTFOUND ${s})
 
     # Add <shield>.overlay to the shield_dts_files output variable.
-    list(APPEND
-      shield_dts_files
-      ${SHIELD_DIR_${s}}/${s}.overlay
-      )
+    if(NOT DEFINED shield_qualifiers OR EXISTS ${SHIELD_DIR_${shield}}/${shield}.overlay)
+      list(APPEND
+        shield_dts_files
+        ${SHIELD_DIR_${shield}}/${shield}.overlay
+        )
+    endif()
 
     # Add the shield's directory to the SHIELD_DIRS output variable.
     list(APPEND
       SHIELD_DIRS
-      ${SHIELD_DIR_${s}}
+      ${SHIELD_DIR_${shield}}
       )
 
     # Search for shield/shield.conf file
-    if(EXISTS ${SHIELD_DIR_${s}}/${s}.conf)
+    if(EXISTS ${SHIELD_DIR_${shield}}/${shield}.conf)
       list(APPEND
         shield_conf_files
-        ${SHIELD_DIR_${s}}/${s}.conf
+        ${SHIELD_DIR_${shield}}/${shield}.conf
         )
     endif()
 
+  if(EXISTS ${SHIELD_DIR_${shield}}/revision.cmake)
+    # Shield provides revision handling.
+string(REPLACE "/" "_" normalized_shield_qualifiers "${shield_qualifiers}")
+string(SUBSTRING "${shield_qualifiers}" 1 -1 shield_qualifiers)
+# inputs that can be checked or set to a default if not provided:
+#   shield_revision
+#   shield_qualifiers
+
+    include(${SHIELD_DIR_${shield}}/revision.cmake)
+
+message("-- Using shield ${shield}, qualifiers ${shield_qualifiers}")
+
+# Revisions not supported
+    if(EXISTS ${SHIELD_DIR_${shield}}/${shield}${normalized_shield_qualifiers}.overlay)
+      list(APPEND
+        shield_dts_files
+        ${SHIELD_DIR_${shield}}/${shield}${normalized_shield_qualifiers}.overlay
+        )
+    endif()
+    if(EXISTS ${SHIELD_DIR_${shield}}/${shield}${normalized_shield_qualifiers}.conf)
+      list(APPEND
+        shield_conf_files
+        ${SHIELD_DIR_${shield}}/${shield}${normalized_shield_qualifiers}.conf
+        )
+    endif()
+
+  elseif(shield_qualifiers)
+    message(WARNING "Shield qualifiers ${shield_qualifiers} specified for ${shield}, \
+                     but shield has no qualifiers so qualifiers will be ignored.")
+  endif()
+
     # Add board-specific .conf and .overlay files to their
     # respective output variables.
-    zephyr_file(CONF_FILES ${SHIELD_DIR_${s}}/boards
+    zephyr_file(CONF_FILES ${SHIELD_DIR_${shield}}/boards
                 DTS   shield_dts_files
                 KCONF shield_conf_files
     )
-    zephyr_file(CONF_FILES ${SHIELD_DIR_${s}}/boards/${s}
+    zephyr_file(CONF_FILES ${SHIELD_DIR_${shield}}/boards/${shield}
                 DTS   shield_dts_files
                 KCONF shield_conf_files
     )
