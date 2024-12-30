@@ -140,9 +140,15 @@ int flash_img_init_id(struct flash_img_context *ctx, uint8_t area_id)
 
 	flash_dev = flash_area_get_device(ctx->flash_area);
 
+#if 1
+	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf,
+			CONFIG_IMG_BLOCK_BUF_SIZE, ctx->flash_area->fa_off + 0x1000,
+			ctx->flash_area->fa_size - 0x1000, NULL);
+#else
 	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf,
 			CONFIG_IMG_BLOCK_BUF_SIZE, ctx->flash_area->fa_off,
 			ctx->flash_area->fa_size, NULL);
+#endif
 }
 
 int flash_img_init(struct flash_img_context *ctx)
