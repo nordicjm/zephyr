@@ -14,3 +14,10 @@ project(smp_svr)
 
 target_sources(app PRIVATE src/main.c)
 target_sources_ifdef(CONFIG_MCUMGR_TRANSPORT_BT app PRIVATE src/bluetooth.c)
+set(gen_dir ${ZEPHYR_BINARY_DIR}/include/generated/)
+
+generate_inc_file_for_target(
+    app
+    src/https-cert.der
+    ${gen_dir}/https-cert.der.inc
+    )

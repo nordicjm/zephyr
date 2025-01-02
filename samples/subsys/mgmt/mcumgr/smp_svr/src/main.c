@@ -50,6 +50,12 @@ static struct fs_mount_t littlefs_mnt = {
 };
 #endif
 
+//extern bool flip = false;
+int lolz = 0;
+static const unsigned char ca_certificate[] = {
+#include "https-cert.der.inc"
+};
+
 int main(void)
 {
 	int rc = STATS_INIT_AND_REG(smp_svr_stats, STATS_SIZE_32,
@@ -84,6 +90,7 @@ int main(void)
 	 * compile which is convenient when testing firmware upgrade.
 	 */
 	LOG_INF("build time: " __DATE__ " " __TIME__);
+	LOG_ERR("\nORIGINAL BUILD\n");
 
 	/* The system work queue handles all incoming mcumgr requests.  Let the
 	 * main thread idle while the mcumgr server runs.
@@ -91,6 +98,10 @@ int main(void)
 	while (1) {
 		k_sleep(K_MSEC(1000));
 		STATS_INC(smp_svr_stats, ticks);
+++lolz;
+if (lolz == 9999) {
+LOG_HEXDUMP_ERR(ca_certificate, sizeof(ca_certificate), "yop");
+}
 	}
 	return 0;
 }
