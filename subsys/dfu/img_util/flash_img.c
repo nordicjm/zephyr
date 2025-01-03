@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2020 Nordic Semiconductor ASA
+ * Copyright (c) 2017-2025 Nordic Semiconductor ASA
  * Copyright (c) 2017 Linaro Limited
  * Copyright (c) 2020 Gerson Fernando Budke <nandojve@gmail.com>
  *
@@ -42,6 +42,8 @@ BUILD_ASSERT((CONFIG_IMG_BLOCK_BUF_SIZE % FLASH_WRITE_BLOCK_SIZE == 0),
 	     "CONFIG_IMG_BLOCK_BUF_SIZE is not a multiple of "
 	     "FLASH_WRITE_BLOCK_SIZE");
 #endif
+
+#define ERASED_VAL_32(x) (((x) << 24) | ((x) << 16) | ((x) << 8) | (x))
 
 static int scramble_mcuboot_trailer(struct flash_img_context *ctx)
 {
@@ -127,10 +129,64 @@ size_t flash_img_bytes_written(struct flash_img_context *ctx)
 	return stream_flash_bytes_written(&ctx->stream);
 }
 
+#if defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET)
+/**
+ * Determines if the specified area of flash is completely unwritten.
+ *
+ * @param	fa	pointer to flash area to scan
+ *
+ * @return	0	when not empty, 1 when empty, negative errno code on error.
+ */
+static int flash_check_erased(const struct flash_area *fa)
+{
+	uint32_t data[16];
+	off_t addr;
+	off_t end;
+	int bytes_to_read;
+	int rc;
+	int i;
+	uint8_t erased_val;
+	uint32_t erased_val_32;
+
+	assert(fa->fa_size % 4 == 0);
+
+	erased_val = flash_area_erased_val(fa);
+	erased_val_32 = ERASED_VAL_32(erased_val);
+
+	end = fa->fa_size;
+	for (addr = 0; addr < end; addr += sizeof(data)) {
+		if (end - addr < sizeof(data)) {
+			bytes_to_read = end - addr;
+		} else {
+			bytes_to_read = sizeof(data);
+		}
+
+		rc = flash_area_read(fa, addr, data, bytes_to_read);
+
+		if (rc < 0) {
+			LOG_ERR("Failed to read data from flash area: %d", rc);
+			return IMG_MGMT_ERR_FLASH_READ_FAILED;
+		}
+
+		for (i = 0; i < bytes_to_read / 4; i++) {
+			if (data[i] != erased_val_32) {
+				return 0;
+			}
+		}
+	}
+
+	return 1;
+}
+#endif
+
 int flash_img_init_id(struct flash_img_context *ctx, uint8_t area_id)
 {
 	int rc;
 	const struct device *flash_dev;
+#if defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET)
+	uint32_t sector_count = 1;
+	struct flash_sector sector_data;
+#endif
 
 	rc = flash_area_open(area_id,
 			       (const struct flash_area **)&(ctx->flash_area));
@@ -140,10 +196,40 @@ int flash_img_init_id(struct flash_img_context *ctx, uint8_t area_id)
 
 	flash_dev = flash_area_get_device(ctx->flash_area);
 
-#if 1
-	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf,
-			CONFIG_IMG_BLOCK_BUF_SIZE, ctx->flash_area->fa_off + 0x1000,
-			ctx->flash_area->fa_size - 0x1000, NULL);
+#if defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET)
+	/* Query size of first sector in flash for upgrade slot, so it can be erased, and begin
+	 * upload started at the second sector
+	 */
+	rc = flash_area_sectors((const struct flash_area *)ctx->flash_area, &sector_count,
+				&sector_data);
+
+	if (rc && rc != -ENOMEM) {
+		flash_area_close(ctx->flash_area);
+		ctx->flash_area = NULL;
+		return rc;
+	} else if (sector_count != 1) {
+		flash_area_close(ctx->flash_area);
+		ctx->flash_area = NULL;
+		return -ENOENT;
+	}
+
+	if (!flash_check_erased((const struct flash_area *)ctx->flash_area)) {
+		/* Flash is not empty, therefore flatten/erase the area to prevent issues when
+		 * the firmware update process begins
+		 */
+		rc = flash_area_flatten((const struct flash_area *)ctx->flash_area, 0,
+					sector_data->fs_size);
+
+		if (rc) {
+			flash_area_close(ctx->flash_area);
+			ctx->flash_area = NULL;
+			return rc;
+		}
+	}
+
+	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf, CONFIG_IMG_BLOCK_BUF_SIZE,
+				 (ctx->flash_area->fa_off + sector_data->fs_size),
+				 (ctx->flash_area->fa_size - sector_data->fs_size), NULL);
 #else
 	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf,
 			CONFIG_IMG_BLOCK_BUF_SIZE, ctx->flash_area->fa_off,

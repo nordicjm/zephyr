@@ -124,6 +124,36 @@ void img_mgmt_release_lock(void)
 #endif
 }
 
+static inline size_t img_mgmt_slot_offset(uint8_t slot)
+{
+#if CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET
+	/* In swap using offset mode, the update image is placed started at the second sector
+	 * instead of the first
+	 */
+	if ((slot % 2) == 1) {
+		uint32_t sector_count = 1;
+		struct flash_sector sector_data;
+		int area_id = img_mgmt_flash_area_id(slot);
+
+		if (area_id < 0) {
+			LOG_ERR("Could not determine flash area ID for image slot: %d", slot);
+			return 0;
+		}
+
+		rc = flash_area_get_sectors(area_id, &sector_count, &sector_data);
+
+		if ((rc && rc != -ENOMEM) || sector_count != 1) {
+			LOG_ERR("Could not determine sector size from flash area ID: %d", area_id);
+			return 0;
+		}
+
+		return sector_data->fs_size
+	}
+#endif
+
+	return 0;
+}
+
 #if defined(CONFIG_MCUMGR_GRP_IMG_SLOT_INFO_HOOKS)
 static bool img_mgmt_reset_zse(struct smp_streamer *ctxt)
 {
@@ -262,15 +292,12 @@ int img_mgmt_read_info(int image_slot, struct image_version *ver, uint8_t *hash,
 		return IMG_MGMT_ERR_FLASH_CONFIG_QUERY_FAIL;
 	}
 
-#if 1
-if ((image_slot % 2) == 1) {
-	rc = img_mgmt_read(image_slot, 0x1000, &hdr, sizeof(hdr));
-} else {
-	rc = img_mgmt_read(image_slot, 0, &hdr, sizeof(hdr));
-}
+#if CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET
+	rc = img_mgmt_read(image_slot, img_mgmt_slot_offset(image_slot), &hdr, sizeof(hdr));
 #else
 	rc = img_mgmt_read(image_slot, 0, &hdr, sizeof(hdr));
 #endif
+
 	if (rc != 0) {
 		return rc;
 	}
@@ -298,12 +325,7 @@ if ((image_slot % 2) == 1) {
 	 * TLV. All images are required to have a hash TLV.  If the hash is missing, the image
 	 * is considered invalid.
 	 */
-	data_off = hdr.ih_hdr_size + hdr.ih_img_size;
-#if 1
-if ((image_slot % 2) == 1) {
-data_off += 0x1000;
-}
-#endif
+	data_off = hdr.ih_hdr_size + hdr.ih_img_size + img_mgmt_slot_offset(image_slot);
 
 	rc = img_mgmt_find_tlvs(image_slot, &data_off, &data_end, IMAGE_TLV_PROT_INFO_MAGIC);
 	if (!rc) {
