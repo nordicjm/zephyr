@@ -51,6 +51,29 @@ BUILD_ASSERT(FIXED_PARTITION_EXISTS(SLOT4_PARTITION) &&
 	     "Missing partitions?");
 #endif
 
+static inline size_t img_mgmt_slot_offset_area(uint8_t area_id)
+{
+#if CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITH_OFFSET
+	/* In swap using offset mode, the update image is placed started at the second sector
+	 * instead of the first
+	 */
+	int rc;
+	uint32_t sector_count = 1;
+	struct flash_sector sector_data;
+
+	rc = flash_area_get_sectors(area_id, &sector_count, &sector_data);
+
+	if ((rc && rc != -ENOMEM) || sector_count != 1) {
+		LOG_ERR("Could not determine sector size from flash area ID: %d", area_id);
+		return 0;
+	}
+
+	return sector_data.fs_size;
+#else
+	return 0;
+#endif
+}
+
 /**
  * Determines if the specified area of flash is completely unwritten.
  *
@@ -473,7 +496,7 @@ int img_mgmt_erase_image_data(unsigned int off, unsigned int num_bytes)
 
 	size_t erase_size = page.start_offset + page.size - fa->fa_off;
 
-	rc = flash_area_flatten(fa, 0, erase_size);
+	rc = flash_area_flatten(fa, img_mgmt_slot_offset_area(g_img_mgmt_state.area_id), erase_size);
 
 	if (rc != 0) {
 		LOG_ERR("image slot erase of 0x%zx bytes failed (err %d)", erase_size,
