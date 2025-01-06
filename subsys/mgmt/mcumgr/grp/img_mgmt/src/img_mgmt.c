@@ -131,6 +131,7 @@ static inline size_t img_mgmt_slot_offset(uint8_t slot)
 	 * instead of the first
 	 */
 	if ((slot % 2) == 1) {
+		int rc;
 		uint32_t sector_count = 1;
 		struct flash_sector sector_data;
 		int area_id = img_mgmt_flash_area_id(slot);
@@ -147,7 +148,7 @@ static inline size_t img_mgmt_slot_offset(uint8_t slot)
 			return 0;
 		}
 
-		return sector_data->fs_size
+		return sector_data.fs_size;
 	}
 #endif
 

@@ -6,12 +6,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <zephyr/types.h>
+#include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <zephyr/dfu/flash_img.h>
 #include <zephyr/storage/flash_map.h>
 #include <zephyr/storage/stream_flash.h>
+
+#define LOG_LEVEL LOG_LEVEL_DBG
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(flash_img);
 
 #ifdef CONFIG_IMG_ERASE_PROGRESSIVELY
 #include <bootutil/bootutil_public.h>
@@ -165,7 +170,7 @@ static int flash_check_erased(const struct flash_area *fa)
 
 		if (rc < 0) {
 			LOG_ERR("Failed to read data from flash area: %d", rc);
-			return IMG_MGMT_ERR_FLASH_READ_FAILED;
+			return rc;
 		}
 
 		for (i = 0; i < bytes_to_read / 4; i++) {
@@ -218,7 +223,7 @@ int flash_img_init_id(struct flash_img_context *ctx, uint8_t area_id)
 		 * the firmware update process begins
 		 */
 		rc = flash_area_flatten((const struct flash_area *)ctx->flash_area, 0,
-					sector_data->fs_size);
+					sector_data.fs_size);
 
 		if (rc) {
 			flash_area_close(ctx->flash_area);
@@ -228,8 +233,8 @@ int flash_img_init_id(struct flash_img_context *ctx, uint8_t area_id)
 	}
 
 	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf, CONFIG_IMG_BLOCK_BUF_SIZE,
-				 (ctx->flash_area->fa_off + sector_data->fs_size),
-				 (ctx->flash_area->fa_size - sector_data->fs_size), NULL);
+				 (ctx->flash_area->fa_off + sector_data.fs_size),
+				 (ctx->flash_area->fa_size - sector_data.fs_size), NULL);
 #else
 	return stream_flash_init(&ctx->stream, flash_dev, ctx->buf,
 			CONFIG_IMG_BLOCK_BUF_SIZE, ctx->flash_area->fa_off,
