@@ -590,7 +590,8 @@ int img_mgmt_upload_inspect(const struct img_mgmt_upload_req *req,
 		/* First upload chunk. */
 		const struct flash_area *fa;
 #if defined(CONFIG_MCUMGR_GRP_IMG_TOO_LARGE_SYSBUILD) &&			\
-	(defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITHOUT_SCRATCH) ||	\
+	(defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_USING_OFFSET) ||		\
+	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_USING_MOVE) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_SCRATCH) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_OVERWRITE_ONLY) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_RAM_LOAD) ||			\
@@ -666,7 +667,8 @@ int img_mgmt_upload_inspect(const struct img_mgmt_upload_req *req,
 		}
 
 #if defined(CONFIG_MCUMGR_GRP_IMG_TOO_LARGE_SYSBUILD) &&			\
-	(defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_WITHOUT_SCRATCH) ||	\
+	(defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_USING_OFFSET) ||		\
+	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_USING_MOVE) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SWAP_SCRATCH) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_OVERWRITE_ONLY) ||		\
 	 defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_RAM_LOAD) ||			\
