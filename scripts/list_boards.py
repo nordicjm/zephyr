@@ -393,7 +393,11 @@ def board_v2_qualifiers(board):
     for s in board.socs:
         if s.cpuclusters:
             for c in s.cpuclusters:
-                id_str = s.name + '/' + c.name
+                id_str = s.name + '/' + c.name['name']
+                if s.name == "nrf5340":
+                    print(c)
+                    print(c.name['variants'])
+                    die()
                 qualifiers_list.append(id_str)
                 for v in c.variants:
                     qualifiers_list.extend(variant_v2_qualifiers(v, id_str))

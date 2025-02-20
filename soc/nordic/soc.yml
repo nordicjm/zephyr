@@ -18,6 +18,8 @@ family:
           - name: nrf5340
             cpuclusters:
               - name: cpuapp
+#                variants:
+#                  - name: ns
               - name: cpunet
       - name: nrf54l
         socs:
@@ -50,9 +52,17 @@ family:
       - name: nrf91
         socs:
           - name: nrf9131
+            variants:
+              - name: ns
           - name: nrf9151
+            variants:
+              - name: ns
           - name: nrf9160
+            variants:
+              - name: ns
           - name: nrf9161
+            variants:
+              - name: ns
       - name: nrf92
         socs:
           - name: nrf9280

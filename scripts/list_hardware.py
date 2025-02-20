@@ -52,42 +52,59 @@ class Systems:
             for s in f.get('series', []):
                 series = Series(s['name'], [folder], f['name'], [])
                 socs = [(Soc(soc['name'],
-                             [c['name'] for c in soc.get('cpuclusters', [])],
+#                             [c for c in soc.get('cpuclusters', [])],
+#                             [soc.get('cpuclusters')],
+                             soc.get('cpuclusters'),
+#                             [c['name'] for c in soc.get('cpuclusters', [])],
                              [folder], s['name'], f['name']))
                         for soc in s.get('socs', [])]
                 series.socs.extend(socs)
+#                print(s)
+#                if(s['name'] == "nrf53"):
+#                    print([c['name'] for c in soc.get('cpuclusters', [])])
+
                 self._series.append(series)
                 self._socs.extend(socs)
                 family.series.append(series)
                 family.socs.extend(socs)
             socs = [(Soc(soc['name'],
-                         [c['name'] for c in soc.get('cpuclusters', [])],
+#                         [c['name'] for c in soc.get('cpuclusters', [])],
+                         soc.get('cpuclusters'),
                          [folder], None, f['name']))
                     for soc in f.get('socs', [])]
+#            print(socs)
             self._socs.extend(socs)
             self._families.append(family)
 
         for s in data.get('series', []):
             series = Series(s['name'], [folder], '', [])
             socs = [(Soc(soc['name'],
-                         [c['name'] for c in soc.get('cpuclusters', [])],
+#                         [c['name'] for c in soc.get('cpuclusters', [])],
+#                         [c for c in soc.get('cpuclusters', [])],
+#                         [soc.get('cpuclusters')],
+                         soc.get('cpuclusters'),
                          [folder], s['name'], ''))
                     for soc in s.get('socs', [])]
             series.socs.extend(socs)
+#            print(series)
+#            print(socs)
             self._series.append(series)
             self._socs.extend(socs)
 
+        print(self._socs)
         for soc in data.get('socs', []):
             mutual_exclusive = {'name', 'extend'}
             if len(mutual_exclusive - soc.keys()) < 1:
                 sys.exit(f'ERROR: Malformed content in SoC file: {soc_yaml}\n'
                          f'{mutual_exclusive} are mutual exclusive at this level.')
             if soc.get('name') is not None:
-                self._socs.append(Soc(soc['name'], [c['name'] for c in soc.get('cpuclusters', [])],
+#                self._socs.append(Soc(soc['name'], [c['name'] for c in soc.get('cpuclusters', [])],
+                self._socs.append(Soc(soc['name'], soc.get('cpuclusters'),
                                   [folder], '', ''))
             elif soc.get('extend') is not None:
                 self._extended_socs.append(Soc(soc['extend'],
-                                           [c['name'] for c in soc.get('cpuclusters', [])],
+#                                           [c['name'] for c in soc.get('cpuclusters', [])],
+                                           soc.get('cpuclusters'),
                                            [folder], '', ''))
             else:
                 sys.exit(f'ERROR: Malformed "socs" section in SoC file: {soc_yaml}\n'
