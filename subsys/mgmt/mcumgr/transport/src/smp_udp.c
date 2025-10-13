@@ -24,8 +24,19 @@
 #include <zephyr/net/net_event.h>
 #include <zephyr/net/conn_mgr_monitor.h>
 #include <errno.h>
+#include <zephyr/net/tls_credentials.h>
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
+#define SERVER_CERTIFICATE_TAG 1
+
+static const unsigned char server_certificate[] = {
+#include "echo-apps-cert.der.inc"
+};
+
+/* This is the private key in pkcs#8 format. */
+static const unsigned char private_key[] = {
+#include "echo-apps-key.der.inc"
+};
 
 #define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -187,7 +198,11 @@ static int create_socket(enum proto_type proto, int *sock)
 		addr6->sin6_addr = in6addr_any;
 	}
 
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+	tmp_sock = zsock_socket(addr->sa_family, SOCK_DGRAM, IPPROTO_DTLS_1_2);
+#else
 	tmp_sock = zsock_socket(addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
+#endif
 	err = errno;
 
 	if (tmp_sock < 0) {
@@ -196,6 +211,31 @@ static int create_socket(enum proto_type proto, int *sock)
 
 		return -err;
 	}
+
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+	sec_tag_t sec_tag_list[] = {
+		SERVER_CERTIFICATE_TAG,
+#if defined(CONFIG_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
+		PSK_TAG,
+#endif
+	};
+	int role = TLS_DTLS_ROLE_SERVER;
+
+	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_SEC_TAG_LIST,
+			 sec_tag_list, sizeof(sec_tag_list));
+	if (err < 0) {
+		LOG_ERR("Failed to set UDP secure option: %d", errno);
+		return err;
+	}
+
+	/* Set role to DTLS server. */
+	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_DTLS_ROLE,
+			 &role, sizeof(role));
+	if (err < 0) {
+		LOG_ERR("Failed to set DTLS role secure option: %d", errno);
+		return err;
+	}
+#endif
 
 	if (zsock_bind(tmp_sock, addr, addr_len) < 0) {
 		err = errno;
@@ -207,6 +247,7 @@ static int create_socket(enum proto_type proto, int *sock)
 		return -err;
 	}
 
+LOG_ERR("worked? %d", tmp_sock);
 	*sock = tmp_sock;
 	return 0;
 }
@@ -372,6 +413,24 @@ static void smp_udp_start(void)
 	int rc;
 
 	threads_created = false;
+
+#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+	rc = tls_credential_add(SERVER_CERTIFICATE_TAG,
+				 TLS_CREDENTIAL_PUBLIC_CERTIFICATE,
+				 server_certificate,
+				 sizeof(server_certificate));
+	if (rc < 0) {
+		LOG_ERR("Failed to register public certificate: %d", rc);
+	}
+
+
+	rc = tls_credential_add(SERVER_CERTIFICATE_TAG,
+				 TLS_CREDENTIAL_PRIVATE_KEY,
+				 private_key, sizeof(private_key));
+	if (rc < 0) {
+		LOG_ERR("Failed to register private key: %d", rc);
+	}
+#endif
 
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
 	smp_udp_configs.ipv4.proto = PROTOCOL_IPV4;

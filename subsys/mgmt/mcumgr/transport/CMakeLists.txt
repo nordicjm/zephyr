@@ -32,6 +32,18 @@ zephyr_library_sources_ifdef(CONFIG_MCUMGR_TRANSPORT_DUMMY
   src/smp_dummy.c
 )
 
+set(gen_dir ${ZEPHYR_BINARY_DIR}/include/generated/)
+foreach(inc_file
+	echo-apps-cert.der
+	echo-apps-key.der
+    )
+  generate_inc_file_for_target(
+    app
+    ${ZEPHYR_BASE}/samples/net/sockets/echo_server/src/${inc_file}
+    ${gen_dir}/${inc_file}.inc
+    )
+endforeach()
+
 if (CONFIG_MCUMGR_TRANSPORT_SHELL OR CONFIG_MCUMGR_TRANSPORT_UART)
   zephyr_library_sources(src/serial_util.c)
 endif()
