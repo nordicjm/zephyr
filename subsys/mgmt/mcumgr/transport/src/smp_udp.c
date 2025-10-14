@@ -242,7 +242,6 @@ static int create_socket(enum proto_type proto, int *sock)
 		return -err;
 	}
 
-LOG_ERR("worked? %d", tmp_sock);
 	*sock = tmp_sock;
 	return 0;
 }
