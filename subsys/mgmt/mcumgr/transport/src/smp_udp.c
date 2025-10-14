@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019-2020, Prevas A/S
- * Copyright (c) 2022-2023 Nordic Semiconductor ASA
+ * Copyright (c) 2022-2025 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -24,19 +24,12 @@
 #include <zephyr/net/net_event.h>
 #include <zephyr/net/conn_mgr_monitor.h>
 #include <errno.h>
+
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS)
 #include <zephyr/net/tls_credentials.h>
+#endif
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
-#define SERVER_CERTIFICATE_TAG 1
-
-static const unsigned char server_certificate[] = {
-#include "echo-apps-cert.der.inc"
-};
-
-/* This is the private key in pkcs#8 format. */
-static const unsigned char private_key[] = {
-#include "echo-apps-key.der.inc"
-};
 
 #define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -178,6 +171,10 @@ static int create_socket(enum proto_type proto, int *sock)
 	struct sockaddr *addr = (struct sockaddr *)&addr_storage;
 	socklen_t addr_len = 0;
 
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS)
+	int socket_role = TLS_DTLS_ROLE_SERVER;
+#endif
+
 	if (IS_ENABLED(CONFIG_MCUMGR_TRANSPORT_UDP_IPV4) &&
 	    proto == PROTOCOL_IPV4) {
 		struct sockaddr_in *addr4 = (struct sockaddr_in *)addr;
@@ -198,7 +195,7 @@ static int create_socket(enum proto_type proto, int *sock)
 		addr6->sin6_addr = in6addr_any;
 	}
 
-#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS)
 	tmp_sock = zsock_socket(addr->sa_family, SOCK_DGRAM, IPPROTO_DTLS_1_2);
 #else
 	tmp_sock = zsock_socket(addr->sa_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -212,25 +209,23 @@ static int create_socket(enum proto_type proto, int *sock)
 		return -err;
 	}
 
-#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS)
 	sec_tag_t sec_tag_list[] = {
-		SERVER_CERTIFICATE_TAG,
-#if defined(CONFIG_MBEDTLS_KEY_EXCHANGE_PSK_ENABLED)
-		PSK_TAG,
-#endif
+		CONFIG_MCUMGR_TRANSPORT_UDP_DTLS_TLS_TAG,
 	};
-	int role = TLS_DTLS_ROLE_SERVER;
 
-	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_SEC_TAG_LIST,
-			 sec_tag_list, sizeof(sec_tag_list));
+	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_SEC_TAG_LIST, sec_tag_list,
+			       sizeof(sec_tag_list));
+
 	if (err < 0) {
 		LOG_ERR("Failed to set UDP secure option: %d", errno);
 		return err;
 	}
 
-	/* Set role to DTLS server. */
-	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_DTLS_ROLE,
-			 &role, sizeof(role));
+	/* Set role to DTLS server */
+	err = zsock_setsockopt(tmp_sock, SOL_TLS, TLS_DTLS_ROLE, &socket_role,
+			       sizeof(socket_role));
+
 	if (err < 0) {
 		LOG_ERR("Failed to set DTLS role secure option: %d", errno);
 		return err;
@@ -346,6 +341,28 @@ int smp_udp_open(void)
 {
 	bool started = false;
 
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS)
+	int rc;
+	size_t len = 0;
+
+	rc = tls_credential_get(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS_TLS_TAG,
+				TLS_CREDENTIAL_PUBLIC_CERTIFICATE, NULL, &len);
+
+	if (rc == -ENOENT) {
+		LOG_ERR("Missing DTLS public certificate credential");
+		return rc;
+	}
+
+	len = 0;
+	rc = tls_credential_get(CONFIG_MCUMGR_TRANSPORT_UDP_DTLS_TLS_TAG,
+				TLS_CREDENTIAL_PRIVATE_KEY, NULL, &len);
+
+	if (rc == -ENOENT) {
+		LOG_ERR("Missing DTLS private key credential");
+		return rc;
+	}
+#endif
+
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
 	if (k_thread_join(&smp_udp_configs.ipv4.thread, K_NO_WAIT) == 0 ||
 	    threads_created == false) {
@@ -413,24 +430,6 @@ static void smp_udp_start(void)
 	int rc;
 
 	threads_created = false;
-
-#if defined(CONFIG_NET_SOCKETS_SOCKOPT_TLS)
-	rc = tls_credential_add(SERVER_CERTIFICATE_TAG,
-				 TLS_CREDENTIAL_PUBLIC_CERTIFICATE,
-				 server_certificate,
-				 sizeof(server_certificate));
-	if (rc < 0) {
-		LOG_ERR("Failed to register public certificate: %d", rc);
-	}
-
-
-	rc = tls_credential_add(SERVER_CERTIFICATE_TAG,
-				 TLS_CREDENTIAL_PRIVATE_KEY,
-				 private_key, sizeof(private_key));
-	if (rc < 0) {
-		LOG_ERR("Failed to register private key: %d", rc);
-	}
-#endif
 
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
 	smp_udp_configs.ipv4.proto = PROTOCOL_IPV4;
