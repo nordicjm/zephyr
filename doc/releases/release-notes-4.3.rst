@@ -1010,6 +1010,14 @@ Libraries / Subsystems
     * Support for images with SHA512 hashes has been implemented and will automatically be used
       when :kconfig:option:`CONFIG_MCUBOOT_BOOTLOADER_USES_SHA512` is enabled.
 
+    * Support in :ref:`image mgmt <mcumgr_smp_group_1>` for images with SHA512 hashes has been
+      implemented and will automatically be used when
+      :kconfig:option:`CONFIG_MCUBOOT_BOOTLOADER_USES_SHA512` is enabled.
+
+    * Support in :ref:`image mgmt <mcumgr_smp_group_1>` for disallowing confirmation of non-active
+      slots of images using has been added and can be enabled using
+      :kconfig:option:`CONFIG_MCUMGR_GRP_IMG_ALLOW_CONFIRM_NON_ACTIVE_SLOT`.
+
 * Mbed TLS
 
   * Kconfig :kconfig:option:`CONFIG_PSA_CRYPTO` is added to simplify the enablement of a PSA
