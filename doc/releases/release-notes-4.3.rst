@@ -997,6 +997,19 @@ Libraries / Subsystems
     via :kconfig:option:`CONFIG_LOG_RATELIMIT_FALLBACK` to either log all messages or drop them completely.
     For more details, see :ref:`logging_ratelimited`.
 
+* Management
+
+  * MCUmgr
+
+    * DTLS support for the UDP transport has been added which can be enabled with
+      :kconfig:option:`CONFIG_MCUMGR_TRANSPORT_UDP_DTLS`. A certificate must be registered by the
+      application and treansport started manually when this feature is enabled, refer to the
+      :zephyr:code-sample:`smp-svr` sample when using :file:`udp_dtls.conf` for an example of how
+      to do this.
+
+    * Support for images with SHA512 hashes has been implemented and will automatically be used
+      when :kconfig:option:`CONFIG_MCUBOOT_BOOTLOADER_USES_SHA512` is enabled.
+
 * Mbed TLS
 
   * Kconfig :kconfig:option:`CONFIG_PSA_CRYPTO` is added to simplify the enablement of a PSA
