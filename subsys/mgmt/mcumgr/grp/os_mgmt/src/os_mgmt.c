@@ -1026,16 +1026,18 @@ static int os_mgmt_datetime_read(struct smp_streamer *ctxt)
 		goto finished;
 	}
 
+current_time.tm_nsec = 123456000;
+
 	sprintf(date_string, "%4d-%02d-%02dT%02d:%02d:%02d"
 #ifdef CONFIG_MCUMGR_GRP_OS_DATETIME_MS
-		".%03d"
+		".%06u"
 #endif
 		, (uint16_t)(current_time.tm_year + RTC_DATETIME_YEAR_OFFSET),
 		(uint8_t)(current_time.tm_mon + RTC_DATETIME_MONTH_OFFSET),
 		(uint8_t)current_time.tm_mday, (uint8_t)current_time.tm_hour,
 		(uint8_t)current_time.tm_min, (uint8_t)current_time.tm_sec
 #ifdef CONFIG_MCUMGR_GRP_OS_DATETIME_MS
-		, (uint16_t)(current_time.tm_nsec / RTC_DATETIME_MS_TO_NS)
+		, (uint32_t)(current_time.tm_nsec / RTC_DATETIME_US_TO_NS)
 #endif
 	);
 
@@ -1116,8 +1118,11 @@ static int os_mgmt_datetime_write(struct smp_streamer *ctxt)
 		return MGMT_ERR_EINVAL;
 	} else if (datetime.len < RTC_DATETIME_MIN_STRING_SIZE ||
 		   datetime.len > RTC_DATETIME_MAX_STRING_SIZE) {
+LOG_ERR("len %d", datetime.len);
 		return MGMT_ERR_EINVAL;
-	}
+	} else {
+LOG_ERR("len %d", datetime.len);
+}
 
 	memcpy(date_string, datetime.value, datetime.len);
 	date_string[datetime.len] = '\0';
@@ -1150,6 +1155,8 @@ static int os_mgmt_datetime_write(struct smp_streamer *ctxt)
 		pos = new_pos + 1;
 	}
 
+LOG_ERR("ok");
+
 #ifdef CONFIG_MCUMGR_GRP_OS_DATETIME_MS
 	if (*(pos - 1) == '.') {
 		uint32_t usec = 0;
@@ -1167,6 +1174,8 @@ static int os_mgmt_datetime_write(struct smp_streamer *ctxt)
 		new_time.tm_nsec = usec * RTC_DATETIME_US_TO_NS;
 	}
 #endif
+
+LOG_ERR("nsec = %u", new_time.tm_nsec);
 
 #if defined(CONFIG_MCUMGR_GRP_OS_DATETIME_HOOK)
 	status = mgmt_callback_notify(MGMT_EVT_OP_OS_MGMT_DATETIME_SET, &new_time,
