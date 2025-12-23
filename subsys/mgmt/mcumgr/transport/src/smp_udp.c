@@ -56,6 +56,10 @@ struct config {
 	struct k_sem network_ready_sem;
 	struct smp_transport smp_transport;
 	char recv_buffer[CONFIG_MCUMGR_TRANSPORT_UDP_MTU];
+#if 1
+int bridge_sock;
+struct sockaddr_in bridge_addr;
+#endif
 	struct k_thread thread;
 	K_KERNEL_STACK_MEMBER(stack, CONFIG_MCUMGR_TRANSPORT_UDP_STACK_SIZE);
 };
@@ -434,6 +438,71 @@ int smp_udp_close(void)
 	return 0;
 }
 
+#if 1
+static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+//TODO: is connected?
+	int rc;
+
+const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+#define server "192.168.1.89"
+#define port 1337
+
+	memset(&smp_udp_configs.ipv4.bridge_addr, 0, sizeof(smp_udp_configs.ipv4.bridge_addr));
+	net_sin(fuck)->sin_family = AF_INET;
+	net_sin(fuck)->sin_port = htons(port);
+	zsock_inet_pton(AF_INET, server, &net_sin(fuck)->sin_addr);
+
+	smp_udp_configs.ipv4.bridge_sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if (smp_udp_configs.ipv4.bridge_sock < 0) {
+		LOG_ERR("Failed to create UDP socket: %d", errno);
+		return -1;
+	}
+
+        rc = zsock_connect(smp_udp_configs.ipv4.bridge_sock, fuck, sizeof(smp_udp_configs.ipv4.bridge_addr));
+
+        if (rc < 0) {
+                LOG_ERR("Cannot connect to UDP remote: %d", errno);
+                return -1;
+        }
+
+	return 0;
+}
+
+static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+return 0;
+}
+
+static int smp_udp4_bridge_tx(struct net_buf *nb)
+{
+	int ret;
+
+const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+
+//TODO: is bridged?
+//	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, fuck, sizeof(smp_udp_configs.ipv4.bridge_addr));
+	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, fuck, sizeof(struct sockaddr_in));
+
+LOG_ERR("send got %d for size %d on %d", ret, nb->len, smp_udp_configs.ipv4.bridge_sock);
+
+	if (ret < 0) {
+		if (errno == ENOMEM) {
+			ret = MGMT_ERR_EMSGSIZE;
+		} else {
+			ret = MGMT_ERR_EINVAL;
+		}
+	} else {
+		ret = MGMT_ERR_EOK;
+	}
+
+	smp_packet_free(nb);
+
+	return ret;
+}
+#endif
+
 static void smp_udp_start(void)
 {
 	int rc;
@@ -449,6 +518,12 @@ static void smp_udp_start(void)
 	smp_udp_configs.ipv4.smp_transport.functions.get_mtu = smp_udp_get_mtu;
 	smp_udp_configs.ipv4.smp_transport.functions.ud_copy = smp_udp_ud_copy;
 	smp_udp_configs.ipv4.smp_transport.functions.ud_init = smp_udp_ud_init;
+
+#if 1
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_connect = smp_udp4_bridge_connect;
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_disconnect = smp_udp4_bridge_disconnect;
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_output = smp_udp4_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_udp_configs.ipv4.smp_transport);
 #ifdef CONFIG_SMP_CLIENT

@@ -93,12 +93,24 @@ static int smp_uart_tx_pkt(struct net_buf *nb)
 	return rc;
 }
 
+static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+return 0;
+}
+static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+return 0;
+}
+
 static int smp_uart_init(void)
 {
 	int rc;
 
 	smp_uart_transport.functions.output = smp_uart_tx_pkt;
 	smp_uart_transport.functions.get_mtu = smp_uart_get_mtu;
+
+	smp_uart_transport.functions.bridge_connect = smp_udp4_bridge_connect;
+	smp_uart_transport.functions.bridge_disconnect = smp_udp4_bridge_disconnect;
 
 	rc = smp_transport_init(&smp_uart_transport);
 

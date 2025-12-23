@@ -48,6 +48,54 @@ static inline void transport_mgmt_unlock(void)
 static struct smp_transport_bridge bridges[MAX_BRIDGES];
 static bool bridge_active;
 
+bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
+{
+	bool bridged = false;
+
+	transport_mgmt_lock();
+
+	if (bridge_active == true) {
+		uint8_t i = 0;
+
+		while (i < MAX_BRIDGES) {
+			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
+				bridged = true;
+				break;
+			}
+
+			++i;
+		}
+	}
+
+	transport_mgmt_unlock();
+
+	return bridged;
+}
+
+struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *transport, bool outgoing)
+{
+	struct smp_transport *other_transport = NULL;
+
+	transport_mgmt_lock();
+
+	if (bridge_active == true) {
+		uint8_t i = 0;
+
+		while (i < MAX_BRIDGES) {
+			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
+				other_transport = bridges[i].outgoing_transport;
+				break;
+			}
+
+			++i;
+		}
+	}
+
+	transport_mgmt_unlock();
+
+	return other_transport;
+}
+
 /**
  * Command handler: transport <>
  */
@@ -89,7 +137,7 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 //TODO: check outgoing_transport is not null
 	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
-	if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+	if (outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
@@ -131,7 +179,11 @@ return MGMT_ERR_UNSUPPORTED_TOO_OLD;
 	}
 
 	bridges[i].status = 1;
+	bridges[i].incoming_transport = ctxt->smpt;
+	bridges[i].outgoing_transport = outgoing_transport;
 	bridge_active = true;
+
+LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 
 	transport_mgmt_unlock();
 
@@ -179,7 +231,7 @@ return MGMT_ERR_EBADSTATE;
 	uint8_t i = 0;
 
 	while (i < MAX_BRIDGES) {
-		if (bridges[i].status == 1 && bridges[i].outgoing_transport_id == transport_id /* && bridges[i].incoming_transport_id == TODO*/) {
+		if (bridges[i].status == 1 && bridges[i].outgoing_transport == outgoing_transport && bridges[i].incoming_transport == ctxt->smpt) {
 			break;
 		}
 
@@ -205,6 +257,8 @@ return MGMT_ERR_EBADSTATE;
 	}
 
 	bridges[i].status = 0;
+	bridges[i].incoming_transport = NULL;
+	bridges[i].outgoing_transport = NULL;
 
 	i = 0;
 

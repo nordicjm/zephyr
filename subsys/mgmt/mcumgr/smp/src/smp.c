@@ -22,6 +22,14 @@
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
 
+#if 1
+#include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt.h>
+#endif
+
+#define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(frog);
+
 #ifdef CONFIG_MCUMGR_MGMT_NOTIFICATION_HOOKS
 #include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
 #endif
@@ -415,6 +423,7 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 
 		valid_hdr = true;
 		/* Skip the smp_hdr */
+LOG_HEXDUMP_ERR(req->data, req->len, "b4");
 		net_buf_pull(req, sizeof(struct smp_hdr));
 		/* Does buffer contain whole message? */
 		if (req->len < req_hdr.nh_len) {
@@ -423,6 +432,31 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 		}
 
 		if (req_hdr.nh_op == MGMT_OP_READ || req_hdr.nh_op == MGMT_OP_WRITE) {
+#if 1
+//TODO: group
+LOG_ERR("check %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, false));
+			if (req_hdr.nh_group != 99 && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
+				struct smp_transport *bridged_transport = transport_mgmt_get_other_transport(streamer->smpt, false);
+
+//TODO: deal with user data
+LOG_ERR("pre: %d", req->len);
+req->len += sizeof(struct smp_hdr);
+req->data -= sizeof(struct smp_hdr);
+LOG_ERR("post: %d", req->len);
+LOG_HEXDUMP_ERR(req->data, req->len, "out");
+				rc = bridged_transport->functions.bridge_output(req);
+
+				if (rc == 0) {
+					/* Server shuold not send an error response */
+req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
+req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
+					valid_hdr = false;
+				}
+//TODO: jump here? Or remove packet then jump after
+				goto skip_processing_packet;
+			}
+#endif
+
 			rsp = smp_alloc_rsp(req, streamer->smpt);
 			if (rsp == NULL) {
 				rc = MGMT_ERR_ENOMEM;
@@ -473,6 +507,7 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 #endif
 	}
 
+skip_processing_packet:
 	if (rc != 0 && valid_hdr) {
 		smp_on_err(streamer, &req_hdr, req, rsp, rc, rsn);
 

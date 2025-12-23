@@ -30,6 +30,9 @@ extern "C" {
 #define TRANSPORT_MGMT_ID_STATUS 5 /**<  */
 /** @} */
 
+bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing);
+struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *transport, bool outgoing);
+
 /**
  * Command result codes for transport management group.
  */
