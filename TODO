@@ -1,0 +1,6 @@
+get transports - returns IDs and descriptions
+get transport details - returns number of config types (udp has ipv4, ipv4 dtls, ipv6, ipv6 dtls = 4) with names
+get transport config details - returns list of config items plus descriptions e.g. "port" = "UDP port", "host" = "IP address to connect to"
+connect to transport - transport ID, config type (none = 0 = default), connection data (transport specific)
+get connection status
+disconnect transport
