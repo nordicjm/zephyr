@@ -42,7 +42,11 @@ static struct mcumgr_serial_rx_ctxt smp_shell_rx_ctxt;
 static const struct shell_uart_common *shell_uart;
 
 #ifdef CONFIG_SMP_CLIENT
-static struct smp_client_transport_entry smp_client_transport;
+static struct smp_client_transport_entry smp_client_transport = {
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	.name = "Shell",
+#endif
+};
 #endif
 
 /** SMP mcumgr frame fragments. */
@@ -233,12 +237,35 @@ static int smp_shell_tx_pkt(struct net_buf *nb)
 	return rc;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static int smp_shell_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+return 0;
+}
+
+static int smp_shell_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+return 0;
+}
+
+static int smp_shell_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+	return smp_shell_tx_pkt(nb);
+}
+#endif
+
 int smp_shell_init(void)
 {
 	int rc;
 
 	smp_shell_transport.functions.output = smp_shell_tx_pkt;
 	smp_shell_transport.functions.get_mtu = smp_shell_get_mtu;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+	smp_shell_transport.functions.bridge_connect = smp_shell_bridge_connect;
+	smp_shell_transport.functions.bridge_disconnect = smp_shell_bridge_disconnect;
+	smp_shell_transport.functions.bridge_output = smp_shell_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_shell_transport);
 #ifdef CONFIG_SMP_CLIENT

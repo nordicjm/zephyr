@@ -30,6 +30,9 @@
 #endif
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
+#include <mgmt/mcumgr/util/zcbor_bulk.h>
+#include <zcbor_common.h>
+#include <zcbor_decode.h>
 
 #define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -56,6 +59,15 @@ struct config {
 	struct k_sem network_ready_sem;
 	struct smp_transport smp_transport;
 	char recv_buffer[CONFIG_MCUMGR_TRANSPORT_UDP_MTU];
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+int bridge_sock;
+struct sockaddr_in bridge_addr;
+	char bridge_recv_buffer[CONFIG_MCUMGR_TRANSPORT_UDP_MTU];
+	struct k_thread bridge_thread;
+	K_KERNEL_STACK_MEMBER(bridge_stack, CONFIG_MCUMGR_TRANSPORT_UDP_STACK_SIZE);
+
+uint8_t bridge_user_data[sizeof(struct net_sockaddr)];
+#endif
 	struct k_thread thread;
 	K_KERNEL_STACK_MEMBER(stack, CONFIG_MCUMGR_TRANSPORT_UDP_STACK_SIZE);
 };
@@ -304,6 +316,57 @@ static void smp_udp_receive_thread(void *p1, void *p2, void *p3)
 	}
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static void smp_udp4_bridge_receive_thread(void *p1, void *p2, void *p3)
+{
+	struct config *conf = (struct config *)p1;
+	int rc;
+
+	ARG_UNUSED(p2);
+	ARG_UNUSED(p3);
+
+//	(void)k_sem_take(&conf->network_ready_sem, K_FOREVER);
+//	rc = create_socket(conf->proto, &conf->sock);
+
+//	if (rc < 0) {
+//		return;
+//	}
+
+//	__ASSERT(rc >= 0, "Socket is invalid");
+//	LOG_INF("Started (%s)", smp_udp_proto_to_name(conf->proto));
+//int bridge_sock;
+//struct sockaddr_in bridge_addr;
+
+	while (1) {
+		struct net_sockaddr addr;
+		net_socklen_t addr_len = sizeof(addr);
+
+		int len = zsock_recv(conf->bridge_sock, conf->bridge_recv_buffer,
+					CONFIG_MCUMGR_TRANSPORT_UDP_MTU, 0);
+
+		if (len > 0) {
+			struct net_sockaddr *ud;
+			struct net_buf *nb;
+
+			/* Store sender address in user data for reply */
+			nb = smp_packet_alloc();
+			if (!nb) {
+				LOG_ERR("Failed to allocate mcumgr buffer");
+				/* No free space, drop SMP frame */
+				continue;
+			}
+			net_buf_add_mem(nb, conf->bridge_recv_buffer, len);
+			ud = net_buf_user_data(nb);
+			memcpy(ud, &addr, sizeof(addr));
+
+			smp_rx_req(&conf->smp_transport, nb);
+		} else if (len < 0) {
+			LOG_ERR("recvfrom error2: %i, %d", errno, len);
+		}
+	}
+}
+#endif
+
 static void smp_udp_open_iface(struct net_if *iface, void *user_data)
 {
 	ARG_UNUSED(user_data);
@@ -434,6 +497,140 @@ int smp_udp_close(void)
 	return 0;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+//TODO: is connected?
+	int rc;
+	const struct net_sockaddr *sock_addr = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+	struct zcbor_string server = { 0 };
+	uint32_t port;
+	bool ok;
+	int decoded = 0;
+	uint8_t server_ip[16] = { 0 };
+
+	if (outgoing == false) {
+		struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
+
+		memcpy(smp_udp_configs.ipv4.bridge_user_data, net_buf_user_data(cnr->nb), sizeof(struct net_sockaddr));
+		return 0;
+	}
+
+	struct zcbor_map_decode_key_val udp_bride_connect_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("server", zcbor_tstr_decode, &server),
+		ZCBOR_MAP_DECODE_KEY_DECODER("port", zcbor_uint32_decode, &port),
+	};
+
+        ok = zcbor_map_decode_bulk(data, udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), &decoded) == 0;
+
+//TODO: allow transport_id to be 0 by default?
+        if (!ok || decoded < 2 || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server") || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port")) {
+LOG_ERR("err: %d, %d, %d, %d", ok, decoded, zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server"), zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port"));
+                return MGMT_ERR_EINVAL;
+        }
+
+//TODO: validate server
+	if (port == 0 || port > 65535) {
+LOG_ERR("bah");
+                return MGMT_ERR_EINVAL;
+	}
+
+memcpy(server_ip, server.value, server.len);
+LOG_ERR("ip: %s", server_ip);
+
+	memset(&smp_udp_configs.ipv4.bridge_addr, 0, sizeof(smp_udp_configs.ipv4.bridge_addr));
+	net_sin(sock_addr)->sin_family = AF_INET;
+	net_sin(sock_addr)->sin_port = htons((uint16_t)port);
+	zsock_inet_pton(AF_INET, server_ip, &net_sin(sock_addr)->sin_addr);
+
+	smp_udp_configs.ipv4.bridge_sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	if (smp_udp_configs.ipv4.bridge_sock < 0) {
+		LOG_ERR("Failed to create UDP socket: %d", errno);
+		return -1;
+	}
+
+        rc = zsock_connect(smp_udp_configs.ipv4.bridge_sock, sock_addr, sizeof(smp_udp_configs.ipv4.bridge_addr));
+
+        if (rc < 0) {
+                LOG_ERR("Cannot connect to UDP remote: %d", errno);
+                return -1;
+        }
+
+	k_thread_create(&smp_udp_configs.ipv4.bridge_thread, smp_udp_configs.ipv4.bridge_stack,
+			K_KERNEL_STACK_SIZEOF(smp_udp_configs.ipv4.bridge_stack),
+			smp_udp4_bridge_receive_thread, &smp_udp_configs.ipv4, NULL, NULL,
+			CONFIG_MCUMGR_TRANSPORT_UDP_THREAD_PRIO, 0, K_FOREVER);
+
+	k_thread_name_set(&smp_udp_configs.ipv4.bridge_thread, "todo");
+	k_thread_start(&smp_udp_configs.ipv4.bridge_thread);
+
+	return 0;
+}
+
+static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+	int rc;
+
+	if (outgoing == false) {
+		return 0;
+	}
+
+	k_thread_abort(&smp_udp_configs.ipv4.bridge_thread);
+
+	rc = zsock_close(smp_udp_configs.ipv4.bridge_sock);
+
+	if (rc < 0) {
+		LOG_ERR("Failed to close bridge socket: %d", rc);
+	}
+
+	smp_udp_configs.ipv4.bridge_sock = -1;
+
+	return 0;
+}
+
+static int smp_udp4_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+	int ret;
+	const struct net_sockaddr *sock_addr = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+
+	if (outgoing == false) {
+		memcpy(net_buf_user_data(nb), smp_udp_configs.ipv4.bridge_user_data, sizeof(struct net_sockaddr));
+		return smp_udp4_tx(nb);
+	}
+
+//TODO: is bridged?
+	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, sock_addr, sizeof(struct sockaddr_in));
+
+LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs.ipv4.bridge_sock);
+
+	if (ret < 0) {
+		if (errno == ENOMEM) {
+			ret = MGMT_ERR_EMSGSIZE;
+		} else if (errno == ENETDOWN) {
+			ret = MGMT_ERR_BRIDGED_CONNECTION_UNAVAILABLE;
+		} else {
+			ret = MGMT_ERR_EINVAL;
+		}
+	} else {
+		ret = MGMT_ERR_EOK;
+	}
+
+	smp_packet_free(nb);
+
+	return ret;
+}
+
+#if 0
+static int smp_udp4_bridge_ud_copy(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing)
+{
+//TODO: is bridged?
+
+	return 0;
+}
+#endif
+#endif
+
 static void smp_udp_start(void)
 {
 	int rc;
@@ -449,6 +646,12 @@ static void smp_udp_start(void)
 	smp_udp_configs.ipv4.smp_transport.functions.get_mtu = smp_udp_get_mtu;
 	smp_udp_configs.ipv4.smp_transport.functions.ud_copy = smp_udp_ud_copy;
 	smp_udp_configs.ipv4.smp_transport.functions.ud_init = smp_udp_ud_init;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_connect = smp_udp4_bridge_connect;
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_disconnect = smp_udp4_bridge_disconnect;
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_output = smp_udp4_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_udp_configs.ipv4.smp_transport);
 #ifdef CONFIG_SMP_CLIENT

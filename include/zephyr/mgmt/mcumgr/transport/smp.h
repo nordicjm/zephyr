@@ -14,6 +14,10 @@
 extern "C" {
 #endif
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+#include <zcbor_common.h>
+#endif
+
 /**
  * @brief MCUmgr SMP transport API
  * @defgroup mcumgr_transport_smp SMP transport
@@ -24,6 +28,10 @@ extern "C" {
 struct smp_transport;
 struct zephyr_smp_transport;
 struct net_buf;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+struct smp_transport_bridge;
+#endif
 
 /** @typedef smp_transport_out_fn
  * @brief SMP transmit callback for transport
@@ -101,6 +109,15 @@ typedef bool (*smp_transport_query_valid_check_fn)(struct net_buf *nb, void *arg
  */
 typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//additional same type bool field if both transports are the same?
+typedef int (*smp_transport_bridge_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data);
+typedef int (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *bridge, bool outgoing);
+typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing);
+//typedef int (*smp_transport_transport_ud_copy_fn)(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing);
+//typedef void (*smp_transport_transport_ud_free_fn)(struct smp_transport_bridge *bridge, void *ud, bool outgoing);
+#endif
+
 /**
  * @brief Function pointers of SMP transport functions, if a handler is NULL then it is not
  * supported/implemented.
@@ -123,6 +140,21 @@ struct smp_transport_api_t {
 
 	/** Transport's request buffer init function */
 	smp_transport_ud_req_init_fn ud_init;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//connect function
+smp_transport_bridge_connect_fn bridge_connect;
+
+//disconnect function
+smp_transport_bridge_disconnect_fn bridge_disconnect;
+
+//send function
+smp_transport_bridge_out_fn bridge_output;
+
+//get details function
+
+//get config details function
+#endif
 };
 
 /**
@@ -146,6 +178,18 @@ struct smp_transport {
 	} __reassembly;
 #endif
 };
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+struct smp_transport_bridge {
+	uint8_t status;
+//	int incoming_transport_id;
+//	int outgoing_transport_id;
+	struct smp_transport *incoming_transport;
+	struct smp_transport *outgoing_transport;
+//	uint8_t *incoming_user_data;
+//	uint8_t *outgoing_user_data;
+};
+#endif
 
 /**
  * @brief SMP transport type for client registration
@@ -176,6 +220,11 @@ struct smp_client_transport_entry {
 	struct smp_transport *smpt;
 	/** Transport type */
 	int smpt_type;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	/** Transport name, used for transport mgmt (or NULL to omit) */
+	char *name;
+#endif
 };
 
 /**
@@ -221,6 +270,10 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry);
  * @return		Pointer to registered object. Unknown type return NULL.
  */
 struct smp_transport *smp_client_transport_get(int smpt_type);
+
+//TODO: iteration function to callback with all transports
+typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_entry *transport, void *user_data);
+bool smp_client_transport_foreach(mgmt_client_transport_cb_t user_cb, void *user_data);
 
 /**
  * @}

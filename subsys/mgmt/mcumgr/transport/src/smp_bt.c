@@ -87,6 +87,10 @@ struct smp_bt_user_data {
 	uint8_t id;
 };
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static struct smp_bt_user_data bridged_data;
+#endif
+
 /* Verification of user data being able to fit */
 BUILD_ASSERT(sizeof(struct smp_bt_user_data) <= CONFIG_MCUMGR_TRANSPORT_NETBUF_USER_DATA_SIZE,
 	     "CONFIG_MCUMGR_TRANSPORT_NETBUF_USER_DATA_SIZE not large enough to fit Bluetooth"
@@ -647,6 +651,40 @@ static bool smp_bt_query_valid_check(struct net_buf *nb, void *arg)
 	return true;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static int smp_bt_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+	struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
+	struct smp_bt_user_data *ud;
+
+	if (outgoing == true) {
+		return -ENOTSUP;
+	}
+
+	ud = net_buf_user_data(cnr->nb);
+	bridged_data.conn = ud->conn;
+	bridged_data.id = ud->id;
+
+	return 0;
+}
+
+static int smp_bt_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+	bridged_data.conn = NULL;
+	bridged_data.id = 0;
+	return 0;
+}
+
+static int smp_bt_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+	struct smp_bt_user_data *ud = net_buf_user_data(nb);
+
+	ud->conn = bridged_data.conn;
+	ud->id = bridged_data.id;
+	return smp_bt_tx_pkt(nb);
+}
+#endif
+
 static void smp_bt_setup(void)
 {
 	int rc;
@@ -668,6 +706,12 @@ static void smp_bt_setup(void)
 	smp_bt_transport.functions.ud_copy = smp_bt_ud_copy;
 	smp_bt_transport.functions.ud_free = smp_bt_ud_free;
 	smp_bt_transport.functions.query_valid_check = smp_bt_query_valid_check;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+	smp_bt_transport.functions.bridge_connect = smp_bt_bridge_connect;
+	smp_bt_transport.functions.bridge_disconnect = smp_bt_bridge_disconnect;
+	smp_bt_transport.functions.bridge_output = smp_bt_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_bt_transport);
 

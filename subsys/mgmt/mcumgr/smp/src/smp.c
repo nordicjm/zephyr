@@ -22,6 +22,14 @@
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+#include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt.h>
+#endif
+
+#define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(frog);
+
 #ifdef CONFIG_MCUMGR_MGMT_NOTIFICATION_HOOKS
 #include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
 #endif
@@ -415,6 +423,7 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 
 		valid_hdr = true;
 		/* Skip the smp_hdr */
+LOG_HEXDUMP_ERR(req->data, req->len, "b4");
 		net_buf_pull(req, sizeof(struct smp_hdr));
 		/* Does buffer contain whole message? */
 		if (req->len < req_hdr.nh_len) {
@@ -423,6 +432,42 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 		}
 
 		if (req_hdr.nh_op == MGMT_OP_READ || req_hdr.nh_op == MGMT_OP_WRITE) {
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//TODO: group
+LOG_ERR("check %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, false));
+			if (req_hdr.nh_group != transport_mgmt_group_id() && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
+//				struct smp_transport *bridged_transport = transport_mgmt_get_other_transport(streamer->smpt, false);
+				const struct smp_transport_bridge *bridge = transport_mgmt_get_bridge(streamer->smpt, false);
+
+//TODO: deal with user data
+LOG_ERR("pre: %d", req->len);
+req->len += sizeof(struct smp_hdr);
+req->data -= sizeof(struct smp_hdr);
+LOG_ERR("post: %d", req->len);
+LOG_HEXDUMP_ERR(req->data, req->len, "out");
+//				rc = bridged_transport->functions.bridge_output(bridge, req, true);
+				rc = bridge->outgoing_transport->functions.bridge_output(bridge, req, true);
+
+req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
+req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
+
+				if (rc == 0) {
+					/* Server should not send an error response */
+					valid_hdr = false;
+					goto skip_processing_packet;
+				}
+
+				rsp = smp_alloc_rsp(req, streamer->smpt);
+				if (rsp == NULL) {
+					rc = MGMT_ERR_ENOMEM;
+					break;
+				}
+
+				cbor_nb_writer_init(streamer->writer, rsp);
+				break;
+			}
+#endif
+
 			rsp = smp_alloc_rsp(req, streamer->smpt);
 			if (rsp == NULL) {
 				rc = MGMT_ERR_ENOMEM;
@@ -444,12 +489,35 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 			rsp = NULL;
 		} else if (IS_ENABLED(CONFIG_SMP_CLIENT) && (req_hdr.nh_op == MGMT_OP_READ_RSP ||
 			   req_hdr.nh_op == MGMT_OP_WRITE_RSP)) {
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//TODO: group
+LOG_ERR("check2 %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, true));
+			if (transport_mgmt_is_bridged(streamer->smpt, true) == true) {
+				const struct smp_transport_bridge *bridge = transport_mgmt_get_bridge(streamer->smpt, true);
+
+//TODO: deal with user data
+LOG_ERR("pre: %d", req->len);
+req->len += sizeof(struct smp_hdr);
+req->data -= sizeof(struct smp_hdr);
+LOG_ERR("post: %d", req->len);
+LOG_HEXDUMP_ERR(req->data, req->len, "out");
+//				rc = bridged_transport->functions.bridge_output(bridge, req, true);
+				rc = bridge->incoming_transport->functions.bridge_output(bridge, req, false);
+
+req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
+req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
+
+				/* Server should not send error response for response */
+				valid_hdr = false;
+				goto skip_processing_packet;
+			}
+#endif
 			rc = smp_client_single_response(req, &req_hdr);
 
 			if (rc == MGMT_ERR_EOK) {
 				handler_found = true;
 			} else {
-				/* Server shuold not send error response for response */
+				/* Server should not send error response for response */
 				valid_hdr = false;
 			}
 
@@ -470,6 +538,9 @@ int smp_process_request_packet(struct smp_streamer *streamer, void *vreq)
 
 		(void)mgmt_callback_notify(MGMT_EVT_OP_CMD_DONE, &cmd_done_arg,
 					   sizeof(cmd_done_arg), &err_rc, &err_group);
+#endif
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+skip_processing_packet:
 #endif
 	}
 
