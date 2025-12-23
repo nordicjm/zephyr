@@ -1,0 +1,22 @@
+# Copyright Nordic Semiconductor ASA 2025. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig MCUMGR_GRP_TRANSPORT
+	bool "MCUmgr handlers for transport management"
+	depends on SMP_CLIENT
+#	select MCUMGR_SMP_CBOR_MIN_DECODING_LEVEL_2
+#	select MCUMGR_SMP_CBOR_MIN_ENCODING_LEVEL_2 if ZCBOR_CANONICAL
+#	select MCUMGR_SMP_CBOR_MIN_ENCODING_LEVEL_1
+	help
+	  Enables MCUmgr handlers for transport manipulation.
+
+if MCUMGR_GRP_TRANSPORT
+
+#choice MCUMGR_GRP_SETTINGS_BUFFER_TYPE
+#	prompt "Buffer type"
+#	default MCUMGR_GRP_SETTINGS_BUFFER_TYPE_STACK
+#	help
+#	  Selects if the stack or heap will be used for variables that are
+#	  needed when processing requests.
+
+endif

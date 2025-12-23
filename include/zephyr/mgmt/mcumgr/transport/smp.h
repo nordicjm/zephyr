@@ -14,6 +14,10 @@
 extern "C" {
 #endif
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+#include <zcbor_common.h>
+#endif
+
 /**
  * @brief MCUmgr SMP transport API
  * @defgroup mcumgr_transport_smp SMP transport
@@ -24,6 +28,10 @@ extern "C" {
 struct smp_transport;
 struct zephyr_smp_transport;
 struct net_buf;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+struct smp_transport_bridge;
+#endif
 
 /** @typedef smp_transport_out_fn
  * @brief SMP transmit callback for transport
@@ -101,6 +109,12 @@ typedef bool (*smp_transport_query_valid_check_fn)(struct net_buf *nb, void *arg
  */
 typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//additional same type bool field if both transports are the same?
+typedef int (*smp_transport_transport_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing, void *CONN_DATA);
+typedef int (*smp_transport_transport_disconnect_fn)(struct smp_transport_bridge *bridge, bool outgoing);
+#endif
+
 /**
  * @brief Function pointers of SMP transport functions, if a handler is NULL then it is not
  * supported/implemented.
@@ -123,6 +137,18 @@ struct smp_transport_api_t {
 
 	/** Transport's request buffer init function */
 	smp_transport_ud_req_init_fn ud_init;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//connect function
+smp_transport_transport_connect_fn bridge_connect;
+
+//disconnect function
+smp_transport_transport_disconnect_fn bridge_disconnect;
+
+//get details function
+
+//get config details function
+#endif
 };
 
 /**
@@ -146,6 +172,16 @@ struct smp_transport {
 	} __reassembly;
 #endif
 };
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+struct smp_transport_bridge {
+	uint8_t status;
+	int incoming_transport_id;
+	int outgoing_transport_id;
+	uint8_t *incoming_user_data;
+	uint8_t *outgoing_user_data;
+};
+#endif
 
 /**
  * @brief SMP transport type for client registration
@@ -221,6 +257,8 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry);
  * @return		Pointer to registered object. Unknown type return NULL.
  */
 struct smp_transport *smp_client_transport_get(int smpt_type);
+
+//TODO: iteration function to callback with all transports
 
 /**
  * @}

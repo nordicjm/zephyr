@@ -1,0 +1,304 @@
+/*
+ * Copyright (c) 2025 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/kernel.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/mgmt/mcumgr/mgmt/mgmt.h>
+#include <zephyr/mgmt/mcumgr/smp/smp.h>
+#include <zephyr/mgmt/mcumgr/mgmt/handlers.h>
+#include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
+#include <zephyr/mgmt/mcumgr/transport/smp.h>
+#include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt.h>
+#include <mgmt/mcumgr/util/zcbor_bulk.h>
+#include <assert.h>
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include <zcbor_common.h>
+#include <zcbor_decode.h>
+#include <zcbor_encode.h>
+
+#define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(transport_mgmt);
+
+#if 1
+static K_SEM_DEFINE(mcumgr_transport_sem, 1, 1);
+
+static inline void transport_mgmt_lock(void)
+{
+	k_sem_take(&mcumgr_transport_sem, K_FOREVER);
+}
+
+static inline void transport_mgmt_unlock(void)
+{
+	k_sem_give(&mcumgr_transport_sem);
+}
+#else
+#define transport_mgmt_lock()
+#define transport_mgmt_unlock()
+#endif
+
+#define MAX_BRIDGES 1
+
+static struct smp_transport_bridge bridges[MAX_BRIDGES];
+static bool bridge_active;
+
+/**
+ * Command handler: transport <>
+ */
+static int transport_mgmt_list(struct smp_streamer *ctxt)
+{
+//TODO
+}
+static int transport_mgmt_get_details(struct smp_streamer *ctxt)
+{
+//TODO
+}
+static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
+{
+//TODO
+}
+static int transport_mgmt_connect(struct smp_streamer *ctxt)
+{
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zsd = ctxt->reader->zs;
+	bool ok = true;
+	size_t decoded;
+	uint32_t transport_id = 0;
+//        struct smp_transport *smpt;
+
+	struct zcbor_map_decode_key_val settings_save_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+	};
+
+	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
+				   &decoded) == 0;
+
+//TODO: allow transport_id to be 0 by default?
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+		return MGMT_ERR_EINVAL;
+	}
+
+//search for transport, forward request (reset decode before?)
+//TODO: check outgoing_transport is not null
+	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
+
+	if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+//TODO: error
+		transport_mgmt_unlock();
+return MGMT_ERR_EBADSTATE;
+	}
+
+	transport_mgmt_lock();
+
+	uint8_t i = 0;
+
+	while (i < MAX_BRIDGES) {
+		if (bridges[i].status == 0) {
+			break;
+		}
+
+		++i;
+	}
+
+	if (i == MAX_BRIDGES) {
+//TODO: error
+		transport_mgmt_unlock();
+return MGMT_ERR_EBADSTATE;
+	}
+
+	rc = outgoing_transport->functions.bridge_connect(&bridges[i], true, zsd);
+
+	if (rc != 0) {
+//TODO: error
+		transport_mgmt_unlock();
+return MGMT_ERR_EACCESSDENIED;
+	}
+
+	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, NULL);
+
+	if (rc != 0) {
+//TODO: error
+		(void)outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
+		transport_mgmt_unlock();
+return MGMT_ERR_UNSUPPORTED_TOO_OLD;
+	}
+
+	bridges[i].status = 1;
+	bridge_active = true;
+
+	transport_mgmt_unlock();
+
+//TODO
+	return MGMT_RETURN_CHECK(ok);
+}
+static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
+{
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zsd = ctxt->reader->zs;
+	bool ok = true;
+	size_t decoded;
+	uint32_t transport_id = 0;
+//        struct smp_transport *smpt;
+
+	struct zcbor_map_decode_key_val settings_save_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+	};
+
+	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
+				   &decoded) == 0;
+
+//TODO: allow transport_id to be 0 by default?
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+		return MGMT_ERR_EINVAL;
+	}
+
+	if (bridge_active == false) {
+//TODO: error
+return MGMT_ERR_EINVAL;
+	}
+
+//TODO: check outgoing_transport is not null
+	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
+
+	if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+//TODO: error
+		transport_mgmt_unlock();
+return MGMT_ERR_EBADSTATE;
+	}
+
+	transport_mgmt_lock();
+
+	uint8_t i = 0;
+
+	while (i < MAX_BRIDGES) {
+		if (bridges[i].status == 1 && bridges[i].outgoing_transport_id == transport_id /* && bridges[i].incoming_transport_id == TODO*/) {
+			break;
+		}
+
+		++i;
+	}
+
+	if (i == MAX_BRIDGES) {
+//TODO: error
+		transport_mgmt_unlock();
+return MGMT_ERR_EBADSTATE;
+	}
+
+	rc = outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
+
+	if (rc != 0) {
+//TODO: error
+	}
+
+	rc = ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
+
+	if (rc != 0) {
+//TODO: error
+	}
+
+	bridges[i].status = 0;
+
+	i = 0;
+
+	while (i < MAX_BRIDGES) {
+		if (bridges[i].status == 1) {
+			break;
+		}
+
+		++i;
+	}
+
+	if (i == MAX_BRIDGES) {
+		bridge_active = false;
+	}
+
+	transport_mgmt_unlock();
+
+//TODO
+	return MGMT_RETURN_CHECK(ok);
+}
+static int transport_mgmt_status(struct smp_streamer *ctxt)
+{
+//TODO
+}
+//		ok = smp_add_cmd_err(zse, MGMT_GROUP_ID_SETTINGS, (uint16_t)rc);
+
+#ifdef CONFIG_MCUMGR_SMP_SUPPORT_ORIGINAL_PROTOCOL
+static int transport_mgmt_translate_error_code(uint16_t ret)
+{
+	int rc;
+
+	switch (ret) {
+#if 0
+	case SETTINGS_MGMT_ERR_KEY_TOO_LONG:
+		rc = MGMT_ERR_EINVAL;
+		break;
+
+	case SETTINGS_MGMT_ERR_KEY_NOT_FOUND:
+	case SETTINGS_MGMT_ERR_READ_NOT_SUPPORTED:
+		rc = MGMT_ERR_ENOENT;
+		break;
+#endif
+
+	case TRANSPORT_MGMT_ERR_UNKNOWN:
+	default:
+		rc = MGMT_ERR_EUNKNOWN;
+	}
+
+	return rc;
+}
+#endif
+
+static const struct mgmt_handler transport_mgmt_handlers[] = {
+	[TRANSPORT_MGMT_ID_LIST] = {
+		.mh_read = transport_mgmt_list,
+		.mh_write = NULL,
+	},
+	[TRANSPORT_MGMT_ID_GET_DETAILS] = {
+		.mh_read = transport_mgmt_get_details,
+		.mh_write = NULL,
+	},
+	[TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS] = {
+		.mh_read = transport_mgmt_get_config_details,
+		.mh_write = NULL,
+	},
+	[TRANSPORT_MGMT_ID_CONNECT] = {
+		.mh_read = NULL,
+		.mh_write = transport_mgmt_connect,
+	},
+	[TRANSPORT_MGMT_ID_DISCONNECT] = {
+		.mh_read = NULL,
+		.mh_write = transport_mgmt_disconnect,
+	},
+	[TRANSPORT_MGMT_ID_STATUS] = {
+		.mh_read = transport_mgmt_status,
+		.mh_write = NULL,
+	},
+};
+
+static struct mgmt_group transport_mgmt_group = {
+	.mg_handlers = transport_mgmt_handlers,
+	.mg_handlers_count = ARRAY_SIZE(transport_mgmt_handlers),
+	.mg_group_id = MGMT_GROUP_ID_TRANSPORT,
+#ifdef CONFIG_MCUMGR_SMP_SUPPORT_ORIGINAL_PROTOCOL
+	.mg_translate_error = transport_mgmt_translate_error_code,
+#endif
+#ifdef CONFIG_MCUMGR_GRP_ENUM_DETAILS_NAME
+	.mg_group_name = "transport mgmt",
+#endif
+};
+
+static void transport_mgmt_register_group(void)
+{
+	mgmt_register_group(&transport_mgmt_group);
+}
+
+MCUMGR_HANDLER_DEFINE(transport_mgmt, transport_mgmt_register_group);
