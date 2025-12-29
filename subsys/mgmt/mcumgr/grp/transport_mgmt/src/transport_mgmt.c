@@ -26,7 +26,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(transport_mgmt);
 
-#if 1
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_LOCKING)
 static K_SEM_DEFINE(mcumgr_transport_sem, 1, 1);
 
 static inline void transport_mgmt_lock(void)
@@ -43,9 +43,7 @@ static inline void transport_mgmt_unlock(void)
 #define transport_mgmt_unlock()
 #endif
 
-#define MAX_BRIDGES 1
-
-static struct smp_transport_bridge bridges[MAX_BRIDGES];
+static struct smp_transport_bridge bridges[CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES];
 static bool bridge_active;
 
 bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
@@ -57,7 +55,7 @@ bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
 	if (bridge_active == true) {
 		uint8_t i = 0;
 
-		while (i < MAX_BRIDGES) {
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
 				bridged = true;
 				break;
@@ -81,7 +79,7 @@ struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *t
 	if (bridge_active == true) {
 		uint8_t i = 0;
 
-		while (i < MAX_BRIDGES) {
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 			if (bridges[i].status == 1) {
 				if (outgoing == false && bridges[i].incoming_transport == transport) {
 					other_transport = bridges[i].outgoing_transport;
@@ -110,7 +108,7 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
 	if (bridge_active == true) {
 		uint8_t i = 0;
 
-		while (i < MAX_BRIDGES) {
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
 				bridge = &bridges[i];
 				break;
@@ -128,18 +126,23 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
 /**
  * Command handler: transport <>
  */
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 static int transport_mgmt_list(struct smp_streamer *ctxt)
 {
 //TODO
 }
+
 static int transport_mgmt_get_details(struct smp_streamer *ctxt)
 {
 //TODO
 }
+
 static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
 {
 //TODO
 }
+#endif
+
 static int transport_mgmt_connect(struct smp_streamer *ctxt)
 {
 	int rc;
@@ -175,7 +178,6 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 		return MGMT_ERR_ENOMEM;
 	}
 
-//search for transport, forward request (reset decode before?)
 //TODO: check outgoing_transport is not null
 	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
@@ -189,7 +191,7 @@ return MGMT_ERR_EBADSTATE;
 
 	uint8_t i = 0;
 
-	while (i < MAX_BRIDGES) {
+	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 		if (bridges[i].status == 0) {
 			break;
 		}
@@ -197,7 +199,7 @@ return MGMT_ERR_EBADSTATE;
 		++i;
 	}
 
-	if (i == MAX_BRIDGES) {
+	if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
@@ -232,6 +234,7 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 //TODO
 	return MGMT_RETURN_CHECK(ok);
 }
+
 static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 {
 	int rc;
@@ -282,7 +285,7 @@ return MGMT_ERR_EBADSTATE;
 
 	uint8_t i = 0;
 
-	while (i < MAX_BRIDGES) {
+	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 		if (bridges[i].status == 1 && bridges[i].outgoing_transport == outgoing_transport && bridges[i].incoming_transport == ctxt->smpt) {
 			break;
 		}
@@ -290,7 +293,7 @@ return MGMT_ERR_EBADSTATE;
 		++i;
 	}
 
-	if (i == MAX_BRIDGES) {
+	if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
@@ -314,7 +317,7 @@ return MGMT_ERR_EBADSTATE;
 
 	i = 0;
 
-	while (i < MAX_BRIDGES) {
+	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 		if (bridges[i].status == 1) {
 			break;
 		}
@@ -322,7 +325,7 @@ return MGMT_ERR_EBADSTATE;
 		++i;
 	}
 
-	if (i == MAX_BRIDGES) {
+	if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 		bridge_active = false;
 	}
 }
@@ -332,9 +335,17 @@ return MGMT_ERR_EBADSTATE;
 //TODO
 	return MGMT_RETURN_CHECK(ok);
 }
+
 static int transport_mgmt_status(struct smp_streamer *ctxt)
 {
 //TODO
+/*
+return:
+  * number of supported bridges
+  * number of active bridges
+  * if current transport bridge is active
+  * if so, where it is bridged to?
+*/
 }
 //		ok = smp_add_cmd_err(zse, MGMT_GROUP_ID_SETTINGS, (uint16_t)rc);
 
@@ -365,6 +376,7 @@ static int transport_mgmt_translate_error_code(uint16_t ret)
 #endif
 
 static const struct mgmt_handler transport_mgmt_handlers[] = {
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 	[TRANSPORT_MGMT_ID_LIST] = {
 		.mh_read = transport_mgmt_list,
 		.mh_write = NULL,
@@ -377,6 +389,7 @@ static const struct mgmt_handler transport_mgmt_handlers[] = {
 		.mh_read = transport_mgmt_get_config_details,
 		.mh_write = NULL,
 	},
+#endif
 	[TRANSPORT_MGMT_ID_CONNECT] = {
 		.mh_read = NULL,
 		.mh_write = transport_mgmt_connect,

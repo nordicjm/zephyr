@@ -435,7 +435,7 @@ LOG_HEXDUMP_ERR(req->data, req->len, "b4");
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 //TODO: group
 LOG_ERR("check %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, false));
-			if (req_hdr.nh_group != 99 && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
+			if (req_hdr.nh_group != transport_mgmt_group_id() && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
 //				struct smp_transport *bridged_transport = transport_mgmt_get_other_transport(streamer->smpt, false);
 				const struct smp_transport_bridge *bridge = transport_mgmt_get_bridge(streamer->smpt, false);
 
