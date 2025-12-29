@@ -584,11 +584,13 @@ static int smp_udp4_bridge_tx(const struct smp_transport_bridge *bridge, struct 
 //TODO: is bridged?
 	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, sock_addr, sizeof(struct sockaddr_in));
 
-LOG_ERR("send got %d for size %d on %d", ret, nb->len, smp_udp_configs.ipv4.bridge_sock);
+LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs.ipv4.bridge_sock);
 
 	if (ret < 0) {
 		if (errno == ENOMEM) {
 			ret = MGMT_ERR_EMSGSIZE;
+		} else if (errno == ENETDOWN) {
+			ret = MGMT_ERR_BRIDGED_CONNECTION_UNAVAILABLE;
 		} else {
 			ret = MGMT_ERR_EINVAL;
 		}

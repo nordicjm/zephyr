@@ -448,14 +448,23 @@ LOG_HEXDUMP_ERR(req->data, req->len, "out");
 //				rc = bridged_transport->functions.bridge_output(bridge, req, true);
 				rc = bridge->outgoing_transport->functions.bridge_output(bridge, req, true);
 
-				if (rc == 0) {
-					/* Server shuold not send an error response */
 req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
 req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
+
+				if (rc == 0) {
+					/* Server should not send an error response */
 					valid_hdr = false;
+					goto skip_processing_packet;
 				}
-//TODO: jump here? Or remove packet then jump after
-				goto skip_processing_packet;
+
+				rsp = smp_alloc_rsp(req, streamer->smpt);
+				if (rsp == NULL) {
+					rc = MGMT_ERR_ENOMEM;
+					break;
+				}
+
+				cbor_nb_writer_init(streamer->writer, rsp);
+				break;
 			}
 #endif
 
@@ -495,13 +504,11 @@ LOG_HEXDUMP_ERR(req->data, req->len, "out");
 //				rc = bridged_transport->functions.bridge_output(bridge, req, true);
 				rc = bridge->incoming_transport->functions.bridge_output(bridge, req, false);
 
-				if (rc == 0) {
-					/* Server shuold not send an error response */
 req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
 req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
-					valid_hdr = false;
-				}
-//TODO: jump here? Or remove packet then jump after
+
+				/* Server should not send error response for response */
+				valid_hdr = false;
 				goto skip_processing_packet;
 			}
 #endif

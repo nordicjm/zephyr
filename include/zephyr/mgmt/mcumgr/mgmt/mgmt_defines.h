@@ -139,6 +139,9 @@ enum mcumgr_err_t {
 	/** Requested SMP MCUmgr protocol version is not supported (too new) */
 	MGMT_ERR_UNSUPPORTED_TOO_NEW,
 
+	/** Bridged connection unavailable */
+	MGMT_ERR_BRIDGED_CONNECTION_UNAVAILABLE,
+
 	/** User errors defined from 256 onwards */
 	MGMT_ERR_EPERUSER	= 256
 };
