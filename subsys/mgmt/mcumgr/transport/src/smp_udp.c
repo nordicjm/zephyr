@@ -65,6 +65,8 @@ struct sockaddr_in bridge_addr;
 	char bridge_recv_buffer[CONFIG_MCUMGR_TRANSPORT_UDP_MTU];
 	struct k_thread bridge_thread;
 	K_KERNEL_STACK_MEMBER(bridge_stack, CONFIG_MCUMGR_TRANSPORT_UDP_STACK_SIZE);
+
+uint8_t bridge_user_data[sizeof(struct net_sockaddr)];
 #endif
 	struct k_thread thread;
 	K_KERNEL_STACK_MEMBER(stack, CONFIG_MCUMGR_TRANSPORT_UDP_STACK_SIZE);
@@ -507,6 +509,13 @@ static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool out
 	int decoded = 0;
 	uint8_t server_ip[16] = { 0 };
 
+	if (outgoing == false) {
+		struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
+
+		memcpy(smp_udp_configs.ipv4.bridge_user_data, net_buf_user_data(cnr->nb), sizeof(struct net_sockaddr));
+		return 0;
+	}
+
 	struct zcbor_map_decode_key_val udp_bride_connect_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("server", zcbor_tstr_decode, &server),
 		ZCBOR_MAP_DECODE_KEY_DECODER("port", zcbor_uint32_decode, &port),
@@ -563,6 +572,10 @@ static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool 
 {
 	int rc;
 
+	if (outgoing == false) {
+		return 0;
+	}
+
 	k_thread_abort(&smp_udp_configs.ipv4.bridge_thread);
 
 	rc = zsock_close(smp_udp_configs.ipv4.bridge_sock);
@@ -580,6 +593,11 @@ static int smp_udp4_bridge_tx(const struct smp_transport_bridge *bridge, struct 
 {
 	int ret;
 	const struct net_sockaddr *sock_addr = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+
+	if (outgoing == false) {
+		memcpy(net_buf_user_data(nb), smp_udp_configs.ipv4.bridge_user_data, sizeof(struct net_sockaddr));
+		return smp_udp4_tx(nb);
+	}
 
 //TODO: is bridged?
 	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, sock_addr, sizeof(struct sockaddr_in));

@@ -213,7 +213,7 @@ return MGMT_ERR_EBADSTATE;
 return MGMT_ERR_EACCESSDENIED;
 	}
 
-	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, NULL);
+	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, zsd);
 
 	if (rc != 0) {
 //TODO: error
