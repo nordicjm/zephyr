@@ -22,7 +22,7 @@
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
 
-#if 1
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 #include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt.h>
 #endif
 
@@ -432,7 +432,7 @@ LOG_HEXDUMP_ERR(req->data, req->len, "b4");
 		}
 
 		if (req_hdr.nh_op == MGMT_OP_READ || req_hdr.nh_op == MGMT_OP_WRITE) {
-#if 1
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 //TODO: group
 LOG_ERR("check %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, false));
 			if (req_hdr.nh_group != 99 && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
@@ -480,6 +480,31 @@ req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
 			rsp = NULL;
 		} else if (IS_ENABLED(CONFIG_SMP_CLIENT) && (req_hdr.nh_op == MGMT_OP_READ_RSP ||
 			   req_hdr.nh_op == MGMT_OP_WRITE_RSP)) {
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+//TODO: group
+LOG_ERR("check2 %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, true));
+			if (transport_mgmt_is_bridged(streamer->smpt, true) == true) {
+				const struct smp_transport_bridge *bridge = transport_mgmt_get_bridge(streamer->smpt, true);
+
+//TODO: deal with user data
+LOG_ERR("pre: %d", req->len);
+req->len += sizeof(struct smp_hdr);
+req->data -= sizeof(struct smp_hdr);
+LOG_ERR("post: %d", req->len);
+LOG_HEXDUMP_ERR(req->data, req->len, "out");
+//				rc = bridged_transport->functions.bridge_output(bridge, req, true);
+				rc = bridge->incoming_transport->functions.bridge_output(bridge, req, false);
+
+				if (rc == 0) {
+					/* Server shuold not send an error response */
+req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
+req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
+					valid_hdr = false;
+				}
+//TODO: jump here? Or remove packet then jump after
+				goto skip_processing_packet;
+			}
+#endif
 			rc = smp_client_single_response(req, &req_hdr);
 
 			if (rc == MGMT_ERR_EOK) {
@@ -507,9 +532,11 @@ req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
 		(void)mgmt_callback_notify(MGMT_EVT_OP_CMD_DONE, &cmd_done_arg,
 					   sizeof(cmd_done_arg), &err_rc, &err_group);
 #endif
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+skip_processing_packet:
+#endif
 	}
 
-skip_processing_packet:
 	if (rc != 0 && valid_hdr) {
 		smp_on_err(streamer, &req_hdr, req, rsp, rc, rsn);
 

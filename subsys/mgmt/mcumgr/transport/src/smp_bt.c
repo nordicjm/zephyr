@@ -647,6 +647,23 @@ static bool smp_bt_query_valid_check(struct net_buf *nb, void *arg)
 	return true;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static int smp_bt_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+{
+//return 0;
+}
+
+static int smp_bt_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+//return 0;
+}
+
+static int smp_bt_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+//	return smp_shell_tx_pkt(nb);
+}
+#endif
+
 static void smp_bt_setup(void)
 {
 	int rc;
@@ -668,6 +685,12 @@ static void smp_bt_setup(void)
 	smp_bt_transport.functions.ud_copy = smp_bt_ud_copy;
 	smp_bt_transport.functions.ud_free = smp_bt_ud_free;
 	smp_bt_transport.functions.query_valid_check = smp_bt_query_valid_check;
+
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+	smp_bt_transport.functions.bridge_connect = smp_bt_bridge_connect;
+	smp_bt_transport.functions.bridge_disconnect = smp_bt_bridge_disconnect;
+	smp_bt_transport.functions.bridge_output = smp_bt_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_bt_transport);
 

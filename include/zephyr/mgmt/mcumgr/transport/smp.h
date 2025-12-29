@@ -186,8 +186,8 @@ struct smp_transport_bridge {
 //	int outgoing_transport_id;
 	struct smp_transport *incoming_transport;
 	struct smp_transport *outgoing_transport;
-	uint8_t *incoming_user_data;
-	uint8_t *outgoing_user_data;
+//	uint8_t *incoming_user_data;
+//	uint8_t *outgoing_user_data;
 };
 #endif
 

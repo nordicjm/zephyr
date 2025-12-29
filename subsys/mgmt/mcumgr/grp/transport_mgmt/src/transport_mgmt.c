@@ -58,7 +58,7 @@ bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
 		uint8_t i = 0;
 
 		while (i < MAX_BRIDGES) {
-			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
+			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
 				bridged = true;
 				break;
 			}
@@ -82,9 +82,14 @@ struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *t
 		uint8_t i = 0;
 
 		while (i < MAX_BRIDGES) {
-			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
-				other_transport = bridges[i].outgoing_transport;
-				break;
+			if (bridges[i].status == 1) {
+				if (outgoing == false && bridges[i].incoming_transport == transport) {
+					other_transport = bridges[i].outgoing_transport;
+					break;
+				} else if (outgoing == true && bridges[i].outgoing_transport == transport) {
+					other_transport = bridges[i].incoming_transport;
+					break;
+				}
 			}
 
 			++i;
@@ -106,7 +111,7 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
 		uint8_t i = 0;
 
 		while (i < MAX_BRIDGES) {
-			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
+			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
 				bridge = &bridges[i];
 				break;
 			}
@@ -144,10 +149,16 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	size_t decoded;
 	uint32_t transport_id = 0;
 //        struct smp_transport *smpt;
+	size_t backup_element_count_reader = zsd->elem_count;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
 	};
+
+	if (!zcbor_new_backup(zsd, backup_element_count_reader)) {
+		LOG_ERR("Failed to create zcbor backup");
+		return MGMT_ERR_ENOMEM;
+	}
 
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
@@ -155,6 +166,13 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 //TODO: allow transport_id to be 0 by default?
 	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
 		return MGMT_ERR_EINVAL;
+	}
+
+//zcbor_map_decode_bulk_reset(settings_save_decode, ARRAY_SIZE(settings_save_decode));
+	if (!zcbor_process_backup(zsd, (ZCBOR_FLAG_RESTORE | ZCBOR_FLAG_CONSUME),
+				  backup_element_count_reader)) {
+		LOG_ERR("Failed to restore zcbor reader backup");
+		return MGMT_ERR_ENOMEM;
 	}
 
 //search for transport, forward request (reset decode before?)

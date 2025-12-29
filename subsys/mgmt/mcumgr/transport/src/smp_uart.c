@@ -93,6 +93,7 @@ static int smp_uart_tx_pkt(struct net_buf *nb)
 	return rc;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 static int smp_uart_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
 {
 return 0;
@@ -103,6 +104,12 @@ static int smp_uart_bridge_disconnect(struct smp_transport_bridge *bridge, bool 
 return 0;
 }
 
+static int smp_uart_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+	return smp_uart_tx_pkt(nb);
+}
+#endif
+
 static int smp_uart_init(void)
 {
 	int rc;
@@ -110,8 +117,11 @@ static int smp_uart_init(void)
 	smp_uart_transport.functions.output = smp_uart_tx_pkt;
 	smp_uart_transport.functions.get_mtu = smp_uart_get_mtu;
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 	smp_uart_transport.functions.bridge_connect = smp_uart_bridge_connect;
 	smp_uart_transport.functions.bridge_disconnect = smp_uart_bridge_disconnect;
+	smp_uart_transport.functions.bridge_output = smp_uart_bridge_tx;
+#endif
 
 	rc = smp_transport_init(&smp_uart_transport);
 
