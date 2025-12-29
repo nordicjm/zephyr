@@ -30,6 +30,9 @@
 #endif
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
+#include <mgmt/mcumgr/util/zcbor_bulk.h>
+#include <zcbor_common.h>
+#include <zcbor_decode.h>
 
 #define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -443,15 +446,33 @@ static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool out
 {
 //TODO: is connected?
 	int rc;
+	const struct net_sockaddr *sock_addr = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+	struct zcbor_string server = { 0 };
+	uint32_t port;
+	bool ok;
+	int decoded;
 
-const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
-#define server "192.168.1.89"
-#define port 1337
+	struct zcbor_map_decode_key_val udp_bride_connect_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("server", zcbor_tstr_decode, &server),
+		ZCBOR_MAP_DECODE_KEY_DECODER("port", zcbor_uint32_decode, &port),
+	};
+
+        ok = zcbor_map_decode_bulk(data, udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), &decoded) == 0;
+
+//TODO: allow transport_id to be 0 by default?
+        if (!ok || decoded < 2 || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server") || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port")) {
+                return MGMT_ERR_EINVAL;
+        }
+
+//TODO: validate server
+	if (port == 0 || port > 65535) {
+                return MGMT_ERR_EINVAL;
+	}
 
 	memset(&smp_udp_configs.ipv4.bridge_addr, 0, sizeof(smp_udp_configs.ipv4.bridge_addr));
-	net_sin(fuck)->sin_family = AF_INET;
-	net_sin(fuck)->sin_port = htons(port);
-	zsock_inet_pton(AF_INET, server, &net_sin(fuck)->sin_addr);
+	net_sin(sock_addr)->sin_family = AF_INET;
+	net_sin(sock_addr)->sin_port = htons((uint16_t)port);
+	zsock_inet_pton(AF_INET, server.value, &net_sin(sock_addr)->sin_addr);
 
 	smp_udp_configs.ipv4.bridge_sock = zsock_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -460,7 +481,7 @@ const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.
 		return -1;
 	}
 
-        rc = zsock_connect(smp_udp_configs.ipv4.bridge_sock, fuck, sizeof(smp_udp_configs.ipv4.bridge_addr));
+        rc = zsock_connect(smp_udp_configs.ipv4.bridge_sock, sock_addr, sizeof(smp_udp_configs.ipv4.bridge_addr));
 
         if (rc < 0) {
                 LOG_ERR("Cannot connect to UDP remote: %d", errno);
@@ -472,18 +493,26 @@ const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.
 
 static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
 {
-return 0;
+	int rc;
+
+	rc = zsock_close(smp_udp_configs.ipv4.bridge_sock);
+
+	if (rc < 0) {
+		LOG_ERR("Failed to close bridge socket: %d", rc);
+	}
+
+	smp_udp_configs.ipv4.bridge_sock = -1;
+
+	return 0;
 }
 
-static int smp_udp4_bridge_tx(struct net_buf *nb)
+static int smp_udp4_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
 {
 	int ret;
-
-const struct net_sockaddr *fuck = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
+	const struct net_sockaddr *sock_addr = (const struct net_sockaddr *)&smp_udp_configs.ipv4.bridge_addr;
 
 //TODO: is bridged?
-//	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, fuck, sizeof(smp_udp_configs.ipv4.bridge_addr));
-	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, fuck, sizeof(struct sockaddr_in));
+	ret = zsock_sendto(smp_udp_configs.ipv4.bridge_sock, nb->data, nb->len, 0, sock_addr, sizeof(struct sockaddr_in));
 
 LOG_ERR("send got %d for size %d on %d", ret, nb->len, smp_udp_configs.ipv4.bridge_sock);
 
@@ -501,6 +530,15 @@ LOG_ERR("send got %d for size %d on %d", ret, nb->len, smp_udp_configs.ipv4.brid
 
 	return ret;
 }
+
+#if 0
+static int smp_udp4_bridge_ud_copy(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing)
+{
+//TODO: is bridged?
+
+	return 0;
+}
+#endif
 #endif
 
 static void smp_udp_start(void)

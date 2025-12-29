@@ -96,6 +96,30 @@ struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *t
 	return other_transport;
 }
 
+const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transport *transport, bool outgoing)
+{
+	const struct smp_transport_bridge *bridge = NULL;
+
+	transport_mgmt_lock();
+
+	if (bridge_active == true) {
+		uint8_t i = 0;
+
+		while (i < MAX_BRIDGES) {
+			if (bridges[i].status == 1 && bridges[i].incoming_transport == transport) {
+				bridge = &bridges[i];
+				break;
+			}
+
+			++i;
+		}
+	}
+
+	transport_mgmt_unlock();
+
+	return bridge;
+}
+
 /**
  * Command handler: transport <>
  */
@@ -199,16 +223,23 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	size_t decoded;
 	uint32_t transport_id = 0;
 //        struct smp_transport *smpt;
+	bool disconnect_all;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+		ZCBOR_MAP_DECODE_KEY_DECODER("all", zcbor_bool_decode, &disconnect_all),
 	};
 
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
 //TODO: allow transport_id to be 0 by default?
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all"))) {
+		return MGMT_ERR_EINVAL;
+	}
+
+	if (zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all") && disconnect_all == true) {
+//cannot disconnect all and just one transport at the same time
 		return MGMT_ERR_EINVAL;
 	}
 
@@ -217,6 +248,9 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 return MGMT_ERR_EINVAL;
 	}
 
+if (disconnect_all == true) {
+//TODO: disconnect all
+} else {
 //TODO: check outgoing_transport is not null
 	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
@@ -273,6 +307,7 @@ return MGMT_ERR_EBADSTATE;
 	if (i == MAX_BRIDGES) {
 		bridge_active = false;
 	}
+}
 
 	transport_mgmt_unlock();
 

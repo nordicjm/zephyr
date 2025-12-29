@@ -32,6 +32,7 @@ extern "C" {
 
 bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing);
 struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *transport, bool outgoing);
+const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transport *transport, bool outgoing);
 
 /**
  * Command result codes for transport management group.

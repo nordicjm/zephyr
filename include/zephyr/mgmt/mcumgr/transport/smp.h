@@ -111,8 +111,11 @@ typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 //additional same type bool field if both transports are the same?
-typedef int (*smp_transport_transport_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data);
-typedef int (*smp_transport_transport_disconnect_fn)(struct smp_transport_bridge *bridge, bool outgoing);
+typedef int (*smp_transport_bridge_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data);
+typedef int (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *bridge, bool outgoing);
+typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing);
+//typedef int (*smp_transport_transport_ud_copy_fn)(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing);
+//typedef void (*smp_transport_transport_ud_free_fn)(struct smp_transport_bridge *bridge, void *ud, bool outgoing);
 #endif
 
 /**
@@ -140,13 +143,13 @@ struct smp_transport_api_t {
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 //connect function
-smp_transport_transport_connect_fn bridge_connect;
+smp_transport_bridge_connect_fn bridge_connect;
 
 //disconnect function
-smp_transport_transport_disconnect_fn bridge_disconnect;
+smp_transport_bridge_disconnect_fn bridge_disconnect;
 
 //send function
-smp_transport_out_fn bridge_output;
+smp_transport_bridge_out_fn bridge_output;
 
 //get details function
 

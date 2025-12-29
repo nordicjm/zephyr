@@ -436,7 +436,8 @@ LOG_HEXDUMP_ERR(req->data, req->len, "b4");
 //TODO: group
 LOG_ERR("check %p = %d", streamer->smpt, transport_mgmt_is_bridged(streamer->smpt, false));
 			if (req_hdr.nh_group != 99 && transport_mgmt_is_bridged(streamer->smpt, false) == true) {
-				struct smp_transport *bridged_transport = transport_mgmt_get_other_transport(streamer->smpt, false);
+//				struct smp_transport *bridged_transport = transport_mgmt_get_other_transport(streamer->smpt, false);
+				const struct smp_transport_bridge *bridge = transport_mgmt_get_bridge(streamer->smpt, false);
 
 //TODO: deal with user data
 LOG_ERR("pre: %d", req->len);
@@ -444,7 +445,8 @@ req->len += sizeof(struct smp_hdr);
 req->data -= sizeof(struct smp_hdr);
 LOG_ERR("post: %d", req->len);
 LOG_HEXDUMP_ERR(req->data, req->len, "out");
-				rc = bridged_transport->functions.bridge_output(req);
+//				rc = bridged_transport->functions.bridge_output(bridge, req, true);
+				rc = bridge->outgoing_transport->functions.bridge_output(bridge, req, true);
 
 				if (rc == 0) {
 					/* Server shuold not send an error response */
