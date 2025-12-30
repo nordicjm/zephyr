@@ -158,6 +158,11 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
 	};
 
+	if (ctxt->smpt->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+//TODO: error
+return MGMT_ERR_EBADSTATE;
+	}
+
 	if (!zcbor_new_backup(zsd, backup_element_count_reader)) {
 		LOG_ERR("Failed to create zcbor backup");
 		return MGMT_ERR_ENOMEM;
@@ -181,9 +186,8 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 //TODO: check outgoing_transport is not null
 	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
-	if (outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
+	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
 //TODO: error
-		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
 	}
 
