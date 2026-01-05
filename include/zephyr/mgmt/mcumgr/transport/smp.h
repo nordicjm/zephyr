@@ -220,6 +220,11 @@ struct smp_client_transport_entry {
 	struct smp_transport *smpt;
 	/** Transport type */
 	int smpt_type;
+
+#if 1
+char *name;
+char *description;
+#endif
 };
 
 /**
@@ -267,6 +272,8 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry);
 struct smp_transport *smp_client_transport_get(int smpt_type);
 
 //TODO: iteration function to callback with all transports
+typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_entry *transport, void *user_data);
+bool smp_client_transport_foreach(mgmt_client_transport_cb_t user_cb, void *user_data);
 
 /**
  * @}

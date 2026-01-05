@@ -67,6 +67,7 @@ endchoice
 config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	bool
 	prompt "Info functions" if !MCUMGR_GRP_TRANSPORT_GROUP_ID_DEFAULT
+	default y
 	help
 	  Disabling this will remove the information functions which frees up resources on
 	  devices where the transport layout is static or already known, meaning that this will no
@@ -76,6 +77,7 @@ config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	bool
 	prompt "Info functions" if !MCUMGR_GRP_TRANSPORT_GROUP_ID_DEFAULT
+	default y
 	help
 	  Disabling this will remove the information functions which frees up resources on
 	  devices where the transport layout is static or already known, meaning that this will no

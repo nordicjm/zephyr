@@ -127,9 +127,57 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
  * Command handler: transport <>
  */
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
+static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	zcbor_state_t *zse = (zcbor_state_t *)user_data;
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 30) &&
+	     zcbor_tstr_put_lit(zse, "id") &&
+	     zcbor_uint32_put(zse, transport->smpt_type);
+
+	if (!ok) {
+		goto finish;
+	}
+
+	if (transport->name != NULL) {
+		ok = zcbor_tstr_put_lit(zse, "name") &&
+		     zcbor_tstr_put_term(zse, transport->name, 30);
+
+		if (!ok) {
+			goto finish;
+		}
+	}
+
+	if (transport->description != NULL) {
+		ok = zcbor_tstr_put_lit(zse, "description") &&
+		     zcbor_tstr_put_term(zse, transport->description, 30);
+
+		if (!ok) {
+			goto finish;
+		}
+	}
+
+	ok = zcbor_map_end_encode(zse, 30);
+
+finish:
+	return ok;
+}
+
 static int transport_mgmt_list(struct smp_streamer *ctxt)
 {
-//TODO
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	bool ok = true;
+
+//TODO: inner loop to get number of transports first
+
+	ok = zcbor_tstr_put_lit(zse, "transports") &&
+	     zcbor_list_start_encode(zse, 30) &&
+	     smp_client_transport_foreach(transport_mgmt_list_loop, (void *)zse) &&
+	     zcbor_list_end_encode(zse, 30);
+
+	return MGMT_RETURN_CHECK(ok);
 }
 
 static int transport_mgmt_get_details(struct smp_streamer *ctxt)
@@ -151,7 +199,7 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	bool ok = true;
 	size_t decoded;
 	uint32_t transport_id = 0;
-//        struct smp_transport *smpt;
+//struct smp_transport *smpt;
 	size_t backup_element_count_reader = zsd->elem_count;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
@@ -247,7 +295,7 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	bool ok = true;
 	size_t decoded;
 	uint32_t transport_id = 0;
-//        struct smp_transport *smpt;
+//struct smp_transport *smpt;
 	bool disconnect_all;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
@@ -380,6 +428,18 @@ static int transport_mgmt_translate_error_code(uint16_t ret)
 #endif
 
 static const struct mgmt_handler transport_mgmt_handlers[] = {
+	[TRANSPORT_MGMT_ID_CONNECT] = {
+		.mh_read = NULL,
+		.mh_write = transport_mgmt_connect,
+	},
+	[TRANSPORT_MGMT_ID_DISCONNECT] = {
+		.mh_read = NULL,
+		.mh_write = transport_mgmt_disconnect,
+	},
+	[TRANSPORT_MGMT_ID_STATUS] = {
+		.mh_read = transport_mgmt_status,
+		.mh_write = NULL,
+	},
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 	[TRANSPORT_MGMT_ID_LIST] = {
 		.mh_read = transport_mgmt_list,
@@ -394,18 +454,6 @@ static const struct mgmt_handler transport_mgmt_handlers[] = {
 		.mh_write = NULL,
 	},
 #endif
-	[TRANSPORT_MGMT_ID_CONNECT] = {
-		.mh_read = NULL,
-		.mh_write = transport_mgmt_connect,
-	},
-	[TRANSPORT_MGMT_ID_DISCONNECT] = {
-		.mh_read = NULL,
-		.mh_write = transport_mgmt_disconnect,
-	},
-	[TRANSPORT_MGMT_ID_STATUS] = {
-		.mh_read = transport_mgmt_status,
-		.mh_write = NULL,
-	},
 };
 
 static struct mgmt_group transport_mgmt_group = {

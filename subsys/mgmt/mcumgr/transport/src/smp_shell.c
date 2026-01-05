@@ -42,7 +42,12 @@ static struct mcumgr_serial_rx_ctxt smp_shell_rx_ctxt;
 static const struct shell_uart_common *shell_uart;
 
 #ifdef CONFIG_SMP_CLIENT
-static struct smp_client_transport_entry smp_client_transport;
+static struct smp_client_transport_entry smp_client_transport = {
+#if 1
+	.name = "Shell",
+	.description = "Uses zephyr shell",
+#endif
+};
 #endif
 
 /** SMP mcumgr frame fragments. */

@@ -200,6 +200,29 @@ struct smp_transport *smp_client_transport_get(int smpt_type)
 	return NULL;
 }
 
+bool smp_client_transport_foreach(mgmt_client_transport_cb_t user_cb, void *user_data)
+{
+	struct smp_client_transport_entry *entry;
+//	sys_snode_t *snp, *sns;
+	bool ok;
+
+//TODO:
+//	SYS_SLIST_FOR_EACH_NODE_SAFE(&smp_transport_clients, entry, node) {
+	SYS_SLIST_FOR_EACH_CONTAINER(&smp_transport_clients, entry, node) {
+//SYS_SLIST_FOR_EACH_NODE_SAFE(&mgmt_group_list, snp, sns) {
+//const struct mgmt_group *group = CONTAINER_OF(snp, struct mgmt_group, node);
+
+//ok = user_cb(group, user_data);
+		ok = user_cb(entry, user_data);
+
+		if (!ok) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void smp_client_transport_register(struct smp_client_transport_entry *entry)
 {
 	if (smp_client_transport_get(entry->smpt_type)) {
@@ -218,9 +241,9 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry)
  *
  * This function always consumes the supplied net_buf.
  *
- * @param smpt                  The transport to use to send the corresponding
- *                                  response(s).
- * @param nb                    The request packet to process.
+ * @param smpt          The transport to use to send the corresponding
+ *                      response(s).
+ * @param nb            The request packet to process.
  */
 WEAK void
 smp_rx_req(struct smp_transport *smpt, struct net_buf *nb)
