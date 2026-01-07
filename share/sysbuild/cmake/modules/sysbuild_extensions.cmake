@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Nordic Semiconductor
+# Copyright (c) 2021-2026 Nordic Semiconductor
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -192,7 +192,7 @@ endfunction()
 #   ExternalZephyrProject_Add(APPLICATION <name>
 #                             SOURCE_DIR <dir>
 #                             [BOARD <board> [BOARD_REVISION <revision>]]
-#                             [APP_TYPE <MAIN|BOOTLOADER|FIRMWARE_LOADER|VARIANT>]
+#                             [APP_TYPE <MAIN|BOOTLOADER|FIRMWARE_LOADER>]
 #   )
 #
 # This function includes a Zephyr based build system into the multiimage
@@ -205,20 +205,19 @@ endfunction()
 # BOARD_REVISION <revision>: Use <revision> of <board> for application (only valid if
 #                            <board> is also supplied).
 # APP_TYPE <MAIN|BOOTLOADER|: Application type.
-#           FIRMWARE_LOADER|  MAIN indicates this application is the main application
-#           VARIANT>          and where user defined settings should be passed on as-is
+#           FIRMWARE_LOADER>  MAIN indicates this application is the main application
+#                             and where user defined settings should be passed on as-is
 #                             except for multi image build flags.
 #                             For example, -DCONF_FILES=<files> will be passed on to the
 #                             MAIN_APP unmodified.
 #                             BOOTLOADER indicates this app is a bootloader
 #                             FIRMWARE_LOADER indicates this app is a firmware loader image for MCUboot
-#                             VARIANT indicates this app is a direct-xip slot 1 variant image for MCUboot
 # BUILD_ONLY <bool>:          Mark the application as build-only. If <bool> evaluates to
 #                             true, then this application will be excluded from flashing
 #                             and debugging.
 #
 function(ExternalZephyrProject_Add)
-  set(app_types MAIN BOOTLOADER FIRMWARE_LOADER VARIANT)
+  set(app_types MAIN BOOTLOADER FIRMWARE_LOADER)
   cmake_parse_arguments(ZBUILD "" "APPLICATION;BOARD;BOARD_REVISION;SOURCE_DIR;APP_TYPE;BUILD_ONLY" "" ${ARGN})
 
   if(ZBUILD_UNPARSED_ARGUMENTS)
@@ -333,11 +332,6 @@ function(ExternalZephyrProject_Add)
       list(APPEND shared_cmake_vars_argument
            "-D${shared_var}:${var_type}=$CACHE{${ZBUILD_APPLICATION}_${shared_var}}"
       )
-    elseif("${ZBUILD_APP_TYPE}" STREQUAL "VARIANT" AND DEFINED CACHE{${DEFAULT_IMAGE}_${shared_var}})
-      get_property(var_type CACHE ${DEFAULT_IMAGE}_${shared_var} PROPERTY TYPE)
-      list(APPEND shared_cmake_vars_argument
-           "-D${shared_var}:${var_type}=$CACHE{${DEFAULT_IMAGE}_${shared_var}}"
-      )
     elseif(DEFINED CACHE{${shared_var}})
       get_property(var_type CACHE ${shared_var} PROPERTY TYPE)
       list(APPEND shared_cmake_vars_argument
@@ -390,6 +384,7 @@ function(ExternalZephyrProject_Add)
     BUILD_ALWAYS True
     USES_TERMINAL_BUILD True
   )
+  set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY APP_SOURCE_DIR ${ZBUILD_SOURCE_DIR})
   set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY APP_TYPE ${ZBUILD_APP_TYPE})
   set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY CONFIG
                "# sysbuild controlled configuration settings\n"
@@ -398,7 +393,7 @@ function(ExternalZephyrProject_Add)
   set_target_properties(${ZBUILD_APPLICATION} PROPERTIES KCONFIG_BINARY_DIR
                         ${application_binary_dir}/Kconfig
   )
-  if("${ZBUILD_APP_TYPE}" STREQUAL "MAIN" OR "${ZBUILD_APP_TYPE}" STREQUAL "VARIANT")
+  if("${ZBUILD_APP_TYPE}" STREQUAL "MAIN")
     set_target_properties(${ZBUILD_APPLICATION} PROPERTIES MAIN_APP True)
   endif()
 
@@ -450,6 +445,259 @@ function(ExternalZephyrProject_Add)
   if(DEFINED ZBUILD_BUILD_ONLY)
     set_target_properties(${ZBUILD_APPLICATION} PROPERTIES BUILD_ONLY ${ZBUILD_BUILD_ONLY})
   endif()
+endfunction()
+
+function(ExternalZephyrVariantProject_Add)
+  set(app_types MCUBOOT_SLOT1)
+  cmake_parse_arguments(ZBUILD "" "SOURCE_APP;APPLICATION;APP_TYPE;BUILD_ONLY" "" ${ARGN})
+
+  if(ZBUILD_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(${ARGV0} <val> ...) given unknown arguments:"
+      " ${ZBUILD_UNPARSED_ARGUMENTS}"
+    )
+  endif()
+
+  if(TARGET ${ZBUILD_APPLICATION})
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(APPLICATION ${ZBUILD_APPLICATION} ...) "
+      "already exists. Application names must be unique."
+    )
+  endif()
+
+  if(NOT DEFINED ZBUILD_SOURCE_APP OR NOT TARGET ${ZBUILD_SOURCE_APP})
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(APP_TYPE <val> ...) given unknown type: ${ZBUILD_APP_TYPE}\n"
+      "hey look it's a bunch of error messages that need updating and fixing!"
+    )
+  endif()
+
+  if(NOT DEFINED ZBUILD_APP_TYPE OR NOT ZBUILD_APP_TYPE IN_LIST app_types)
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(APP_TYPE <val> ...) given unknown type: ${ZBUILD_APP_TYPE}\n"
+      "Valid types are: ${app_types}"
+    )
+  endif()
+
+  if(NOT DEFINED SYSBUILD_CURRENT_SOURCE_DIR)
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(${ARGV0} <val> ...) must not be called outside of"
+      " sysbuild_add_subdirectory(). SYSBUILD_CURRENT_SOURCE_DIR is undefined."
+    )
+  endif()
+
+get_target_property(ZBUILD_BOARD ${DEFAULT_IMAGE} BOARD)
+get_target_property(ZBUILD_SOURCE_DIR ${DEFAULT_IMAGE} APP_SOURCE_DIR)
+
+get_property(var_type CACHE ${ZBUILD_SOURCE_APP}_${shared_var} PROPERTY TYPE)
+
+  set_property(
+    DIRECTORY "${SYSBUILD_CURRENT_SOURCE_DIR}"
+    APPEND PROPERTY sysbuild_images ${ZBUILD_APPLICATION}
+  )
+  set_property(
+    GLOBAL
+    APPEND PROPERTY sysbuild_images ${ZBUILD_APPLICATION}
+  )
+
+#  set(sysbuild_image_conf_dir ${APP_DIR}/sysbuild)
+#  set(sysbuild_image_name_conf_dir ${APP_DIR}/sysbuild/${ZBUILD_SOURCE_APP})
+
+#todo: copy all ${ZBUILD_SOURCE_APP}_ to ${ZBUILD_APPLICATION}_ vars
+  # User defined `-D<image>_CONF_FILE=<file.conf>` takes precedence over anything else.
+#  if(NOT ${ZBUILD_SOURCE_APP}_CONF_FILE)
+#    if(EXISTS ${sysbuild_image_name_conf_dir})
+#      set(${ZBUILD_APPLICATION}_APPLICATION_CONFIG_DIR ${sysbuild_image_name_conf_dir}
+#          CACHE INTERNAL "Application configuration dir controlled by sysbuild"
+#      )
+#    endif()
+
+    # Check for sysbuild related configuration fragments.
+    # The contents of these are appended to the image existing configuration
+    # when user is not specifying custom fragments.
+#    zephyr_file(CONF_FILES ${sysbuild_image_conf_dir} KCONF sysbuild_image_conf_fragment
+#                NAMES ${ZBUILD_SOURCE_APP}.conf SUFFIX ${FILE_SUFFIX}
+#    )
+
+#    if(NOT (${ZBUILD_SOURCE_APP}_OVERLAY_CONFIG OR ${ZBUILD_SOURCE_APP}_EXTRA_CONF_FILE)
+#        AND EXISTS ${sysbuild_image_conf_fragment}
+#    )
+#      set(${ZBUILD_APPLICATION}_EXTRA_CONF_FILE ${sysbuild_image_conf_fragment}
+#          CACHE INTERNAL "Kconfig fragment defined by main application"
+#      )
+#    endif()
+
+#    if(NOT ${ZBUILD_SOURCE_APP}_DTC_OVERLAY_FILE)
+#      # Check for overlay named <ZBUILD_APPLICATION>.overlay.
+#      set(sysbuild_image_dts_overlay_files ${sysbuild_image_conf_dir}/${ZBUILD_SOURCE_APP}.overlay)
+##
+#      # Check for overlay named <ZBUILD_APPLICATION>_<FILE_SUFFIX>.overlay.
+#      if(FILE_SUFFIX)
+#        list(PREPEND sysbuild_image_dts_overlay_files ${sysbuild_image_conf_dir}/${ZBUILD_SOURCE_APP}_${FILE_SUFFIX}.overlay)
+#      endif()
+#
+#      foreach(overlay_file ${sysbuild_image_dts_overlay_files})
+#        if(EXISTS ${overlay_file})
+#          set(${ZBUILD_APPLICATION}_DTC_OVERLAY_FILE ${overlay_file}
+#            CACHE INTERNAL "devicetree overlay file defined by main application"
+#          )
+#          break()
+#        endif()
+#      endforeach()
+#    endif()
+#  endif()
+
+  # Update ROOT variables with relative paths to use absolute paths based on
+  # the source application directory.
+  foreach(type MODULE_EXT BOARD SOC ARCH SCA)
+    if(DEFINED CACHE{${ZBUILD_APPLICATION}_${type}_ROOT} AND NOT IS_ABSOLUTE $CACHE{${ZBUILD_APPLICATION}_${type}_ROOT})
+      set(rel_path $CACHE{${ZBUILD_APPLICATION}_${type}_ROOT})
+      cmake_path(ABSOLUTE_PATH rel_path BASE_DIRECTORY "${ZBUILD_SOURCE_DIR}" NORMALIZE OUTPUT_VARIABLE abs_path)
+      set(${ZBUILD_APPLICATION}_${type}_ROOT ${abs_path} CACHE PATH "Sysbuild adjusted absolute path" FORCE)
+    endif()
+  endforeach()
+
+  # CMake variables which must be known by all Zephyr CMake build systems
+  # Those are settings which controls the build and must be known to CMake at
+  # invocation time, and thus cannot be passed though the sysbuild cache file.
+  set(
+    shared_cmake_variables_list
+    CMAKE_BUILD_TYPE
+    CMAKE_VERBOSE_MAKEFILE
+  )
+
+  set(sysbuild_cache_file ${CMAKE_BINARY_DIR}/${ZBUILD_APPLICATION}_sysbuild_cache.txt)
+
+  set(shared_cmake_vars_argument)
+  foreach(shared_var ${shared_cmake_variables_list})
+    if(DEFINED CACHE{${ZBUILD_SOURCE_APP}_${shared_var}})
+      get_property(var_type CACHE ${ZBUILD_SOURCE_APP}_${shared_var} PROPERTY TYPE)
+      list(APPEND shared_cmake_vars_argument
+           "-D${shared_var}:${var_type}=$CACHE{${ZBUILD_SOURCE_APP}_${shared_var}}"
+      )
+    elseif(DEFINED CACHE{${ZBUILD_APPLICATION}_${shared_var}})
+      get_property(var_type CACHE ${ZBUILD_APPLICATION}_${shared_var} PROPERTY TYPE)
+      list(APPEND shared_cmake_vars_argument
+           "-D${shared_var}:${var_type}=$CACHE{${ZBUILD_APPLICATION}_${shared_var}}"
+      )
+    elseif(DEFINED CACHE{${shared_var}})
+      get_property(var_type CACHE ${shared_var} PROPERTY TYPE)
+      list(APPEND shared_cmake_vars_argument
+           "-D${shared_var}:${var_type}=$CACHE{${shared_var}}"
+      )
+    endif()
+  endforeach()
+
+  set(list_separator ",")
+  set(image_extra_kconfig_targets "-DEXTRA_KCONFIG_TARGETS=$CACHE{EXTRA_KCONFIG_TARGETS}")
+  string(REPLACE ";" "${list_separator}" image_extra_kconfig_targets "${image_extra_kconfig_targets}")
+  foreach(target $CACHE{EXTRA_KCONFIG_TARGETS})
+    list(APPEND image_extra_kconfig_targets
+         -DEXTRA_KCONFIG_TARGET_COMMAND_FOR_${target}=$CACHE{EXTRA_KCONFIG_TARGET_COMMAND_FOR_${target}}
+    )
+  endforeach()
+
+  include(ExternalProject)
+  set(application_binary_dir ${CMAKE_BINARY_DIR}/${ZBUILD_APPLICATION})
+  ExternalProject_Add(
+    ${ZBUILD_APPLICATION}
+    SOURCE_DIR ${ZBUILD_SOURCE_DIR}
+    BINARY_DIR ${application_binary_dir}
+    CONFIGURE_COMMAND ""
+    LIST_SEPARATOR "${list_separator}"
+    CMAKE_ARGS -DSYSBUILD:BOOL=True
+               -DSYSBUILD_CACHE:FILEPATH=${sysbuild_cache_file}
+               ${shared_cmake_vars_argument}
+               ${image_extra_kconfig_targets}
+    BUILD_COMMAND ${CMAKE_COMMAND} --build .
+    INSTALL_COMMAND ""
+    BUILD_ALWAYS True
+    USES_TERMINAL_BUILD True
+  )
+
+  get_property(${ZBUILD_SOURCE_APP}_APP_TYPE TARGET ${ZBUILD_SOURCE_APP}
+               PROPERTY APP_TYPE
+  )
+
+#  set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY APP_TYPE ${ZBUILD_APP_TYPE})
+  set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY APP_TYPE ${${ZBUILD_SOURCE_APP}_APP_TYPE})
+  set_property(TARGET ${ZBUILD_APPLICATION} PROPERTY CONFIG
+               "# sysbuild controlled configuration settings\n"
+  )
+  set_target_properties(${ZBUILD_APPLICATION} PROPERTIES CACHE_FILE ${sysbuild_cache_file})
+  set_target_properties(${ZBUILD_APPLICATION} PROPERTIES KCONFIG_BINARY_DIR
+                        ${application_binary_dir}/Kconfig
+  )
+  if("${${ZBUILD_SOURCE_APP}_APP_TYPE}" STREQUAL "MAIN")
+    set_target_properties(${ZBUILD_APPLICATION} PROPERTIES MAIN_APP True)
+  endif()
+
+  set(image_default "${CMAKE_SOURCE_DIR}/image_configurations/ALL_image_default.cmake")
+
+#  if(DEFINED ZBUILD_APP_TYPE)
+    list(APPEND image_default "${CMAKE_SOURCE_DIR}/image_configurations/${ZBUILD_APP_TYPE}_image_default.cmake")
+    set(image_default_dtc_overlay "${CMAKE_SOURCE_DIR}/image_configurations/${ZBUILD_APP_TYPE}_image_default.overlay")
+
+    if(EXISTS ${image_default_dtc_overlay})
+      if(NOT ${image_default_dtc_overlay} IN_LIST ${ZBUILD_APPLICATION}_EXTRA_DTC_OVERLAY_FILE)
+        list(APPEND ${ZBUILD_APPLICATION}_EXTRA_DTC_OVERLAY_FILE ${image_default_dtc_overlay})
+        set(${ZBUILD_APPLICATION}_EXTRA_DTC_OVERLAY_FILE
+            ${${ZBUILD_APPLICATION}_EXTRA_DTC_OVERLAY_FILE}
+            CACHE INTERNAL "Application extra DTC overlay file" FORCE
+        )
+      endif()
+    endif()
+#  endif()
+
+set(${ZBUILD_APPLICATION}_DTS_SOURCE
+${CMAKE_BINARY_DIR}/${ZBUILD_SOURCE_APP}/zephyr/zephyr.dts
+            CACHE INTERNAL "Application DTC file" FORCE
+)
+
+set(${ZBUILD_APPLICATION}_DTS_DEPS
+${CMAKE_BINARY_DIR}/${ZBUILD_SOURCE_APP}/zephyr/zephyr.dts.d
+            CACHE INTERNAL "Application DTC file" FORCE
+)
+
+set(${ZBUILD_APPLICATION}_KCONFIG_VARIANT_SOURCE
+${CMAKE_BINARY_DIR}/${ZBUILD_SOURCE_APP}/zephyr/.config
+            CACHE INTERNAL "Application config file" FORCE
+)
+
+  set_target_properties(${ZBUILD_APPLICATION} PROPERTIES IMAGE_CONF_SCRIPT "${image_default}")
+  set_target_properties(${ZBUILD_APPLICATION} PROPERTIES APP_CLONE ${ZBUILD_SOURCE_APP})
+
+  if(DEFINED ZBUILD_BOARD)
+    # Only set image specific board if provided.
+    # The sysbuild BOARD is exported through sysbuild cache, and will be used
+    # unless <image>_BOARD is defined.
+    if(DEFINED ZBUILD_BOARD_REVISION)
+      # Use provided board revision, HWMv2 requires adding version to the board, split elements
+      # up, attach version, then reassemble into a complete string
+      string(REPLACE "/" ";" split_board_qualifiers "${ZBUILD_BOARD}")
+      list(GET split_board_qualifiers 0 target_board)
+      set(target_board ${target_board}@${ZBUILD_BOARD_REVISION})
+      list(REMOVE_AT split_board_qualifiers 0)
+      list(PREPEND split_board_qualifiers ${target_board})
+      string(REPLACE ";" "/" board_qualifiers "${split_board_qualifiers}")
+      set_target_properties(${ZBUILD_APPLICATION} PROPERTIES BOARD ${board_qualifiers})
+      set(split_board_qualifiers)
+      set(board_qualifiers)
+    else()
+      set_target_properties(${ZBUILD_APPLICATION} PROPERTIES BOARD ${ZBUILD_BOARD})
+    endif()
+  elseif(DEFINED ZBUILD_BOARD_REVISION)
+    message(FATAL_ERROR
+      "ExternalZephyrProject_Add(... BOARD_REVISION ${ZBUILD_BOARD_REVISION})"
+      " requires BOARD."
+    )
+  endif()
+
+  if(DEFINED ZBUILD_BUILD_ONLY)
+    set_target_properties(${ZBUILD_APPLICATION} PROPERTIES BUILD_ONLY ${ZBUILD_BUILD_ONLY})
+  endif()
+
+  sysbuild_add_dependencies(CONFIGURE ${ZBUILD_APPLICATION} ${ZBUILD_SOURCE_APP})
 endfunction()
 
 # Usage:
@@ -505,18 +753,23 @@ function(ExternalZephyrProject_Cmake)
 
   ExternalProject_Get_Property(${ZCMAKE_APPLICATION} SOURCE_DIR BINARY_DIR CMAKE_ARGS LIST_SEPARATOR)
   get_target_property(${ZCMAKE_APPLICATION}_BOARD      ${ZCMAKE_APPLICATION} BOARD)
+  get_target_property(${ZCMAKE_APPLICATION}_APP_CLONE ${ZCMAKE_APPLICATION} APP_CLONE)
+  set(dotconfigsysbuild ${BINARY_DIR}/zephyr/.config.sysbuild)
+  sysbuild_cache(CREATE APPLICATION ${ZCMAKE_APPLICATION})
+
+  if(${ZCMAKE_APPLICATION}_APP_CLONE)
+    get_target_property(config_content ${${ZCMAKE_APPLICATION}_APP_CLONE} CONFIG)
+    set_property(TARGET ${ZCMAKE_APPLICATION} PROPERTY CONFIG ${config_content})
+  endif()
 
   get_property(${ZCMAKE_APPLICATION}_CONF_SCRIPT TARGET ${ZCMAKE_APPLICATION}
                PROPERTY IMAGE_CONF_SCRIPT
   )
 
-  sysbuild_cache(CREATE APPLICATION ${ZCMAKE_APPLICATION})
-
   foreach(script ${${ZCMAKE_APPLICATION}_CONF_SCRIPT})
     include(${script})
   endforeach()
 
-  set(dotconfigsysbuild ${BINARY_DIR}/zephyr/.config.sysbuild)
   get_target_property(config_content ${ZCMAKE_APPLICATION} CONFIG)
   string(CONFIGURE "${config_content}" config_content)
   file(WRITE ${dotconfigsysbuild} ${config_content})

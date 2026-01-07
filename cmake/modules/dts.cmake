@@ -128,6 +128,10 @@ set(DTS_KCONFIG                 ${KCONFIG_BINARY_DIR}/Kconfig.dts)
 set(VENDOR_PREFIXES             dts/bindings/vendor-prefixes.txt)
 
 if(NOT DEFINED DTS_SOURCE)
+  zephyr_get(DTS_SOURCE SYSBUILD LOCAL)
+  zephyr_get(clone_app_dts_deps SYSBUILD LOCAL VAR DTS_DEPS)
+
+if(NOT DEFINED DTS_SOURCE)
   zephyr_build_string(board_string SHORT shortened_board_string
                       BOARD ${BOARD} BOARD_QUALIFIERS ${BOARD_QUALIFIERS}
   )
@@ -147,6 +151,7 @@ if(NOT DEFINED DTS_SOURCE)
       set(DTS_SOURCE ${dir}/${shortened_board_string}.dts)
     endif()
   endforeach()
+endif()
 endif()
 
 if(EXISTS ${DTS_SOURCE})
@@ -257,6 +262,10 @@ zephyr_dt_preprocess(
   INCLUDE_DIRECTORIES ${DTS_ROOT_SYSTEM_INCLUDE_DIRS}
   WORKING_DIRECTORY ${APPLICATION_SOURCE_DIR}
   )
+
+if(DEFINED clone_app_dts_deps)
+  set(DTS_DEPS ${clone_app_dts_deps})
+endif()
 
 #
 # Make sure we re-run CMake if any devicetree sources or transitive

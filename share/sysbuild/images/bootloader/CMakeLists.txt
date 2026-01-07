@@ -17,10 +17,10 @@ if(SB_CONFIG_BOOTLOADER_MCUBOOT)
   set_config_string(${image} CONFIG_BOOT_SIGNATURE_KEY_FILE "${SB_CONFIG_BOOT_SIGNATURE_KEY_FILE}")
 
   if(SB_CONFIG_MCUBOOT_DIRECT_XIP_GENERATE_VARIANT)
-    ExternalZephyrProject_Add(
+    ExternalZephyrVariantProject_Add(
+      SOURCE_APP ${DEFAULT_IMAGE}
       APPLICATION ${DEFAULT_IMAGE}_slot_1_variant
-      SOURCE_DIR ${APP_DIR}
-      APP_TYPE VARIANT
+      APP_TYPE MCUBOOT_SLOT1
     )
   endif()
 endif()
