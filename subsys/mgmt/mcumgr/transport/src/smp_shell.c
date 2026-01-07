@@ -45,7 +45,6 @@ static const struct shell_uart_common *shell_uart;
 static struct smp_client_transport_entry smp_client_transport = {
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	.name = "Shell",
-	.description = "Uses zephyr shell",
 #endif
 };
 #endif

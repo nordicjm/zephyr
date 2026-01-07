@@ -149,15 +149,6 @@ static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *tr
 		}
 	}
 
-	if (transport->description != NULL) {
-		ok = zcbor_tstr_put_lit(zse, "description") &&
-		     zcbor_tstr_put_term(zse, transport->description, 30);
-
-		if (!ok) {
-			goto finish;
-		}
-	}
-
 	ok = zcbor_map_end_encode(zse, 30);
 
 finish:

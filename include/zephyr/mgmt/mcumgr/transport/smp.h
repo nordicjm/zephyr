@@ -224,9 +224,6 @@ struct smp_client_transport_entry {
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	/** Transport name, used for transport mgmt (or NULL to omit) */
 	char *name;
-
-	/** Transport description, used for transport mgmt (or NULL to omit) */
-	char *description;
 #endif
 };
 
