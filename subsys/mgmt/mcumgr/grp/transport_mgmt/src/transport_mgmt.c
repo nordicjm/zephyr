@@ -18,6 +18,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+#include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
+#endif
+
 #include <zcbor_common.h>
 #include <zcbor_decode.h>
 #include <zcbor_encode.h>
@@ -197,6 +201,12 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
 	};
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	enum mgmt_cb_return status;
+	int32_t err_rc;
+	uint16_t err_group;
+#endif
+
 	if (ctxt->smpt->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
@@ -229,6 +239,17 @@ return MGMT_ERR_EBADSTATE;
 //TODO: error
 return MGMT_ERR_EBADSTATE;
 	}
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	/* Send notification to say a bridge is being made */
+	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_CONNECT, &group_detail_data,
+	      sizeof(group_detail_data), &err_rc, &err_group);
+
+	if (status != MGMT_CB_OK) {
+		*data->ok = false;
+		return false;
+	}
+#endif
 
 	transport_mgmt_lock();
 
@@ -274,6 +295,17 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 
 	transport_mgmt_unlock();
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	/* Send notification to say a bridge has being made */
+	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_CONNECTED, &group_detail_data,
+	      sizeof(group_detail_data), &err_rc, &err_group);
+
+	if (status != MGMT_CB_OK) {
+		*data->ok = false;
+		return false;
+	}
+#endif
+
 //TODO
 	return MGMT_RETURN_CHECK(ok);
 }
@@ -297,6 +329,8 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+#endif
 //TODO: allow transport_id to be 0 by default?
 	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all"))) {
 		return MGMT_ERR_EINVAL;
@@ -323,6 +357,17 @@ if (disconnect_all == true) {
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
 	}
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	/* Send notification to say a bridge is being dropped */
+	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
+	      sizeof(group_detail_data), &err_rc, &err_group);
+
+	if (status != MGMT_CB_OK) {
+		*data->ok = false;
+		return false;
+	}
+#endif
 
 	transport_mgmt_lock();
 
@@ -374,6 +419,17 @@ return MGMT_ERR_EBADSTATE;
 }
 
 	transport_mgmt_unlock();
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	/* Send notification to say a bridge is being dropped */
+	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECTED, &group_detail_data,
+	      sizeof(group_detail_data), &err_rc, &err_group);
+
+	if (status != MGMT_CB_OK) {
+		*data->ok = false;
+		return false;
+	}
+#endif
 
 //TODO
 	return MGMT_RETURN_CHECK(ok);

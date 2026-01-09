@@ -84,4 +84,11 @@ config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	  longer comply with the transport management group specification, hence why it can only
 	  be disabled when using a custom group ID.
 
+config MCUMGR_GRP_TRANSPORT_HOOKS
+	bool "Callback hooks"
+	depends on MCUMGR_MGMT_NOTIFICATION_HOOKS
+	help
+	  Allows applications to get notification hooks on a transport bridge being connected or
+	  disconnected.
+
 endif # MCUMGR_GRP_TRANSPORT
