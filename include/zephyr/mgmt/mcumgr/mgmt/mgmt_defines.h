@@ -80,7 +80,7 @@ enum mcumgr_group_t {
 	/** Enumeration management group, used for listing supported command groups */
 	MGMT_GROUP_ID_ENUM,
 
-	/** Transport management group, used for ... */
+	/** Transport management group (default group ID), used for bridging transports */
 	MGMT_GROUP_ID_TRANSPORT,
 
 	/** User groups defined from 64 onwards */

@@ -109,13 +109,53 @@ typedef bool (*smp_transport_query_valid_check_fn)(struct net_buf *nb, void *arg
  */
 typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
 
-#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-//additional same type bool field if both transports are the same?
-typedef int (*smp_transport_bridge_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data);
-typedef int (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *bridge, bool outgoing);
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT) || defined(__DOXYGEN__)
+/** @typedef smp_transport_bridge_connect_fn
+ * @brief SMP transport bridge connect
+ *
+ * Used when establishing a bridge to another transport.
+ *
+ * @param bridge		contains the bridging context
+ * @param outgoing		true if an outgoing connection was requested, false if incoming
+ * @param same_transport	true if the incoming and outgoing transports both are using this
+ *				transport
+ * @param input_data		CBOR data from input
+ * @param output_data		CBOR data for output (to return an error)
+ *
+ * @return                      true on success, false on error.
+ */
+typedef bool (*smp_transport_bridge_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing,
+						bool same_transport,
+						const zcbor_state_t *input_data,
+						zcbor_state_t *output_data);
+
+/** @typedef smp_transport_bridge_disconnect_fn
+ * @brief SMP transport bridge disconnect
+ *
+ * Used when disconnecting an already established bridge with another transport.
+ *
+ * @param bridge		contains the bridging context
+ * @param outgoing		true if to disconnect the outgoing connection, false to disconnect
+ *				the incoming connection
+ *
+ * @return                      true on success, false on error.
+ */
+typedef void (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *bridge,
+						   bool outgoing);
+
+/** @typedef smp_transport_bridge_out_fn
+ * @brief SMP transport bridge output data
+ *
+ * Pass data for output through transport bridge.
+ *
+ * @param bridge		contains the bridging context
+ * @param nb			data that should be output
+ * @param outgoing		true if to use the outgoing connection context, false to use the
+ *				incoming connection context
+ *
+ * @return                      0 on success, #mcumgr_err_t code on failure.
+ */
 typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing);
-//typedef int (*smp_transport_transport_ud_copy_fn)(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing);
-//typedef void (*smp_transport_transport_ud_free_fn)(struct smp_transport_bridge *bridge, void *ud, bool outgoing);
 #endif
 
 /**
