@@ -15,7 +15,7 @@ Transport management group defines the following commands:
     +----------------+------------------------------------+
     | ``1``          | Disconnect bridged transport       |
     +----------------+------------------------------------+
-    | ``2``          | Fetch bridged transport status     |
+    | ``2``          | Fetch bridge/transport status      |
     +----------------+------------------------------------+
     | ``3``          | List transports |
     +----------------+------------------------------------+
@@ -24,15 +24,15 @@ Transport management group defines the following commands:
     | ``5``          | Details on transport configuration |
     +----------------+------------------------------------+
 
-Count of supported groups command
-*********************************
+Connect (bridge) transport command
+**********************************
 
-Count of supported groups returns the total number of MCUmgr command groups that a device supports.
+Bridge the transport which received the MCUmgr packet to another MCUmgr transport.
 
-Count of supported groups request
-=================================
+Connect (bridge) transport request
+==================================
 
-Read setting request header fields:
+Connect (bridge) transport request header fields:
 
 .. table::
     :align: center
@@ -40,8 +40,207 @@ Read setting request header fields:
     +--------+--------------+----------------+
     | ``OP`` | ``Group ID`` | ``Command ID`` |
     +========+==============+================+
-    | ``0``  | ``10``       | ``0``          |
+    | ``2``  | ``11``       | ``0``          |
     +--------+--------------+----------------+
+
+CBOR data of request:
+
+.. code-block:: none
+
+    {
+        (str)"transport" : (uint)
+        ...
+    }
+
+where:
+
+.. table::
+    :align: center
+
+    +-------------+--------------------------------------------------------------+
+    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for  |
+    |             | which to bridge (connect) from the transport to.             |
+    +-------------+--------------------------------------------------------------+
+    | ...         | there might be additional fields that the transport requires |
+    |             | in order to make a connection, these are not described here  |
+    |             | as are transport-specific.                                   |
+    +-------------+--------------------------------------------------------------+
+
+Connect (bridge) transport response
+===================================
+
+Connect (bridge) transport response header fields:
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``3``  | ``11``       | ``0``          |
+    +--------+--------------+----------------+
+
+The command sends an empty CBOR map as data if successful.
+In case of error the CBOR data takes the form:
+
+.. tabs::
+
+   .. group-tab:: SMP version 2
+
+      .. code-block:: none
+
+          {
+              (str)"err" : {
+                  (str)"group"    : (uint)
+                  (str)"rc"       : (uint)
+              }
+          }
+
+   .. group-tab:: SMP version 1
+
+      .. code-block:: none
+
+          {
+              (str)"rc"       : (int)
+          }
+
+where:
+
+.. table::
+    :align: center
+
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
+    |                  | appears if an error is returned when using SMP version 2.               |
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if       |
+    |                  | non-zero (error condition) when using SMP version 2.                    |
+    +------------------+-------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when  |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
+    +------------------+-------------------------------------------------------------------------+
+
+Disconnect bridged transport command
+************************************
+
+Disconnect bridged transport request
+====================================
+
+Disconnect bridged transport request header fields:
+
+Disconnect the current transport's bridge, or disconnect all transport bridges.
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``2``  | ``11``       | ``1``          |
+    +--------+--------------+----------------+
+
+CBOR data of request:
+
+.. code-block:: none
+
+    {
+        (str,opt)"transport" : (uint)
+        (str,opt)"all" :       (bool)
+    }
+
+where:
+
+.. table::
+    :align: center
+
+    +-------------+-------------------------------------------------------------+
+    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for |
+    |             | which to bridge (connect) from the transport to, this must  |
+    |             | not be provided if ``all`` is provided.                     |
+    +-------------+-------------------------------------------------------------+
+    | "all"       | set to true to disconnect all active bridged transports,    |
+    |             | this must not be provided if ``transport`` is provided.     |
+    +-------------+-------------------------------------------------------------+
+
+Disconnect bridged transport response
+=====================================
+
+Disconnect bridged transport response header fields:
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``3``  | ``11``       | ``1``          |
+    +--------+--------------+----------------+
+
+TODO
+The command sends an empty CBOR map as data if successful.
+In case of error the CBOR data takes the form:
+
+.. tabs::
+
+   .. group-tab:: SMP version 2
+
+      .. code-block:: none
+
+          {
+              (str)"err" : {
+                  (str)"group"    : (uint)
+                  (str)"rc"       : (uint)
+              }
+          }
+
+   .. group-tab:: SMP version 1
+
+      .. code-block:: none
+
+          {
+              (str)"rc"       : (int)
+          }
+
+where:
+
+.. table::
+    :align: center
+
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
+    |                  | appears if an error is returned when using SMP version 2.               |
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if       |
+    |                  | non-zero (error condition) when using SMP version 2.                    |
+    +------------------+-------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when  |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
+    +------------------+-------------------------------------------------------------------------+
+
+Fetch bridged transport status command
+**************************************
+
+Return information on active bridges and what device supports.
+
+Fetch bridged transport status request
+======================================
+
+Fetch bridges transport status request header fields:
+
+Disconnect the current transport's bridge, or disconnect all transport bridges.
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``0``  | ``11``       | ``2``          |
+    +--------+--------------+----------------+
+
+
+
+
 
 The command sends an empty CBOR map as data.
 
