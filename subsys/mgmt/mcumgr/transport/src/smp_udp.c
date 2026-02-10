@@ -620,15 +620,6 @@ LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs
 
 	return ret;
 }
-
-#if 0
-static int smp_udp4_bridge_ud_copy(struct smp_transport_bridge *bridge, struct net_buf *dst, bool outgoing)
-{
-//TODO: is bridged?
-
-	return 0;
-}
-#endif
 #endif
 
 static void smp_udp_start(void)

@@ -141,12 +141,23 @@ Disconnect the current transport's bridge, or disconnect all transport bridges.
 
 CBOR data of request:
 
-.. code-block:: none
+.. tabs::
 
-    {
-        (str,opt)"transport" : (uint)
-        (str,opt)"all" :       (bool)
-    }
+   .. group-tab:: Disconnect active bridge
+
+      .. code-block:: none
+
+          {
+              (str)"transport" : (uint)
+          }
+
+   .. group-tab:: Disconnect all bridges
+
+      .. code-block:: none
+
+          {
+              (str)"all" :       (bool)
+          }
 
 where:
 
@@ -176,7 +187,6 @@ Disconnect bridged transport response header fields:
     | ``3``  | ``11``       | ``1``          |
     +--------+--------------+----------------+
 
-TODO
 The command sends an empty CBOR map as data if successful.
 In case of error the CBOR data takes the form:
 
@@ -227,6 +237,7 @@ Fetch bridged transport status request
 
 Fetch bridges transport status request header fields:
 
+TODO
 Disconnect the current transport's bridge, or disconnect all transport bridges.
 
 .. table::

@@ -181,18 +181,18 @@ struct smp_transport_api_t {
 	/** Transport's request buffer init function */
 	smp_transport_ud_req_init_fn ud_init;
 
-#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-//connect function
-smp_transport_bridge_connect_fn bridge_connect;
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT) || defined(__DOXYGEN__)
+	/** Transport connect bridge to another transport function. */
+	smp_transport_bridge_connect_fn bridge_connect;
 
-//disconnect function
-smp_transport_bridge_disconnect_fn bridge_disconnect;
+	/** Transport disconnect bridge function. */
+	smp_transport_bridge_disconnect_fn bridge_disconnect;
 
-//send function
-smp_transport_bridge_out_fn bridge_output;
+	/** Transport send data over bridged connection function. */
+	smp_transport_bridge_out_fn bridge_output;
 
+//TODO:
 //get details function
-
 //get config details function
 #endif
 };
@@ -257,7 +257,7 @@ struct smp_client_transport_entry {
 	/** Transport type */
 	int smpt_type;
 
-#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS) || defined(__DOXYGEN__)
 	/** Transport name, used for transport mgmt (or NULL to omit) */
 	char *name;
 #endif
