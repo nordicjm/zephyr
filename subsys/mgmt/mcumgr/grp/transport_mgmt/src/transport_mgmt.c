@@ -210,6 +210,8 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	if (ctxt->smpt->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	if (!zcbor_new_backup(zsd, backup_element_count_reader)) {
@@ -223,6 +225,8 @@ return MGMT_ERR_EBADSTATE;
 //TODO: allow transport_id to be 0 by default?
 	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
 		return MGMT_ERR_EINVAL;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 //zcbor_map_decode_bulk_reset(settings_save_decode, ARRAY_SIZE(settings_save_decode));
@@ -238,6 +242,8 @@ return MGMT_ERR_EBADSTATE;
 	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
@@ -267,6 +273,8 @@ return MGMT_ERR_EBADSTATE;
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	rc = outgoing_transport->functions.bridge_connect(&bridges[i], true, zsd);
@@ -275,6 +283,8 @@ return MGMT_ERR_EBADSTATE;
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EACCESSDENIED;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, zsd);
@@ -284,6 +294,8 @@ return MGMT_ERR_EACCESSDENIED;
 		(void)outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
 		transport_mgmt_unlock();
 return MGMT_ERR_UNSUPPORTED_TOO_OLD;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	bridges[i].status = 1;
@@ -307,6 +319,7 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 #endif
 
 //TODO
+end:
 	return MGMT_RETURN_CHECK(ok);
 }
 
@@ -344,6 +357,8 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	if (bridge_active == false) {
 //TODO: error
 return MGMT_ERR_EINVAL;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 if (disconnect_all == true) {
@@ -356,6 +371,8 @@ if (disconnect_all == true) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
@@ -385,18 +402,24 @@ return MGMT_ERR_EBADSTATE;
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	rc = outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
 
 	if (rc != 0) {
 //TODO: error
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	rc = ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
 
 	if (rc != 0) {
 //TODO: error
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
 	}
 
 	bridges[i].status = 0;
