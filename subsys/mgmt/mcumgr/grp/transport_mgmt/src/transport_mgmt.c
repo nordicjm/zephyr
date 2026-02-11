@@ -277,7 +277,8 @@ return MGMT_ERR_EBADSTATE;
 //		goto end;
 	}
 
-	rc = outgoing_transport->functions.bridge_connect(&bridges[i], true, zsd);
+//TODO:
+	rc = outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd);
 
 	if (rc != 0) {
 //TODO: error
@@ -287,7 +288,8 @@ return MGMT_ERR_EACCESSDENIED;
 //		goto end;
 	}
 
-	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, zsd);
+//TODO:
+	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, false, zse, zsd);
 
 	if (rc != 0) {
 //TODO: error
@@ -406,21 +408,8 @@ return MGMT_ERR_EBADSTATE;
 //		goto end;
 	}
 
-	rc = outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
-
-	if (rc != 0) {
-//TODO: error
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
-	rc = ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
-
-	if (rc != 0) {
-//TODO: error
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
+	outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
+	ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
 
 	bridges[i].status = 0;
 	bridges[i].incoming_transport = NULL;

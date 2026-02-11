@@ -498,7 +498,7 @@ int smp_udp_close(void)
 }
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, zcbor_state_t *data)
+static bool smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
 //TODO: is connected?
 	int rc;
@@ -513,7 +513,7 @@ static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool out
 		struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
 
 		memcpy(smp_udp_configs.ipv4.bridge_user_data, net_buf_user_data(cnr->nb), sizeof(struct net_sockaddr));
-		return 0;
+		return true;
 	}
 
 	struct zcbor_map_decode_key_val udp_bride_connect_decode[] = {
@@ -526,13 +526,17 @@ static int smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool out
 //TODO: allow transport_id to be 0 by default?
         if (!ok || decoded < 2 || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server") || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port")) {
 LOG_ERR("err: %d, %d, %d, %d", ok, decoded, zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server"), zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port"));
-                return MGMT_ERR_EINVAL;
+return false;
+//TODO:
+//                return MGMT_ERR_EINVAL;
         }
 
 //TODO: validate server
 	if (port == 0 || port > 65535) {
 LOG_ERR("bah");
-                return MGMT_ERR_EINVAL;
+return false;
+//TODO:
+//                return MGMT_ERR_EINVAL;
 	}
 
 memcpy(server_ip, server.value, server.len);
@@ -547,14 +551,18 @@ LOG_ERR("ip: %s", server_ip);
 
 	if (smp_udp_configs.ipv4.bridge_sock < 0) {
 		LOG_ERR("Failed to create UDP socket: %d", errno);
-		return -1;
+return false;
+//TODO:
+//		return -1;
 	}
 
         rc = zsock_connect(smp_udp_configs.ipv4.bridge_sock, sock_addr, sizeof(smp_udp_configs.ipv4.bridge_addr));
 
         if (rc < 0) {
                 LOG_ERR("Cannot connect to UDP remote: %d", errno);
-                return -1;
+return false;
+//TODO:
+//                return -1;
         }
 
 	k_thread_create(&smp_udp_configs.ipv4.bridge_thread, smp_udp_configs.ipv4.bridge_stack,
@@ -565,15 +573,15 @@ LOG_ERR("ip: %s", server_ip);
 	k_thread_name_set(&smp_udp_configs.ipv4.bridge_thread, "todo");
 	k_thread_start(&smp_udp_configs.ipv4.bridge_thread);
 
-	return 0;
+	return true;
 }
 
-static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+static void smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
 {
 	int rc;
 
 	if (outgoing == false) {
-		return 0;
+		return;
 	}
 
 	k_thread_abort(&smp_udp_configs.ipv4.bridge_thread);
@@ -586,7 +594,7 @@ static int smp_udp4_bridge_disconnect(struct smp_transport_bridge *bridge, bool 
 
 	smp_udp_configs.ipv4.bridge_sock = -1;
 
-	return 0;
+	return;
 }
 
 static int smp_udp4_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
