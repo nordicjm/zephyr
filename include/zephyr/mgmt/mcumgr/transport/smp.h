@@ -233,6 +233,8 @@ struct smp_transport_bridge {
 enum smp_transport_type {
 	/** SMP serial */
 	SMP_SERIAL_TRANSPORT = 0,
+	/** SMP raw serial (not SMP over console) */
+	SMP_RAW_SERIAL_TRANSPORT,
 	/** SMP bluetooth */
 	SMP_BLUETOOTH_TRANSPORT,
 	/** SMP shell*/

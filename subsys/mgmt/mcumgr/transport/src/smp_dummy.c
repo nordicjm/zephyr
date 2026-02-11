@@ -55,6 +55,10 @@ static struct uart_mcumgr_rx_buf *dummy_mcumgr_cur_buf;
  */
 static bool dummy_mcumgr_ignoring;
 
+#ifdef CONFIG_SMP_CLIENT
+static struct smp_client_transport_entry smp_client_transport;
+#endif
+
 static void smp_dummy_process_rx_queue(struct k_work *work);
 static void dummy_mcumgr_free_rx_buf(struct uart_mcumgr_rx_buf *rx_buf);
 
@@ -185,6 +189,23 @@ static int smp_dummy_tx_pkt_int(struct net_buf *nb)
 	return rc;
 }
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+static bool smp_dummy_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
+{
+return true;
+}
+
+static void smp_dummy_bridge_disconnect(struct smp_transport_bridge *bridge, bool outgoing)
+{
+return;
+}
+
+static int smp_dummy_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
+{
+	return smp_dummy_tx_pkt_int(nb);
+}
+#endif
+
 static int smp_dummy_init(void)
 {
 	int rc;
@@ -194,6 +215,12 @@ static int smp_dummy_init(void)
 	smp_dummy_transport.functions.output = smp_dummy_tx_pkt_int;
 	smp_dummy_transport.functions.get_mtu = smp_dummy_get_mtu;
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+	smp_dummy_transport.functions.bridge_connect = smp_dummy_bridge_connect;
+	smp_dummy_transport.functions.bridge_disconnect = smp_dummy_bridge_disconnect;
+	smp_dummy_transport.functions.bridge_output = smp_dummy_bridge_tx;
+#endif
+
 	rc = smp_transport_init(&smp_dummy_transport);
 
 	if (rc != 0) {
@@ -201,6 +228,12 @@ static int smp_dummy_init(void)
 	}
 
 	dummy_mgumgr_recv_cb = smp_dummy_rx_frag;
+
+#ifdef CONFIG_SMP_CLIENT
+	smp_client_transport.smpt = &smp_dummy_transport;
+	smp_client_transport.smpt_type = SMP_SERIAL_TRANSPORT;
+	smp_client_transport_register(&smp_client_transport);
+#endif
 
 	return 0;
 }
