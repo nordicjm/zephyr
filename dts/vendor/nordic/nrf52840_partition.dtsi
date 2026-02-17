@@ -9,6 +9,7 @@
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
+		nordic,storage-partition = &storage_partition;
 	};
 };
 
@@ -42,9 +43,22 @@
 		 * Storage partition will be used by FCB/LittleFS/NVS
 		 * if enabled.
 		 */
-		storage_partition: partition@f8000 {
-			label = "storage";
-			reg = <0x000f8000 0x00008000>;
+		storage_without_emds_partition: partition@f8000 {
+			compatible = "fixed-subpartitions";
+			reg = <0xf8000 0x8000>;
+			ranges = <0x0 0xf8000 0x8000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			storage_partition: partition@0 {
+				label = "storage";
+				reg = <0x00000000 0x00006000>;
+			};
+
+			emds_partition: partition@6000 {
+				label = "storage";
+				reg = <0x00006000 0x00002000>;
+			};
 		};
 	};
 };

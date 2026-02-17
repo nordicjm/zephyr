@@ -1,0 +1,5 @@
+/ {
+	chosen {
+		nordic,storage-partition = &storage_without_emds_partition;
+	};
+};
