@@ -1,0 +1,4 @@
+config SAMPLE_EMDS
+	bool "EMDS subsystem"
+
+source "Kconfig.zephyr"
