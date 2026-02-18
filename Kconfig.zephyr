@@ -99,6 +99,17 @@ config USE_DT_CODE_PARTITION
 # Workaround for not being able to have commas in macro arguments
 DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
 DT_CHOSEN_Z_FLASH := zephyr,flash
+DT_COMPAT_Z_XIP_PARTITIONS := zephyr,xip-partitions
+
+config FLASH_USES_XIP_PARTITIONS
+	bool
+	default $(dt_node_has_compat,$(dt_node_child,$(dt_chosen_path,$(DT_CHOSEN_Z_FLASH)),0),$(DT_COMPAT_Z_XIP_PARTITIONS))
+	help
+	  Temporary Kconfig to indicate if underlying chosen flash device uses the xip-partitions
+	  compatible, this is to allow ease of migration from fixed-partitions and should not be
+	  relied upon outside of the zephyr build system and will be removed in future.
+
+if !FLASH_USES_XIP_PARTITIONS
 
 config FLASH_CODE_PARTITION_ADDRESS_INVALID
 	bool
@@ -144,6 +155,8 @@ config FLASH_LOAD_SIZE
 	  the device.
 
 	  If unsure, leave at the default value 0.
+
+endif # !FLASH_USES_XIP_PARTITIONS
 
 endif # HAS_FLASH_LOAD_OFFSET
 

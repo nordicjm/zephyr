@@ -14,7 +14,7 @@
 
 &flash0 {
 	partitions {
-		compatible = "fixed-partitions";
+		compatible = "zephyr,xip-partitions";
 		#address-cells = <1>;
 		#size-cells = <1>;
 
