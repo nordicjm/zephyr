@@ -26,7 +26,8 @@
 #endif
 
 #define FLASH_AREA_FOOO(part)	\
-	COND_CODE_1(DT_NODE_HAS_COMPAT(DT_PARENT(part), fixed_partitions), (\
+	COND_CODE_1(UTIL_OR(DT_NODE_HAS_COMPAT(DT_PARENT(part), fixed_partitions), \
+			    DT_NODE_HAS_COMPAT(DT_PARENT(part), zephyr_xip_partitions)), ( \
 		COND_CODE_1(DT_NODE_HAS_STATUS_OKAY(DT_MTD_FROM_FIXED_PARTITION(part)), \
 			(FLASH_AREA_FOO(part, DT_MTD_FROM_FIXED_PARTITION)), ())), ( \
 		COND_CODE_1(DT_NODE_HAS_STATUS_OKAY(DT_MTD_FROM_FIXED_SUBPARTITION(part)), \
@@ -39,6 +40,7 @@
  * 'fixed-partitions' node.  This way we build a global partition map
  */
 const struct flash_area default_flash_map[] = {
+	DT_FOREACH_STATUS_OKAY(fixed_zephyr_xip_partitions, FOREACH_PARTITION)
 	DT_FOREACH_STATUS_OKAY(fixed_partitions, FOREACH_PARTITION)
 	DT_FOREACH_STATUS_OKAY(fixed_subpartitions, FOREACH_PARTITION)
 };
@@ -54,7 +56,7 @@ const struct flash_area *flash_map = default_flash_map;
 	COND_CODE_1(DT_NODE_HAS_STATUS_OKAY(DT_MTD_FROM_FIXED_PARTITION(part)),			\
 		(DEFINE_PARTITION_0(part, ord)), ())
 #define DEFINE_PARTITION_0(part, ord)								\
-	const struct flash_area DT_CAT(global_fixed_partition_ORD_, ord) = {			\
+	const struct flash_area DT_CAT(global_zephyr_xip_partition_ORD_, ord) = {		\
 		.fa_id = DT_FIXED_PARTITION_ID(part),						\
 		.fa_off = FIXED_PARTITION_NODE_OFFSET(part),					\
 		.fa_dev = DEVICE_DT_GET(DT_MTD_FROM_FIXED_PARTITION(part)),			\
@@ -62,6 +64,24 @@ const struct flash_area *flash_map = default_flash_map;
 	};
 
 #define FOR_EACH_PARTITION_TABLE(table) DT_FOREACH_CHILD(table, DEFINE_PARTITION)
+DT_FOREACH_STATUS_OKAY(zephyr_xip_partitions, FOR_EACH_PARTITION_TABLE)
+
+#undef DEFINE_PARTITION
+#undef DEFINE_PARTITION_1
+#undef DEFINE_PARTITION_0
+
+#define DEFINE_PARTITION(part) DEFINE_PARTITION_1(part, DT_DEP_ORD(part))
+#define DEFINE_PARTITION_1(part, ord)								\
+	COND_CODE_1(DT_NODE_HAS_STATUS_OKAY(DT_MTD_FROM_FIXED_PARTITION(part)),			\
+		(DEFINE_PARTITION_0(part, ord)), ())
+#define DEFINE_PARTITION_0(part, ord)								\
+	const struct flash_area DT_CAT(global_fixed_partition_ORD_, ord) = {			\
+		.fa_id = DT_FIXED_PARTITION_ID(part),						\
+		.fa_off = FIXED_PARTITION_NODE_OFFSET(part),					\
+		.fa_dev = DEVICE_DT_GET(DT_MTD_FROM_FIXED_PARTITION(part)),			\
+		.fa_size = DT_REG_SIZE(part),							\
+	};
+
 DT_FOREACH_STATUS_OKAY(fixed_partitions, FOR_EACH_PARTITION_TABLE)
 
 #define DEFINE_SUBPARTITION(part) DEFINE_SUBPARTITION_1(part, DT_DEP_ORD(part))

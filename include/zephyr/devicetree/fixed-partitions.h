@@ -50,7 +50,9 @@ extern "C" {
  * @return a node identifier for the partition with that label property
  */
 #define DT_NODE_BY_FIXED_PARTITION_LABEL(label) \
-	DT_CAT(DT_COMPAT_fixed_partitions_LABEL_, label)
+	COND_CODE_1(IS_ENABLED(DT_CAT3(DT_COMPAT_zephyr_xip_partitions_LABEL_, label, _EXISTS)), \
+	(DT_CAT(DT_COMPAT_zephyr_xip_partitions_LABEL_, label)), \
+	(DT_CAT(DT_COMPAT_fixed_partitions_LABEL_, label)))
 
 /**
  * @brief Test if a fixed partition with a given label property exists
@@ -59,7 +61,8 @@ extern "C" {
  *         0 otherwise.
  */
 #define DT_HAS_FIXED_PARTITION_LABEL(label) \
-	IS_ENABLED(DT_CAT3(DT_COMPAT_fixed_partitions_LABEL_, label, _EXISTS))
+	UTIL_OR(IS_ENABLED(DT_CAT3(DT_COMPAT_zephyr_xip_partitions_LABEL_, label, _EXISTS)), \
+		IS_ENABLED(DT_CAT3(DT_COMPAT_fixed_partitions_LABEL_, label, _EXISTS)))
 
 /**
  * @brief Test if fixed-partition compatible node exists
@@ -68,7 +71,8 @@ extern "C" {
  * @return 1 if node exists and is fixed-partition compatible, 0 otherwise.
  */
 #define DT_FIXED_PARTITION_EXISTS(node_id)		\
-	DT_NODE_HAS_COMPAT(DT_PARENT(node_id), fixed_partitions)
+	UTIL_OR(DT_NODE_HAS_COMPAT(DT_PARENT(node_id), fixed_partitions), \
+	DT_NODE_HAS_COMPAT(DT_PARENT(node_id), zephyr_xip_partitions))
 
 /**
  * @brief Get a numeric identifier for a fixed partition
