@@ -14,24 +14,9 @@ description: |
   the start address of flash0 in memory to each partition's
   reg address.
 
-compatible: "zephyr,xip-partitions"
+compatible: "zephyr,xip-partition"
 
 properties:
-  "#address-cells":
-    type: int
-    description: |
-      Number of cells required to represent a child node's
-      reg property address. This must be large enough to
-      represent the start offset of each partition.
-
-  "#size-cells":
-    type: int
-    description: |
-      Number of cells required to represent a child node's
-      reg property address. This must be large enough to
-      represent the size of each partition in bytes.
-
-#child-binding:
 #  description: |
 #    Each child node of the fixed-partitions node represents
 #    an individual flash partition. These should usually
@@ -41,22 +26,21 @@ properties:
 #              label = "human-readable-name";
 #              reg = <0xSTART_OFFSET 0xSIZE>;
 #      };
-#  properties:
-#    label:
-#      type: string
-#      description: |
-#        Human readable string describing the flash partition.
-#    read-only:
-#      type: boolean
-#      description: set this property if the partition is read-only
-#    reg:
-#      type: array
-#      description: |
-#        This should be in the format <OFFSET SIZE>, where OFFSET
-#        is the offset of the flash partition relative to the base
-#        address of the parent memory, and SIZE is the size of
-#        the partition in bytes.
-#      required: true
+  label:
+    type: string
+    description: |
+      Human readable string describing the flash partition.
+  read-only:
+    type: boolean
+    description: set this property if the partition is read-only
+  reg:
+    type: array
+    description: |
+      This should be in the format <OFFSET SIZE>, where OFFSET
+      is the offset of the flash partition relative to the base
+      address of the parent memory, and SIZE is the size of
+      the partition in bytes.
+    required: true
 
 examples:
   - |

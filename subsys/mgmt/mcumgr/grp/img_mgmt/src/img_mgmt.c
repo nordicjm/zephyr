@@ -43,6 +43,16 @@
 
 #if !defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_RAM_LOAD)
 
+/*
+chosen node vs 
+
+#define DT_N_NODELABEL_slot0_partition DT_N_S_soc_S_memory_0_S_partitions_S_partition_c000
+
+*/
+
+//#if DT_CAT3(DT_COMPAT_zephyr_xip_partitions_LABEL_, , _EXISTS)
+
+#if 0
 #ifndef CONFIG_FLASH_LOAD_OFFSET
 #error MCUmgr requires application to be built with CONFIG_FLASH_LOAD_OFFSET set \
 	to be able to figure out application running slot.
@@ -54,6 +64,10 @@
 			(CONFIG_FLASH_BASE_ADDRESS + CONFIG_FLASH_LOAD_OFFSET) &&                  \
 		FIXED_PARTITION_ADDRESS(label) + FIXED_PARTITION_SIZE(label) >                     \
 			(CONFIG_FLASH_BASE_ADDRESS + CONFIG_FLASH_LOAD_OFFSET))
+#endif
+
+#define FIXED_PARTITION_IS_RUNNING_APP_PARTITION(label)                                            \
+DT_SAME_NODE(DT_CHOSEN(zephyr_code_partition), DT_NODELABEL(label))
 
 BUILD_ASSERT(sizeof(struct image_header) == IMAGE_HEADER_SIZE,
 	     "struct image_header not required size");
