@@ -1656,7 +1656,7 @@ class Node:
         # bus be None means we'll always match the binding for fixed-partitions
         # also this means want processing the fixed-partitions node we wouldn't
         # try to do anything bus specific with it.
-        if support_fixed_partitions_on_any_bus and ("fixed-partitions" in self.compats or "zephyr,xip-partitions" in self.compats):
+        if support_fixed_partitions_on_any_bus and "fixed-partitions" in self.compats:
             return None
 
         if self.parent.buses:
