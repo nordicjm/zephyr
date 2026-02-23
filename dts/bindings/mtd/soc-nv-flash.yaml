@@ -12,3 +12,10 @@ properties:
   write-block-size:
     type: int
     description: address alignment required by flash write operations
+
+  flash-peripheral:
+    type: phandle
+    description: |
+      Phandle to the flash peripheral which controls access to and performs action on the flash
+      memory node. Required for devices that have partitions using the `zephyr,mapped-partitions`
+      compatible.
