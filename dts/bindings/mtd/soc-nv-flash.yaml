@@ -17,4 +17,5 @@ properties:
     type: phandle
     description: |
       Phandle to the flash peripheral whose driver functions are used to interact with this flash
-      node.
+      node. Required for devices that have partitions using the ``zephyr,xip-partitions``
+      compatible.
