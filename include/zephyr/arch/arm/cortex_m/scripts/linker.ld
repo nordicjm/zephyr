@@ -41,14 +41,8 @@
 #endif
 
 #if CONFIG_FLASH_USES_XIP_PARTITIONS
-#if defined(CONFIG_ROM_START_OFFSET)
-#define ROM_START_OFFSET CONFIG_ROM_START_OFFSET
-#else
-#define ROM_START_OFFSET 0
-#endif
-
-#define ROM_ADDR (DT_REG_ADDR(DT_CHOSEN(zephyr_code_partition)) + ROM_START_OFFSET)
-#define ROM_SIZE (DT_REG_SIZE(DT_CHOSEN(zephyr_code_partition)) - ROM_START_OFFSET - ROM_END_OFFSET)
+#define ROM_ADDR (DT_REG_ADDR(DT_CHOSEN(zephyr_code_partition)))
+#define ROM_SIZE (DT_REG_SIZE(DT_CHOSEN(zephyr_code_partition)) - ROM_END_OFFSET)
 #else
 #if !defined(CONFIG_XIP) && (CONFIG_FLASH_SIZE == 0)
 #define ROM_ADDR RAM_ADDR
