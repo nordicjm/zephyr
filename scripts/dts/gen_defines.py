@@ -568,7 +568,9 @@ def write_pinctrls(node: edtlib.Node) -> None:
 def write_fixed_partitions(node: edtlib.Node) -> None:
     # Macros for child nodes of each fixed-partitions node.
 
-    if not (node.parent and ("fixed-partitions" in node.parent.compats or "fixed-subpartitions" in node.parent.compats)):
+    if not (node.parent and ("fixed-partitions" in node.parent.compats or \
+        "zephyr,xip-partitions" in node.parent.compats or
+        "fixed-subpartitions" in node.parent.compats)):
         return
 
     global flash_area_num
@@ -1057,7 +1059,7 @@ def write_global_macros(edt: edtlib.EDT):
 
     for compat, nodes in edt.compat2nodes.items():
         for node in nodes:
-            if compat == "fixed-partitions":
+            if compat == "fixed-partitions" or compat == "zephyr,xip-partitions":
                 for child in node.children.values():
                     if "label" in child.props:
                         label = child.props["label"].val
