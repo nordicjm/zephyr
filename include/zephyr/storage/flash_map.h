@@ -533,6 +533,23 @@ uint8_t flash_area_erased_val(const struct flash_area *fa);
 /* Generate declarations */
 DT_FOREACH_STATUS_OKAY(fixed_partitions, FOR_EACH_PARTITION_TABLE)
 
+#undef FIXED_PARTITION_1
+#undef FIXED_PARTITION_0
+#undef DECLARE_PARTITION
+#undef DECLARE_PARTITION_0
+#undef FOR_EACH_PARTITION_TABLE
+
+#define FIXED_PARTITION_1(node)	FIXED_PARTITION_0(DT_DEP_ORD(node))
+#define FIXED_PARTITION_0(ord)							\
+	((const struct flash_area *)&DT_CAT(global_zephyr_xip_partition_ORD_, ord))
+
+#define DECLARE_PARTITION(node) DECLARE_PARTITION_0(DT_DEP_ORD(node))
+#define DECLARE_PARTITION_0(ord)						\
+	extern const struct flash_area DT_CAT(global_zephyr_xip_partition_ORD_, ord);
+#define FOR_EACH_PARTITION_TABLE(table) DT_FOREACH_CHILD(table, DECLARE_PARTITION)
+
+DT_FOREACH_STATUS_OKAY(zephyr_xip_partitions, FOR_EACH_PARTITION_TABLE)
+
 #undef DECLARE_PARTITION
 #undef DECLARE_PARTITION_0
 #undef FOR_EACH_PARTITION_TABLE
