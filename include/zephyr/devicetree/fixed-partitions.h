@@ -97,9 +97,13 @@ extern "C" {
  * @return the node identifier of the memory technology device that
  * contains the fixed-partitions node.
  */
-#define DT_MTD_FROM_FIXED_PARTITION(node_id)                                                       \
-	COND_CODE_1(DT_NODE_EXISTS(DT_MEM_FROM_FIXED_PARTITION(node_id)),                          \
-		    (DT_PARENT(DT_MEM_FROM_FIXED_PARTITION(node_id))), (DT_GPARENT(node_id)))
+#define DT_MTD_FROM_FIXED_PARTITION(node_id)							\
+	COND_CODE_1(DT_NODE_EXISTS(DT_MEM_FROM_FIXED_PARTITION(node_id)),			\
+		(COND_CODE_1(DT_NODE_HAS_COMPAT(DT_PARENT(node_id), zephyr_xip_partitions),	\
+			     (DT_PHANDLE(DT_MEM_FROM_FIXED_PARTITION(node_id),			\
+					 flash_peripheral_dev)),				\
+			     (DT_PARENT(DT_MEM_FROM_FIXED_PARTITION(node_id))))),		\
+			     (DT_GPARENT(node_id)))
 
 /**
  * @brief Get the absolute address of a fixed partition
