@@ -1,0 +1,76 @@
+description: |
+  XIP partitions of a flash (or other non-volatile storage) memory.
+
+  Note that the usual name for this node is 'partitions'. The ``zephyr,xip-partitions`` node should
+  be a child of the NVM memory node. Note also that the NVM memory node is usually different from
+  the node representing the NVM controller IP block, and the NVM memory node should have a
+  ``flash-peripheral-dev`` phandle property specifying the NVM peripheral device and a ``ranges``
+  property specifying the full range of the NVM area (usually the same as the ``reg`` property with
+  a 0x0 prepended before the offset value). The ``zephyr,xip-partitions`` node should have a
+  ``ranges;`` property to pass the parent's ranges on to child nodes.
+
+compatible: "zephyr,xip-partitions"
+
+properties:
+  "#address-cells":
+    type: int
+    default: 1
+    description: |
+      Number of cells required to represent a child node's reg property address. This must be
+      large enough to represent the start offset of each partition. Default is chosen to support
+      a 32-bit address.
+
+  "#size-cells":
+    type: int
+    default: 1
+    description: |
+      Number of cells required to represent a child node's reg property address. This must be
+      large enough to represent the size of each partition in bytes. Default is chosen to support
+      a 32-bit address.
+
+examples:
+  - |
+    &flash0 {
+            flash-peripheral-dev = <&flash_interface>;
+            reg = <0x00000000 DT_SIZE_K(1024)>;
+            ranges = <0x0 0x00000000 DT_SIZE_K(1024)>;
+
+            partitions {
+                    compatible = "zephyr,xip-partitions";
+                    ranges;
+
+                    /*
+                     * Offsets are relative to the grandparent's flash0 node, if flash0 has an
+                     * address of 0x10000000 then the below offset of 0x0 means address 0x10000000
+                     */
+                    boot_partition: partition@0 {
+                            compatible = "zephyr,xip-partition";
+                            label = "mcuboot";
+                            reg = <0x00000000 0x0000C000>;
+                    };
+
+                    slot0_partition: partition@c000 {
+                            compatible = "zephyr,xip-partition";
+                            label = "image-0";
+                            reg = <0x0000C000 0x00076000>;
+                    };
+
+                    slot1_partition: partition@82000 {
+                            compatible = "zephyr,xip-partition";
+                            label = "image-1";
+                            reg = <0x00082000 0x00076000>;
+                    };
+
+                    /*
+                     * Below example disables an NVM partition, if using the flash map subsystem
+                     * with the default mappings then the below partition will not be present in
+                     * the flash map
+                     */
+                    storage_partition: partition@f8000 {
+                            compatible = "zephyr,xip-partition";
+                            label = "storage";
+                            reg = <0x000f8000 0x00008000>;
+                            status = "disabled";
+                    };
+            };
+    };

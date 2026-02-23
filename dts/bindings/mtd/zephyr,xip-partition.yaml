@@ -1,0 +1,34 @@
+description: |
+  XIP partition of a flash (or other non-volatile storage) memory.
+
+  This should be the binding of children of ``zephyr,xip-partitions`` nodes, and specifies a
+  partition in an NVM device which is memory-mapped (as opposed to ``fixed-partitions`` which is
+  not memory mapped).
+
+  See the ``zephyr,xip-partitions`` binding for an example of how to use ``zephyr,xip-partition``.
+
+compatible: "zephyr,xip-partition"
+
+properties:
+#  description: |
+#    Each child node of the fixed-partitions node represents
+#    an individual flash partition. These should usually
+#    look like this:
+#
+#      partition_nodelabel: partition@START_OFFSET {
+#              label = "human-readable-name";
+#              reg = <0xSTART_OFFSET 0xSIZE>;
+#      };
+  label:
+    type: string
+    description: Human readable string describing the NVM partition.
+  read-only:
+    type: boolean
+    description: Set this property if the partition is read-only
+  reg:
+    type: array
+    required: true
+    description: |
+      This should be in the format <OFFSET SIZE>, where OFFSET is the offset of the flash
+      partition relative to the base address of the parent memory, and SIZE is the size of the
+      partition in bytes.
