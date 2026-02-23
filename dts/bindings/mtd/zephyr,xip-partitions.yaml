@@ -1,10 +1,13 @@
 description: |
   XIP partitions of a flash (or other non-volatile storage) memory.
 
-  Note that the usual name for this node is 'partitions'. The zephyr,xip-partitions node should be
-  a child of the NVM memory node. Note also that the NVM memory node is usually different from the
-  node representing the NVM controller IP block, and the NVM memory node should have a
-  ``flash-peripheral-dev`` phandle property specifying the NVM peripheral device.
+  Note that the usual name for this node is 'partitions'. The ``zephyr,xip-partitions`` node should
+  be a child of the NVM memory node. Note also that the NVM memory node is usually different from
+  the node representing the NVM controller IP block, and the NVM memory node should have a
+  ``flash-peripheral-dev`` phandle property specifying the NVM peripheral device and a ``ranges``
+  property specifying the full range of the NVM area (usually the same as the ``reg`` property with
+  a 0x0 prepended before the offset value). The ``zephyr,xip-partitions`` node should have a
+  ``ranges;`` property to pass the parent's ranges on to child nodes.
 
 compatible: "zephyr,xip-partitions"
 
@@ -29,9 +32,12 @@ examples:
   - |
     &flash0 {
             flash-peripheral-dev = <&flash_interface>;
+            reg = <0x00000000 DT_SIZE_K(1024)>;
+            ranges = <0x0 0x00000000 DT_SIZE_K(1024)>;
 
             partitions {
                     compatible = "zephyr,xip-partitions";
+                    ranges;
 
                     /*
                      * Offsets are relative to the grandparent's flash0 node, if flash0 has an
