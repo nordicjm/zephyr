@@ -116,10 +116,19 @@ def main():
 
     compatible2paths = defaultdict(list)
     for node in edt.nodes:
+        output_compat = False
         cmake_props.append(f'"DT_NODE|{node.path}" TRUE')
 
         for label in node.labels:
             cmake_props.append(f'"DT_NODELABEL|{label}" "{node.path}"')
+
+        if node.compats:
+            # Manually output compatibles for nodes that have no properties
+            cmake_value = to_cmake_list(node.compats)
+
+            cmake_prop = f'DT_PROP|{node.path}|compatible'
+            cmake_props.append(f'"{cmake_prop}" "{escape(cmake_value)}"')
+            output_compat = True
 
         if node.props:
             for item in node.props:
@@ -127,6 +136,9 @@ def main():
                 # The code below supports the following phandle types:
                 # - phandle: which specifies a reference to a single node
                 # - phandles: which specifies a bare list of references to other nodes
+                if item == 'compatible' and output_compat is True:
+                    continue
+
                 if "phandle" in node.props[item].type:
                     if "array" in node.props[item].type:
                         continue  # phandle-array not supported
@@ -152,12 +164,6 @@ def main():
                     # with a name like 'DT_PROP|<path>|<property>'.
                     cmake_prop = f'DT_PROP|{node.path}|{item}'
                     cmake_props.append(f'"{cmake_prop}" "{escape(cmake_value)}"')
-        elif node.compats:
-            # Manually output compatibles for nodes that have no properties
-            cmake_value = to_cmake_list(node.compats)
-
-            cmake_prop = f'DT_PROP|{node.path}|compatible'
-            cmake_props.append(f'"{cmake_prop}" "{escape(cmake_value)}"')
 
         for comp in node.compats:
             compatible2paths[comp].append(node.path)
