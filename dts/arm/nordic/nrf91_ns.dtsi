@@ -33,6 +33,8 @@
 	};
 
 	soc {
+		compatible = "simple-bus";
+
 		sram0: memory@20000000 {
 			compatible = "mmio-sram";
 			#address-cells = <1>;
