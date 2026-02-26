@@ -76,6 +76,16 @@
 		};
 	};
 
+	cpuapp_rram: memory@0 {
+		compatible = "soc-nv-flash";
+		erase-block-size = <4096>;
+		write-block-size = <16>;
+		flash-peripheral-dev = <&rram_controller>;
+		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <1>;
+	};
+
 	soc {
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -730,14 +740,6 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 			interrupts = <75 NRF_DEFAULT_IRQ_PRIORITY>;
-
-			cpuapp_rram: rram@0 {
-				compatible = "soc-nv-flash";
-				erase-block-size = <4096>;
-				write-block-size = <16>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-			};
 		};
 
 		nrf_mpc: memory@50041000 {
