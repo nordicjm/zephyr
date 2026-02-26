@@ -34,7 +34,21 @@
 		zephyr,flash-controller = &flash_controller;
 	};
 
+	flash0: flash@0 {
+		compatible = "soc-nv-flash";
+		erase-block-size = <4096>;
+		write-block-size = <4>;
+		reg = <0x00000000 DT_SIZE_K(1024)>;
+		ranges = <0x0 0x00000000 DT_SIZE_K(1024)>;
+		flash-peripheral-dev = <&flash_controller>;
+		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <1>;
+	};
+
 	soc {
+		compatible = "simple-bus";
+
 		sram0: memory@20000000 {
 			compatible = "mmio-sram";
 			#address-cells = <1>;

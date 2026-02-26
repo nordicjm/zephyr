@@ -32,7 +32,21 @@
 		};
 	};
 
+	flash1: memory@1000000 {
+		compatible = "soc-nv-flash";
+		erase-block-size = <2048>;
+		write-block-size = <4>;
+		reg = <0x01000000 DT_SIZE_K(256)>;
+		ranges = <0x0 0x01000000 DT_SIZE_K(256)>;
+		flash-peripheral-dev = <&flash_controller>;
+		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <1>;
+	};
+
 	soc {
+		compatible = "simple-bus";
+
 		ficr: ficr@1ff0000 {
 			compatible = "nordic,nrf-ficr";
 			reg = <0x01ff0000 0x1000>;
@@ -307,19 +321,11 @@
 
 		flash_controller: flash-controller@41080000 {
 			compatible = "nordic,nrf53-flash-controller";
-			reg = <0x41080000 0x1000>;
+			reg = <0x41080000 0x1000>, <0x01000000 DT_SIZE_K(256)>;
 			partial-erase;
 
 			#address-cells = <1>;
 			#size-cells = <1>;
-
-			flash1: flash@1000000 {
-				compatible = "soc-nv-flash";
-				erase-block-size = <2048>;
-				write-block-size = <4>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-			};
 		};
 
 		vmc: vmc@41081000 {

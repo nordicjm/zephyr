@@ -530,17 +530,11 @@ usbreg: regulator@37000 {
 
 flash_controller: flash-controller@39000 {
 	compatible = "nordic,nrf53-flash-controller";
-	reg = <0x39000 0x1000>;
+	reg = <0x39000 0x1000>, <0x00000000 DT_SIZE_K(1024)>;
 	partial-erase;
 
 	#address-cells = <1>;
 	#size-cells = <1>;
-
-	flash0: flash@0 {
-		compatible = "soc-nv-flash";
-		erase-block-size = <4096>;
-		write-block-size = <4>;
-	};
 };
 
 kmu: kmu@39000 {
