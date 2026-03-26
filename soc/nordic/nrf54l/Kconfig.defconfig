@@ -42,6 +42,9 @@ if RISCV
 DT_CHOSEN_Z_SRAM = zephyr,sram
 DT_CHOSEN_Z_CODE = zephyr,code-partition
 
+config ROM_START_OFFSET
+	default 0x800 if BOOTLOADER_MCUBOOT
+
 config BUILD_OUTPUT_ADJUST_LMA
 	depends on !XIP
 	default "$(dt_chosen_partition_addr_hex,$(DT_CHOSEN_Z_CODE)) - \

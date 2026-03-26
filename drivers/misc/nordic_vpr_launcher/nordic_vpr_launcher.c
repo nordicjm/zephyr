@@ -51,7 +51,7 @@ static int nordic_vpr_launcher_init(const struct device *dev)
 
 #if DT_ANY_INST_HAS_PROP_STATUS_OKAY(source_memory)
 	if (config->size > 0U) {
-		LOG_DBG("Loading VPR (%p) from %p to %p (%zu bytes)", config->vpr,
+		LOG_ERR("Loading VPR (%p) from %p to %p (%zu bytes)", config->vpr,
 			(void *)config->src_addr, (void *)config->exec_addr, config->size);
 		memcpy((void *)config->exec_addr, (void *)config->src_addr, config->size);
 #if defined(CONFIG_DCACHE)
@@ -62,14 +62,14 @@ static int nordic_vpr_launcher_init(const struct device *dev)
 	}
 #endif
 
-#if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE)
-#if DT_ANY_INST_HAS_BOOL_STATUS_OKAY(enable_secure)
+//#if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE)
+//#if DT_ANY_INST_HAS_BOOL_STATUS_OKAY(enable_secure)
 	if (config->enable_secure) {
 		nrf_spu_periph_perm_secattr_set(NRF_SPU00,
 						nrf_address_slave_get((uint32_t)config->vpr),
 						true);
 	}
-#endif
+//#endif
 #if DT_ANY_INST_HAS_BOOL_STATUS_OKAY(enable_dma_secure)
 	if (config->enable_dma_secure) {
 		nrf_spu_periph_perm_dmasec_set(NRF_SPU00,
@@ -77,9 +77,10 @@ static int nordic_vpr_launcher_init(const struct device *dev)
 						true);
 	}
 #endif
-#endif
-	LOG_DBG("Launching VPR (%p) from %p", config->vpr, (void *)config->exec_addr);
+//#endif
+	LOG_ERR("Launching VPR (%p) from %p", config->vpr, (void *)config->exec_addr);
 	nrf_vpr_initpc_set(config->vpr, config->exec_addr);
+k_sleep(K_SECONDS(4));
 	nrf_vpr_cpurun_set(config->vpr, true);
 
 #if DT_ANY_INST_HAS_PROP_STATUS_OKAY(hibernation_ram_block)
