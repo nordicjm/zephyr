@@ -30,6 +30,12 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(transport_mgmt);
 
+struct transport_id_lookup_t {
+	struct smp_transport *transport;
+	uint32_t transport_id;
+	bool found;
+};
+
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_LOCKING)
 static K_SEM_DEFINE(mcumgr_transport_sem, 1, 1);
 
@@ -328,7 +334,7 @@ end:
 static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 {
 	int rc;
-	zcbor_state_t *zse = ctxt->writer->zs;
+//	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
 	size_t decoded;
@@ -447,16 +453,76 @@ return MGMT_ERR_EBADSTATE;
 	return MGMT_RETURN_CHECK(ok);
 }
 
+static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	struct transport_id_lookup_t *transport_lookup = (struct transport_id_lookup_t *)user_data;
+
+	if (transport->smpt == transport_lookup->transport) {
+		transport_lookup->transport_id = transport->smpt_type;
+		transport_lookup->found = true;
+		return false;
+	}
+
+	return true;
+}
+
 static int transport_mgmt_status(struct smp_streamer *ctxt)
 {
-//TODO
-/*
-return:
-  * number of supported bridges
-  * number of active bridges
-  * if current transport bridge is active
-  * if so, where it is bridged to?
-*/
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	bool ok = true;
+	uint32_t active = 0;
+	bool bridged = false;
+	struct transport_id_lookup_t transport_lookup = {
+		.found = false,
+	};
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+//	/* Send notification to say a bridge is being dropped */
+//	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
+//	      sizeof(group_detail_data), &err_rc, &err_group);
+//
+//	if (status != MGMT_CB_OK) {
+//		*data->ok = false;
+//		return false;
+//	}
+#endif
+
+	transport_mgmt_lock();
+
+	uint8_t i = 0;
+
+	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+		if (bridges[i].status == 1) {
+			++active;
+
+			if (bridges[i].outgoing_transport == ctxt->smpt) {
+				bridged = true;
+				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop, (void *)&transport_lookup);
+			}
+		}
+
+		++i;
+	}
+
+	transport_mgmt_unlock();
+
+	ok = zcbor_tstr_put_lit(zse, "supported") &&
+	     zcbor_uint32_put(zse, CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) &&
+	     zcbor_tstr_put_lit(zse, "active") &&
+	     zcbor_uint32_put(zse, active);
+
+	if (ok && bridged == true) {
+		ok = zcbor_tstr_put_lit(zse, "bridged") &&
+		     zcbor_bool_put(zse, true);
+
+		if (ok && transport_lookup.found == true) {
+			ok = zcbor_tstr_put_lit(zse, "transport") &&
+			     zcbor_uint32_put(zse, transport_lookup.transport_id);
+		}
+	}
+
+	return MGMT_RETURN_CHECK(ok);
 }
 //		ok = smp_add_cmd_err(zse, MGMT_GROUP_ID_SETTINGS, (uint16_t)rc);
 

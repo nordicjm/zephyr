@@ -235,10 +235,7 @@ Return information on active bridges and what device supports.
 Fetch bridged transport status request
 ======================================
 
-Fetch bridges transport status request header fields:
-
-TODO
-Disconnect the current transport's bridge, or disconnect all transport bridges.
+Fetch bridged transport status request header fields:
 
 .. table::
     :align: center
@@ -249,8 +246,83 @@ Disconnect the current transport's bridge, or disconnect all transport bridges.
     | ``0``  | ``11``       | ``2``          |
     +--------+--------------+----------------+
 
+The command sends an empty CBOR map as data.
 
+Fetch bridged transport status response
+=======================================
 
+Fetch bridged transport status response header fields:
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``1``  | ``11``       | ``2``          |
+    +--------+--------------+----------------+
+
+CBOR data of successful response:
+
+.. code-block:: none
+
+    {
+        (str)"supported"      : (uint)
+        (str)"active"         : (uint)
+        (str,opt)"bridged"    : (bool)
+        (str,opt)"transport"  : (uint)
+    }
+
+In case of error the CBOR data takes the form:
+
+.. tabs::
+
+   .. group-tab:: SMP version 2
+
+      .. code-block:: none
+
+          {
+              (str)"err" : {
+                  (str)"group"    : (uint)
+                  (str)"rc"       : (uint)
+              }
+          }
+
+   .. group-tab:: SMP version 1
+
+      .. code-block:: none
+
+          {
+              (str)"rc"       : (int)
+          }
+
+where:
+
+.. table::
+    :align: center
+
+    +------------------+----------------------------------------------------------------------------+
+    | "supported"      | contains how many bridges can be active at a given time.                   |
+    +------------------+----------------------------------------------------------------------------+
+    | "active"         | contains how many bridges are currently active.                            |
+    +------------------+----------------------------------------------------------------------------+
+    | "bridged"        | will be present and true if the current transport is bridged, otherwise    |
+    |                  | will be omitted.                                                           |
+    +------------------+----------------------------------------------------------------------------+
+    | "transport"      | the transport ID of the MCUmgr transport that the transport is bridged to. |
+    |                  | Only appears if the transport is bridged.                                  |
+    +------------------+----------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only appears |
+    |                  | if an error is returned when using SMP version 2.                          |
+    +------------------+----------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if non-zero |
+    |                  | (error condition) when using SMP version 2.                                |
+    +------------------+----------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when     |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.            |
+    +------------------+----------------------------------------------------------------------------+
+
+TODO
 
 List transports command
 ***********************
