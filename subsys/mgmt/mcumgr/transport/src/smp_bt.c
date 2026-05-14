@@ -654,7 +654,7 @@ static bool smp_bt_query_valid_check(struct net_buf *nb, void *arg)
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 static bool smp_bt_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
-	struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
+	struct cbor_nb_reader *cnr = CONTAINER_OF(input_data, struct cbor_nb_reader, zs[0]);
 	struct smp_bt_user_data *ud;
 
 	if (outgoing == true) {
