@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025-2026 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+//bluetooth -> shell, connect then send once, goes out (no response) then send another -> crash
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
@@ -167,7 +169,7 @@ finish:
 
 static int transport_mgmt_list(struct smp_streamer *ctxt)
 {
-	int rc;
+//	int rc;
 	zcbor_state_t *zse = ctxt->writer->zs;
 	bool ok = true;
 
@@ -194,7 +196,7 @@ static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
 
 static int transport_mgmt_connect(struct smp_streamer *ctxt)
 {
-	int rc;
+//	int rc;
 	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
@@ -284,9 +286,7 @@ return MGMT_ERR_EBADSTATE;
 	}
 
 //TODO:
-	rc = outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd);
-
-	if (rc != 0) {
+	if (outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd) == false) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EACCESSDENIED;
@@ -295,9 +295,8 @@ return MGMT_ERR_EACCESSDENIED;
 	}
 
 //TODO:
-	rc = ctxt->smpt->functions.bridge_connect(&bridges[i], false, false, zse, zsd);
 
-	if (rc != 0) {
+	if (ctxt->smpt->functions.bridge_connect(&bridges[i], false, false, zse, zsd) == false) {
 //TODO: error
 		(void)outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
 		transport_mgmt_unlock();
@@ -327,13 +326,13 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 #endif
 
 //TODO
-end:
+//end:
 	return MGMT_RETURN_CHECK(ok);
 }
 
 static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 {
-	int rc;
+//	int rc;
 //	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
@@ -468,7 +467,7 @@ static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *
 
 static int transport_mgmt_status(struct smp_streamer *ctxt)
 {
-	int rc;
+//	int rc;
 	zcbor_state_t *zse = ctxt->writer->zs;
 	bool ok = true;
 	uint32_t active = 0;
@@ -496,8 +495,13 @@ static int transport_mgmt_status(struct smp_streamer *ctxt)
 		if (bridges[i].status == 1) {
 			++active;
 
-			if (bridges[i].outgoing_transport == ctxt->smpt) {
+			if (bridges[i].incoming_transport == ctxt->smpt) {
 				bridged = true;
+				transport_lookup.transport = bridges[i].outgoing_transport;
+				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop, (void *)&transport_lookup);
+			} else if (bridges[i].outgoing_transport == ctxt->smpt) {
+				bridged = true;
+				transport_lookup.transport = bridges[i].incoming_transport;
 				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop, (void *)&transport_lookup);
 			}
 		}
