@@ -200,7 +200,7 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
-	size_t decoded;
+	size_t decoded = 0;
 	uint32_t transport_id = 0;
 //struct smp_transport *smpt;
 	size_t backup_element_count_reader = zsd->elem_count;
@@ -336,10 +336,10 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 //	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
-	size_t decoded;
+	size_t decoded = 0;
 	uint32_t transport_id = 0;
 //struct smp_transport *smpt;
-	bool disconnect_all;
+	bool disconnect_all = false;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
