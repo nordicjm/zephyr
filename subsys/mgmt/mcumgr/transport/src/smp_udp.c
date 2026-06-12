@@ -498,7 +498,7 @@ int smp_udp_close(void)
 }
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-static bool smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
+static bool smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
 //TODO: is connected?
 	int rc;
@@ -510,7 +510,7 @@ static bool smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool ou
 	uint8_t server_ip[16] = { 0 };
 
 	if (outgoing == false) {
-		struct cbor_nb_reader *cnr = CONTAINER_OF(data, struct cbor_nb_reader, zs[0]);
+		struct cbor_nb_reader *cnr = CONTAINER_OF(input_data, struct cbor_nb_reader, zs[0]);
 
 		memcpy(smp_udp_configs.ipv4.bridge_user_data, net_buf_user_data(cnr->nb), sizeof(struct net_sockaddr));
 		return true;
@@ -521,7 +521,7 @@ static bool smp_udp4_bridge_connect(struct smp_transport_bridge *bridge, bool ou
 		ZCBOR_MAP_DECODE_KEY_DECODER("port", zcbor_uint32_decode, &port),
 	};
 
-        ok = zcbor_map_decode_bulk(data, udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), &decoded) == 0;
+        ok = zcbor_map_decode_bulk(input_data, udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), &decoded) == 0;
 
 //TODO: allow transport_id to be 0 by default?
         if (!ok || decoded < 2 || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "server") || !zcbor_map_decode_bulk_key_found(udp_bride_connect_decode, ARRAY_SIZE(udp_bride_connect_decode), "port")) {

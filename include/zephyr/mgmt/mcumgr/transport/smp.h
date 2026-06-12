@@ -126,7 +126,7 @@ typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
  */
 typedef bool (*smp_transport_bridge_connect_fn)(struct smp_transport_bridge *bridge, bool outgoing,
 						bool same_transport,
-						const zcbor_state_t *input_data,
+						zcbor_state_t *input_data,
 						zcbor_state_t *output_data);
 
 /** @typedef smp_transport_bridge_disconnect_fn
