@@ -340,6 +340,7 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	uint32_t transport_id = 0;
 //struct smp_transport *smpt;
 	bool disconnect_all = false;
+	uint8_t i = 0;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
@@ -368,72 +369,98 @@ return MGMT_ERR_EINVAL;
 //		goto end;
 	}
 
-if (disconnect_all == true) {
-//TODO: disconnect all
-} else {
-//TODO: check outgoing_transport is not null
-	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
-
-	if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
-//TODO: error
-		transport_mgmt_unlock();
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
+	if (disconnect_all == true) {
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
-	/* Send notification to say a bridge is being dropped */
-	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
-	      sizeof(group_detail_data), &err_rc, &err_group);
-
-	if (status != MGMT_CB_OK) {
-		*data->ok = false;
-		return false;
-	}
+//TODO: this event
+//	/* Send notification to say a bridge is being dropped */
+//	status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
+//	      sizeof(group_detail_data), &err_rc, &err_group);
+//
+//	if (status != MGMT_CB_OK) {
+//		*data->ok = false;
+//		return false;
+//	}
 #endif
 
-	transport_mgmt_lock();
 
-	uint8_t i = 0;
+		transport_mgmt_lock();
 
-	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-		if (bridges[i].status == 1 && bridges[i].outgoing_transport == outgoing_transport && bridges[i].incoming_transport == ctxt->smpt) {
-			break;
+
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+			if (bridges[i].status == 1) {
+				bridges[i].outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
+				bridges[i].incoming_transport->functions.bridge_disconnect(&bridges[i], false);
+				bridges[i].status = 0;
+				bridges[i].incoming_transport = NULL;
+				bridges[i].outgoing_transport = NULL;
+			}
+
+			++i;
 		}
 
-		++i;
-	}
 
-	if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+		bridge_active = false;
+	} else {
+//TODO: check outgoing_transport is not null
+		struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
+
+		if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
-		transport_mgmt_unlock();
+//		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
 //		goto end;
-	}
-
-	outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
-	ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
-
-	bridges[i].status = 0;
-	bridges[i].incoming_transport = NULL;
-	bridges[i].outgoing_transport = NULL;
-
-	i = 0;
-
-	while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-		if (bridges[i].status == 1) {
-			break;
 		}
 
-		++i;
-	}
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+		/* Send notification to say a bridge is being dropped */
+		status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
+		      sizeof(group_detail_data), &err_rc, &err_group);
 
-	if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-		bridge_active = false;
+		if (status != MGMT_CB_OK) {
+			*data->ok = false;
+			return false;
+		}
+#endif
+
+		transport_mgmt_lock();
+
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+			if (bridges[i].status == 1 && bridges[i].outgoing_transport == outgoing_transport && bridges[i].incoming_transport == ctxt->smpt) {
+				break;
+			}
+
+			++i;
+		}
+
+		if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+//TODO: error
+			transport_mgmt_unlock();
+return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+		}
+
+		outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
+		ctxt->smpt->functions.bridge_disconnect(&bridges[i], false);
+		bridges[i].status = 0;
+		bridges[i].incoming_transport = NULL;
+		bridges[i].outgoing_transport = NULL;
+
+		i = 0;
+
+		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+			if (bridges[i].status == 1) {
+				break;
+			}
+
+			++i;
+		}
+
+		if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
+			bridge_active = false;
+		}
 	}
-}
 
 	transport_mgmt_unlock();
 
