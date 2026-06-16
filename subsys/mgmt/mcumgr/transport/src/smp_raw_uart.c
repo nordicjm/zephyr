@@ -126,6 +126,7 @@ static int smp_raw_uart_init(void)
 
 	smp_raw_uart_transport.functions.output = smp_raw_uart_tx_pkt;
 	smp_raw_uart_transport.functions.get_mtu = smp_raw_uart_get_mtu;
+//TODO
 
 	rc = smp_transport_init(&smp_raw_uart_transport);
 

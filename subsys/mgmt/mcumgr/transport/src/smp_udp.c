@@ -629,6 +629,12 @@ LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs
 	return ret;
 }
 
+static int smp_udp4_bridge_details(zcbor_state_t *output_data)
+{
+//TODO
+	return MGMT_ERR_EOK;
+}
+
 static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
 {
 //TODO
@@ -656,6 +662,7 @@ static void smp_udp_start(void)
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_connect = smp_udp4_bridge_connect;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_disconnect = smp_udp4_bridge_disconnect;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_output = smp_udp4_bridge_tx;
+	smp_udp_configs.ipv4.smp_transport.functions.bridge_details = smp_udp4_bridge_details;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_config_details = smp_udp4_bridge_config_details;
 #endif
 
