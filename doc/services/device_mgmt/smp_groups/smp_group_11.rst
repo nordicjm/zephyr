@@ -19,7 +19,7 @@ Transport management group defines the following commands:
     +----------------+------------------------------------+
     | ``3``          | List transports                    |
     +----------------+------------------------------------+
-    | ``4`` x         | Details on transports              |
+    | ``4``          | Details on transports              |
     +----------------+------------------------------------+
     | ``5`` x         | Details on transport configuration |
     +----------------+------------------------------------+
@@ -416,6 +416,7 @@ Details on transports command
 *****************************
 
 TODO
+
 Return information on transports that the device supports.
 
 Details on transports request
@@ -423,15 +424,13 @@ Details on transports request
 
 Details on transports request header fields:
 
-TODO
-
 .. table::
     :align: center
 
     +--------+--------------+----------------+
     | ``OP`` | ``Group ID`` | ``Command ID`` |
     +========+==============+================+
-    | ``0``  | ``11``       | ``3``          |
+    | ``0``  | ``11``       | ``4``          |
     +--------+--------------+----------------+
 
 Details on transports response
@@ -445,7 +444,7 @@ Details on transports response header fields:
     +--------+--------------+----------------+
     | ``OP`` | ``Group ID`` | ``Command ID`` |
     +========+==============+================+
-    | ``1``  | ``11``       | ``3``          |
+    | ``1``  | ``11``       | ``4``          |
     +--------+--------------+----------------+
 
 CBOR data of successful response:
@@ -453,13 +452,14 @@ CBOR data of successful response:
 .. code-block:: none
 
     {
-        (str)"transports" : [
+        (str)"modes" : [
             {
-                (str)"transport"      : (uint)
-                (str,opt)"name"       : (str)
+                (str)"type"          : (uint)
+                (str)"description"   : (str)
             }
             ...
         ]
+        (str)"total"                 : (uint)
     }
 
 In case of error the CBOR data takes the form:
@@ -491,9 +491,11 @@ where:
     :align: center
 
     +------------------+-------------------------------------------------------------------------+
-    | "transport"      | the transport ID of the MCUmgr transport that supports bridging.        |
+    | "type"           | the type ID of the transport mode.                                      |
     +------------------+-------------------------------------------------------------------------+
-    | "name"           | the name of the MCUmgr transport.                                       |
+    | "description"    | description of the transport mode.                                      |
+    +------------------+-------------------------------------------------------------------------+
+    | "total"          | total number of supported modes for this transport.                     |
     +------------------+-------------------------------------------------------------------------+
     | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
     |                  | appears if an error is returned when using SMP version 2.               |
@@ -505,3 +507,102 @@ where:
     |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
     +------------------+-------------------------------------------------------------------------+
 
+
+Details on transport configuration command
+******************************************
+
+TODO
+
+Return information on transport configuration that is supported.
+
+Details on transport configuration request
+==========================================
+
+Details on transport configuration request header fields:
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``0``  | ``11``       | ``5``          |
+    +--------+--------------+----------------+
+
+Details on transport configuration response
+===========================================
+
+Details on transport configuration response header fields:
+
+.. table::
+    :align: center
+
+    +--------+--------------+----------------+
+    | ``OP`` | ``Group ID`` | ``Command ID`` |
+    +========+==============+================+
+    | ``1``  | ``11``       | ``5``          |
+    +--------+--------------+----------------+
+
+TODO
+
+CBOR data of successful response:
+
+.. code-block:: none
+
+    {
+        (str)"modes" : [
+            {
+                (str)"type"          : (uint)
+                (str)"description"   : (str)
+            }
+            ...
+        ]
+        (str)"total"                 : (uint)
+    }
+
+In case of error the CBOR data takes the form:
+
+.. tabs::
+
+   .. group-tab:: SMP version 2
+
+      .. code-block:: none
+
+          {
+              (str)"err" : {
+                  (str)"group"    : (uint)
+                  (str)"rc"       : (uint)
+              }
+          }
+
+   .. group-tab:: SMP version 1
+
+      .. code-block:: none
+
+          {
+              (str)"rc"       : (int)
+          }
+
+where:
+
+.. table::
+    :align: center
+
+TODO
+
+    +------------------+-------------------------------------------------------------------------+
+    | "type"           | the type ID of the transport mode.                                      |
+    +------------------+-------------------------------------------------------------------------+
+    | "description"    | description of the transport mode.                                      |
+    +------------------+-------------------------------------------------------------------------+
+    | "total"          | total number of supported modes for this transport.                     |
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
+    |                  | appears if an error is returned when using SMP version 2.               |
+    +------------------+-------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if       |
+    |                  | non-zero (error condition) when using SMP version 2.                    |
+    +------------------+-------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when  |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
+    +------------------+-------------------------------------------------------------------------+
