@@ -629,6 +629,7 @@ LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs
 	return ret;
 }
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 static int smp_udp4_bridge_details(zcbor_state_t *output_data)
 {
 //TODO
@@ -640,6 +641,7 @@ static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
 //TODO
 	return MGMT_ERR_EOK;
 }
+#endif
 #endif
 
 static void smp_udp_start(void)
@@ -662,8 +664,10 @@ static void smp_udp_start(void)
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_connect = smp_udp4_bridge_connect;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_disconnect = smp_udp4_bridge_disconnect;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_output = smp_udp4_bridge_tx;
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_details = smp_udp4_bridge_details;
 	smp_udp_configs.ipv4.smp_transport.functions.bridge_config_details = smp_udp4_bridge_config_details;
+#endif
 #endif
 
 	rc = smp_transport_init(&smp_udp_configs.ipv4.smp_transport);
