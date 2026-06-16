@@ -322,8 +322,6 @@ where:
     |                  | using SMP version 1 or for SMP errors when using SMP version 2.            |
     +------------------+----------------------------------------------------------------------------+
 
-TODO
-
 List transports command
 ***********************
 
@@ -333,8 +331,6 @@ List transports request
 =======================
 
 List transports request header fields:
-
-TODO
 
 .. table::
     :align: center
@@ -366,8 +362,8 @@ CBOR data of successful response:
     {
         (str)"transports" : [
             {
-                (str)"transport"      : (uint)
-                (str,opt)"name"       : (str)
+                (str)"id"         : (uint)
+                (str,opt)"name"   : (str)
             }
             ...
         ]
@@ -402,9 +398,9 @@ where:
     :align: center
 
     +------------------+-------------------------------------------------------------------------+
-    | "transport"      | the transport ID of the MCUmgr transport that supports bridging.        |
+    | "id"             | the transport ID of the MCUmgr transport that supports bridging.        |
     +------------------+-------------------------------------------------------------------------+
-    | "name"           | the name of the MCUmgr transport.                                       |
+    | "name"           | optional name of the MCUmgr transport (if available).                   |
     +------------------+-------------------------------------------------------------------------+
     | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
     |                  | appears if an error is returned when using SMP version 2.               |
@@ -422,10 +418,10 @@ Details on transports command
 TODO
 Return information on transports that the device supports.
 
-List transports request
-=======================
+Details on transports request
+=============================
 
-List transports request header fields:
+Details on transports request header fields:
 
 TODO
 
@@ -438,10 +434,10 @@ TODO
     | ``0``  | ``11``       | ``3``          |
     +--------+--------------+----------------+
 
-List transports response
-========================
+Details on transports response
+==============================
 
-List transports response header fields:
+Details on transports response header fields:
 
 .. table::
     :align: center
