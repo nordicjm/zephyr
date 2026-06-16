@@ -15,7 +15,7 @@ Transport management group defines the following commands:
     +----------------+------------------------------------+
     | ``1``          | Disconnect bridged transport       |
     +----------------+------------------------------------+
-    | ``2`` x         | Fetch bridge/transport status      |
+    | ``2``          | Fetch bridge/transport status      |
     +----------------+------------------------------------+
     | ``3``          | List transports                    |
     +----------------+------------------------------------+
