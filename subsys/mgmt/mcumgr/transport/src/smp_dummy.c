@@ -204,6 +204,12 @@ static int smp_dummy_bridge_tx(const struct smp_transport_bridge *bridge, struct
 {
 	return smp_dummy_tx_pkt_int(nb);
 }
+
+static int smp_dummy_bridge_config_details(zcbor_state_t *output_data)
+{
+//TODO
+	return MGMT_ERR_EOK;
+}
 #endif
 
 static int smp_dummy_init(void)
@@ -219,6 +225,7 @@ static int smp_dummy_init(void)
 	smp_dummy_transport.functions.bridge_connect = smp_dummy_bridge_connect;
 	smp_dummy_transport.functions.bridge_disconnect = smp_dummy_bridge_disconnect;
 	smp_dummy_transport.functions.bridge_output = smp_dummy_bridge_tx;
+	smp_dummy_transport.functions.bridge_config_details = smp_dummy_bridge_config_details;
 #endif
 
 	rc = smp_transport_init(&smp_dummy_transport);

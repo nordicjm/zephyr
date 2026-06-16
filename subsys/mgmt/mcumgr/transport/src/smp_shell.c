@@ -252,6 +252,12 @@ static int smp_shell_bridge_tx(const struct smp_transport_bridge *bridge, struct
 {
 	return smp_shell_tx_pkt(nb);
 }
+
+static int smp_shell_bridge_config_details(zcbor_state_t *output_data)
+{
+//TODO
+	return MGMT_ERR_EOK;
+}
 #endif
 
 int smp_shell_init(void)
@@ -265,6 +271,7 @@ int smp_shell_init(void)
 	smp_shell_transport.functions.bridge_connect = smp_shell_bridge_connect;
 	smp_shell_transport.functions.bridge_disconnect = smp_shell_bridge_disconnect;
 	smp_shell_transport.functions.bridge_output = smp_shell_bridge_tx;
+	smp_shell_transport.functions.bridge_config_details = smp_shell_bridge_config_details;
 #endif
 
 	rc = smp_transport_init(&smp_shell_transport);

@@ -683,6 +683,12 @@ static int smp_bt_bridge_tx(const struct smp_transport_bridge *bridge, struct ne
 	ud->id = bridged_data.id;
 	return smp_bt_tx_pkt(nb);
 }
+
+static int smp_bt_bridge_config_details(zcbor_state_t *output_data)
+{
+//TODO
+	return MGMT_ERR_EOK;
+}
 #endif
 
 static void smp_bt_setup(void)
@@ -711,6 +717,7 @@ static void smp_bt_setup(void)
 	smp_bt_transport.functions.bridge_connect = smp_bt_bridge_connect;
 	smp_bt_transport.functions.bridge_disconnect = smp_bt_bridge_disconnect;
 	smp_bt_transport.functions.bridge_output = smp_bt_bridge_tx;
+	smp_bt_transport.functions.bridge_config_details = smp_bt_bridge_config_details;
 #endif
 
 	rc = smp_transport_init(&smp_bt_transport);

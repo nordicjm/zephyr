@@ -156,6 +156,17 @@ typedef void (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *
  * @return                      0 on success, #mcumgr_err_t code on failure.
  */
 typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing);
+
+/** @typedef smp_transport_bridge_config_details_fn
+ * @brief SMP transport bridge config details
+ *
+ * Used to see what configuration options a transport has to establish a connection.
+ *
+ * @param output_data		CBOR data for output
+ *
+ * @return                      0 on success, #mcumgr_err_t code on failure.
+ */
+typedef int (*smp_transport_bridge_config_details_fn)(zcbor_state_t *output_data);
 #endif
 
 /**
@@ -191,9 +202,11 @@ struct smp_transport_api_t {
 	/** Transport send data over bridged connection function. */
 	smp_transport_bridge_out_fn bridge_output;
 
+	/** Transport get config details function. */
+	smp_transport_bridge_config_details_fn bridge_config_details;
+
 //TODO:
 //get details function
-//get config details function
 #endif
 };
 
