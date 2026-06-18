@@ -112,8 +112,16 @@ static int smp_uart_bridge_tx(const struct smp_transport_bridge *bridge, struct 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 static int smp_uart_bridge_details(zcbor_state_t *output_data)
 {
-//TODO
-	return MGMT_ERR_EOK;
+	bool ok;
+
+        ok = zcbor_map_start_encode(output_data, 2) &&
+	     zcbor_tstr_put_lit(output_data, "type") &&
+	     zcbor_uint32_put(output_data, 0) &&
+	     zcbor_tstr_put_lit(output_data, "description") &&
+	     zcbor_tstr_put_lit(output_data, "UART") &&
+             zcbor_map_end_encode(output_data, 2);
+
+	return MGMT_RETURN_CHECK(ok);
 }
 
 static int smp_uart_bridge_config_details(zcbor_state_t *output_data)

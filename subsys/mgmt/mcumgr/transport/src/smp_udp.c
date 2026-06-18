@@ -632,8 +632,16 @@ LOG_ERR("send got %d %d for size %d on %d", ret, errno, nb->len, smp_udp_configs
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
 static int smp_udp4_bridge_details(zcbor_state_t *output_data)
 {
-//TODO
-	return MGMT_ERR_EOK;
+	bool ok;
+
+        ok = zcbor_map_start_encode(output_data, 2) &&
+	     zcbor_tstr_put_lit(output_data, "type") &&
+	     zcbor_uint32_put(output_data, 0) &&
+	     zcbor_tstr_put_lit(output_data, "description") &&
+	     zcbor_tstr_put_lit(output_data, "UDP") &&
+             zcbor_map_end_encode(output_data, 2);
+
+	return MGMT_RETURN_CHECK(ok);
 }
 
 static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
