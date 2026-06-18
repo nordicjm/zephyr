@@ -185,7 +185,58 @@ static int transport_mgmt_list(struct smp_streamer *ctxt)
 
 static int transport_mgmt_get_details(struct smp_streamer *ctxt)
 {
-//TODO
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zsd = ctxt->reader->zs;
+	bool ok = true;
+	size_t decoded = 0;
+	uint32_t transport_id = 0;
+	struct smp_transport *transport;
+
+	struct zcbor_map_decode_key_val settings_save_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+	};
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	enum mgmt_cb_return status;
+	int32_t err_rc;
+	uint16_t err_group;
+#endif
+
+	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
+				   &decoded) == 0;
+
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+		return MGMT_ERR_EINVAL;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	transport = smp_client_transport_get(transport_id);
+
+	if (transport == NULL || transport->functions.bridge_details == NULL) {
+//TODO: error
+return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	ok = zcbor_tstr_put_lit(zse, "modes") &&
+	     zcbor_list_start_encode(zse, 30);
+
+	if (!ok) {
+		return MGMT_ERR_EMSGSIZE;
+	}
+
+	rc = transport->functions.bridge_details(zse);
+
+	if (rc != 0) {
+		return rc;
+	}
+
+	ok = zcbor_list_end_encode(zse, 30);
+
+	return MGMT_RETURN_CHECK(ok);
 }
 
 static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
