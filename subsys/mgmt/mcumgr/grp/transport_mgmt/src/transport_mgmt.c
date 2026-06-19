@@ -139,6 +139,15 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
  * Command handler: transport <>
  */
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
+static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	uint32_t *count = (uint32_t *)user_data;
+
+	++*count;
+
+	return true;
+}
+
 static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport, void *user_data)
 {
 	zcbor_state_t *zse = (zcbor_state_t *)user_data;
@@ -169,16 +178,16 @@ finish:
 
 static int transport_mgmt_list(struct smp_streamer *ctxt)
 {
-//	int rc;
+	uint32_t transports = 0;
 	zcbor_state_t *zse = ctxt->writer->zs;
 	bool ok = true;
 
-//TODO: inner loop to get number of transports first
+	smp_client_transport_foreach(transport_mgmt_count_loop, (void *)&transports);
 
 	ok = zcbor_tstr_put_lit(zse, "transports") &&
-	     zcbor_list_start_encode(zse, 30) &&
+	     zcbor_list_start_encode(zse, transports) &&
 	     smp_client_transport_foreach(transport_mgmt_list_loop, (void *)zse) &&
-	     zcbor_list_end_encode(zse, 30);
+	     zcbor_list_end_encode(zse, transports);
 
 	return MGMT_RETURN_CHECK(ok);
 }
@@ -255,6 +264,7 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	uint32_t transport_id = 0;
 //struct smp_transport *smpt;
 	size_t backup_element_count_reader = zsd->elem_count;
+	struct smp_transport *outgoing_transport;
 
 	struct zcbor_map_decode_key_val settings_save_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
@@ -281,7 +291,6 @@ return MGMT_ERR_EBADSTATE;
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-//TODO: allow transport_id to be 0 by default?
 	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
 		return MGMT_ERR_EINVAL;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
@@ -295,8 +304,7 @@ return MGMT_ERR_EBADSTATE;
 		return MGMT_ERR_ENOMEM;
 	}
 
-//TODO: check outgoing_transport is not null
-	struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
+	outgoing_transport = smp_client_transport_get(transport_id);
 
 	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
 //TODO: error
@@ -403,7 +411,7 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
 #endif
-//TODO: allow transport_id to be 0 by default?
+
 	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all"))) {
 		return MGMT_ERR_EINVAL;
 	}
@@ -452,10 +460,9 @@ return MGMT_ERR_EINVAL;
 
 		bridge_active = false;
 	} else {
-//TODO: check outgoing_transport is not null
 		struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
-		if (outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+		if (outgoing_transport == NULL || outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
 //		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
