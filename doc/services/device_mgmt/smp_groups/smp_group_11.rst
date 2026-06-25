@@ -517,8 +517,6 @@ where:
 Details on transport configuration command
 ******************************************
 
-TODO
-
 Return information on transport configuration that is supported.
 
 Details on transport configuration request
@@ -556,14 +554,14 @@ CBOR data of successful response:
 .. code-block:: none
 
     {
-        (str)"modes" : [
+        (str)"configs" : [
             {
+                (str)"name"          : (str)
                 (str)"type"          : (uint)
-                (str)"description"   : (str)
+                (str,opt)"required"  : (bool)
             }
             ...
         ]
-        (str)"total"                 : (uint)
     }
 
 In case of error the CBOR data takes the form:
@@ -597,11 +595,20 @@ where:
 TODO
 
     +------------------+-------------------------------------------------------------------------+
-    | "type"           | the type ID of the transport mode.                                      |
+    | "name"           | the .                                      |
     +------------------+-------------------------------------------------------------------------+
-    | "description"    | description of the transport mode.                                      |
+    | "type"           | the type of the configuration item, using the following mapping:        |
+    |                  |  - 0: uint32                                                            |
+    |                  |  - 1: uint64                                                            |
+    |                  |  - 2: int32                                                             |
+    |                  |  - 3: int64                                                             |
+    |                  |  - 4: bool                                                              |
+    |                  |  - 5: string                                                            |
+    |                  |  - 6: byte string                                                       |
     +------------------+-------------------------------------------------------------------------+
-    | "total"          | total number of supported modes for this transport.                     |
+#    | "description"    | description of the configuration.                                       |
+    +------------------+-------------------------------------------------------------------------+
+    | "required"       | will be present and set to true if the parameter is required.           |
     +------------------+-------------------------------------------------------------------------+
     | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
     |                  | appears if an error is returned when using SMP version 2.               |
