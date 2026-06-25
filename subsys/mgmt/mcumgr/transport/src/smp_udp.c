@@ -650,6 +650,28 @@ static int smp_udp4_bridge_details(zcbor_state_t *output_data)
 
 static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
 {
+
+	bool ok;
+
+        ok = zcbor_map_start_encode(output_data, 2) &&
+	     zcbor_tstr_put_lit(output_data, "name") &&
+	     zcbor_tstr_put_lit(output_data, "host") &&
+	     zcbor_tstr_put_lit(output_data, "type") &&
+	     zcbor_uint32_put(output_data, 5) &&
+	     zcbor_tstr_put_lit(output_data, "required") &&
+	     zcbor_bool_put_lit(output_data, true) &&
+             zcbor_map_end_encode(output_data, 2) &&
+             zcbor_map_start_encode(output_data, 2) &&
+	     zcbor_tstr_put_lit(output_data, "name") &&
+	     zcbor_tstr_put_lit(output_data, "port") &&
+	     zcbor_tstr_put_lit(output_data, "type") &&
+	     zcbor_uint32_put(output_data, 0) &&
+	     zcbor_tstr_put_lit(output_data, "required") &&
+	     zcbor_bool_put_lit(output_data, true) &&
+             zcbor_map_end_encode(output_data, 2);
+
+	return MGMT_RETURN_CHECK(ok);
+
 //TODO
 	return MGMT_ERR_EOK;
 }

@@ -433,6 +433,8 @@ Details on transports request header fields:
     | ``0``  | ``11``       | ``4``          |
     +--------+--------------+----------------+
 
+TODO
+
 Details on transports response
 ==============================
 
@@ -532,6 +534,28 @@ Details on transport configuration request header fields:
     +========+==============+================+
     | ``0``  | ``11``       | ``5``          |
     +--------+--------------+----------------+
+
+CBOR data of request:
+
+.. code-block:: none
+
+    {
+        (str)"transport" : (uint)
+        (str)"type"      : (uint)
+    }
+
+where:
+
+.. table::
+    :align: center
+
+    +-------------+-------------------------------------------------------------+
+    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for |
+    |             | which to get configuration information for.                 |
+    +-------------+-------------------------------------------------------------+
+    | "type"      | contains the configuration type of the tranport type which  |
+    |             | to get configuration information for.                       |
+    +-------------+-------------------------------------------------------------+
 
 Details on transport configuration response
 ===========================================
