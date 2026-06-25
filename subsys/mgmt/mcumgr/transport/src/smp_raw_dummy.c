@@ -160,6 +160,10 @@ static int smp_raw_dummy_bridge_details(zcbor_state_t *output_data)
 	     zcbor_uint32_put(output_data, 0) &&
 	     zcbor_tstr_put_lit(output_data, "description") &&
 	     zcbor_tstr_put_lit(output_data, "Dummy") &&
+	     zcbor_tstr_put_lit(output_data, "incoming") &&
+	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_tstr_put_lit(output_data, "outgoing") &&
+	     zcbor_bool_put_lit(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);

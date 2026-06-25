@@ -456,6 +456,8 @@ CBOR data of successful response:
             {
                 (str)"type"          : (uint)
                 (str)"description"   : (str)
+                (str,opt)"incoming"  : (bool)
+                (str,opt)"outgoing"  : (bool)
             }
             ...
         ]
@@ -490,22 +492,26 @@ where:
 .. table::
     :align: center
 
-    +------------------+-------------------------------------------------------------------------+
-    | "type"           | the type ID of the transport mode.                                      |
-    +------------------+-------------------------------------------------------------------------+
-    | "description"    | description of the transport mode.                                      |
-    +------------------+-------------------------------------------------------------------------+
-    | "total"          | total number of supported modes for this transport.                     |
-    +------------------+-------------------------------------------------------------------------+
-    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
-    |                  | appears if an error is returned when using SMP version 2.               |
-    +------------------+-------------------------------------------------------------------------+
-    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if       |
-    |                  | non-zero (error condition) when using SMP version 2.                    |
-    +------------------+-------------------------------------------------------------------------+
-    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when  |
-    |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
-    +------------------+-------------------------------------------------------------------------+
+    +------------------+-----------------------------------------------------------------------------+
+    | "type"           | the type ID of the transport mode.                                          |
+    +------------------+-----------------------------------------------------------------------------+
+    | "description"    | description of the transport mode.                                          |
+    +------------------+-----------------------------------------------------------------------------+
+    | "incoming"       | will be set to true if transport mode supports incoming bridge connections. |
+    +------------------+-----------------------------------------------------------------------------+
+    | "outgoing"       | will be set to true if transport mode supports outgoing bridge connections. |
+    +------------------+-----------------------------------------------------------------------------+
+    | "total"          | total number of supported modes for this transport.                         |
+    +------------------+-----------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only appears  |
+    |                  | if an error is returned when using SMP version 2.                           |
+    +------------------+-----------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if non-zero  |
+    |                  | (error condition) when using SMP version 2.                                 |
+    +------------------+-----------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when      |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.             |
+    +------------------+-----------------------------------------------------------------------------+
 
 
 Details on transport configuration command
