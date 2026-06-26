@@ -19,9 +19,9 @@ Transport management group defines the following commands:
     +----------------+------------------------------------+
     | ``3``          | List transports                    |
     +----------------+------------------------------------+
-    | ``4``          | Details on transport               |
+    | ``4``          | Details on transport modes         |
     +----------------+------------------------------------+
-    | ``5`` x         | Details on transport configuration |
+    | ``5``          | Details on transport configuration |
     +----------------+------------------------------------+
 
 Connect (bridge) transport command
@@ -418,17 +418,15 @@ where:
     |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
     +------------------+-------------------------------------------------------------------------+
 
-Details on transport command
-****************************
+Details on transport modes command
+**********************************
 
-TODO
+Return information on modes of a transport that the device supports.
 
-Return information on a transport that the device supports.
+Details on transport mode request
+=================================
 
-Details on transport request
-============================
-
-Details on transport request header fields:
+Details on transport modes request header fields:
 
 .. table::
     :align: center
@@ -458,10 +456,10 @@ where:
     +-------------+-------------------------------------------------------------+
 
 
-Details on transport response
-=============================
+Details on transport modes response
+===================================
 
-Details on transport response header fields:
+Details on transport modes response header fields:
 
 .. table::
     :align: center
@@ -591,8 +589,6 @@ Details on transport configuration response header fields:
     | ``1``  | ``11``       | ``5``          |
     +--------+--------------+----------------+
 
-TODO
-
 CBOR data of successful response:
 
 .. code-block:: none
@@ -637,7 +633,7 @@ where:
     :align: center
 
     +------------------+------------------------------------------------------------------------+
-    | "name"           | name of the configuration item. .                                      |
+    | "name"           | name of the configuration item.                                        |
     +------------------+------------------------------------------------------------------------+
     | "type"           | the type of the configuration item, using the following mapping:       |
     |                  |  - 0: uint                                                             |
