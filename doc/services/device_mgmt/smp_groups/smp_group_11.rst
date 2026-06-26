@@ -19,7 +19,7 @@ Transport management group defines the following commands:
     +----------------+------------------------------------+
     | ``3``          | List transports                    |
     +----------------+------------------------------------+
-    | ``4``          | Details on transports              |
+    | ``4``          | Details on transport               |
     +----------------+------------------------------------+
     | ``5`` x         | Details on transport configuration |
     +----------------+------------------------------------+
@@ -123,12 +123,12 @@ where:
 Disconnect bridged transport command
 ************************************
 
+Disconnect the current transport's bridge, or disconnect all transport bridges.
+
 Disconnect bridged transport request
 ====================================
 
 Disconnect bridged transport request header fields:
-
-Disconnect the current transport's bridge, or disconnect all transport bridges.
 
 .. table::
     :align: center
@@ -143,7 +143,11 @@ CBOR data of request:
 
 .. tabs::
 
-   .. group-tab:: Disconnect active bridge
+   .. group-tab:: Disconnect bridge of current transport
+
+      The command sends an empty CBOR map as data.
+
+   .. group-tab:: Disconnect an active bridge
 
       .. code-block:: none
 
@@ -164,14 +168,14 @@ where:
 .. table::
     :align: center
 
-    +-------------+-------------------------------------------------------------+
-    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for |
-    |             | which to bridge (connect) from the transport to, this must  |
-    |             | not be provided if ``all`` is provided.                     |
-    +-------------+-------------------------------------------------------------+
-    | "all"       | set to true to disconnect all active bridged transports,    |
-    |             | this must not be provided if ``transport`` is provided.     |
-    +-------------+-------------------------------------------------------------+
+    +-------------+----------------------------------------------------------------+
+    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for    |
+    |             | which to disconnect the bridge from, this must not be provided |
+    |             | if ``all`` is provided.                                        |
+    +-------------+----------------------------------------------------------------+
+    | "all"       | set to true to disconnect all active bridged transports, this  |
+    |             | must not be provided if ``transport`` is provided.             |
+    +-------------+----------------------------------------------------------------+
 
 Disconnect bridged transport response
 =====================================
@@ -187,8 +191,8 @@ Disconnect bridged transport response header fields:
     | ``3``  | ``11``       | ``1``          |
     +--------+--------------+----------------+
 
-The command sends an empty CBOR map as data if successful.
-In case of error the CBOR data takes the form:
+The command sends an empty CBOR map as data if successful. In case of error the CBOR data takes
+the form:
 
 .. tabs::
 
@@ -230,7 +234,7 @@ where:
 Fetch bridged transport status command
 **************************************
 
-Return information on active bridges and what device supports.
+Return information on active bridges and what the device supports.
 
 Fetch bridged transport status request
 ======================================
@@ -341,6 +345,8 @@ List transports request header fields:
     | ``0``  | ``11``       | ``3``          |
     +--------+--------------+----------------+
 
+The command sends an empty CBOR map as data.
+
 List transports response
 ========================
 
@@ -412,17 +418,17 @@ where:
     |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
     +------------------+-------------------------------------------------------------------------+
 
-Details on transports command
-*****************************
+Details on transport command
+****************************
 
 TODO
 
-Return information on transports that the device supports.
+Return information on a transport that the device supports.
 
-Details on transports request
-=============================
+Details on transport request
+============================
 
-Details on transports request header fields:
+Details on transport request header fields:
 
 .. table::
     :align: center
@@ -433,12 +439,29 @@ Details on transports request header fields:
     | ``0``  | ``11``       | ``4``          |
     +--------+--------------+----------------+
 
-TODO
+CBOR data of request:
 
-Details on transports response
-==============================
+.. code-block:: none
 
-Details on transports response header fields:
+    {
+        (str)"transport" : (uint)
+    }
+
+where:
+
+.. table::
+    :align: center
+
+    +-------------+-------------------------------------------------------------+
+    | "transport" | :c:enum:`smp_transport_type` contains the tranport type for |
+    |             | which to get details on.                                    |
+    +-------------+-------------------------------------------------------------+
+
+
+Details on transport response
+=============================
+
+Details on transport response header fields:
 
 .. table::
     :align: center
@@ -463,7 +486,6 @@ CBOR data of successful response:
             }
             ...
         ]
-        (str)"total"                 : (uint)
     }
 
 In case of error the CBOR data takes the form:
@@ -502,8 +524,6 @@ where:
     | "incoming"       | will be set to true if transport mode supports incoming bridge connections. |
     +------------------+-----------------------------------------------------------------------------+
     | "outgoing"       | will be set to true if transport mode supports outgoing bridge connections. |
-    +------------------+-----------------------------------------------------------------------------+
-    | "total"          | total number of supported modes for this transport.                         |
     +------------------+-----------------------------------------------------------------------------+
     | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only appears  |
     |                  | if an error is returned when using SMP version 2.                           |
@@ -616,30 +636,24 @@ where:
 .. table::
     :align: center
 
-TODO
-
-    +------------------+-------------------------------------------------------------------------+
-    | "name"           | the .                                      |
-    +------------------+-------------------------------------------------------------------------+
-    | "type"           | the type of the configuration item, using the following mapping:        |
-    |                  |  - 0: uint32                                                            |
-    |                  |  - 1: uint64                                                            |
-    |                  |  - 2: int32                                                             |
-    |                  |  - 3: int64                                                             |
-    |                  |  - 4: bool                                                              |
-    |                  |  - 5: string                                                            |
-    |                  |  - 6: byte string                                                       |
-    +------------------+-------------------------------------------------------------------------+
-#    | "description"    | description of the configuration.                                       |
-    +------------------+-------------------------------------------------------------------------+
-    | "required"       | will be present and set to true if the parameter is required.           |
-    +------------------+-------------------------------------------------------------------------+
-    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only      |
-    |                  | appears if an error is returned when using SMP version 2.               |
-    +------------------+-------------------------------------------------------------------------+
-    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if       |
-    |                  | non-zero (error condition) when using SMP version 2.                    |
-    +------------------+-------------------------------------------------------------------------+
-    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when  |
-    |                  | using SMP version 1 or for SMP errors when using SMP version 2.         |
-    +------------------+-------------------------------------------------------------------------+
+    +------------------+------------------------------------------------------------------------+
+    | "name"           | name of the configuration item. .                                      |
+    +------------------+------------------------------------------------------------------------+
+    | "type"           | the type of the configuration item, using the following mapping:       |
+    |                  |  - 0: uint                                                             |
+    |                  |  - 1: int                                                              |
+    |                  |  - 2: bool                                                             |
+    |                  |  - 3: string                                                           |
+    |                  |  - 4: byte string                                                      |
+    +------------------+------------------------------------------------------------------------+
+    | "required"       | will be present and set to true if the parameter is required.          |
+    +------------------+------------------------------------------------------------------------+
+    | "err" -> "group" | :c:enum:`mcumgr_group_t` group of the group-based error code. Only     |
+    |                  | appears if an error is returned when using SMP version 2.              |
+    +------------------+------------------------------------------------------------------------+
+    | "err" -> "rc"    | contains the index of the group-based error code. Only appears if      |
+    |                  | non-zero (error condition) when using SMP version 2.                   |
+    +------------------+------------------------------------------------------------------------+
+    | "rc"             | :c:enum:`mcumgr_err_t` only appears if non-zero (error condition) when |
+    |                  | using SMP version 1 or for SMP errors when using SMP version 2.        |
+    +------------------+------------------------------------------------------------------------+
