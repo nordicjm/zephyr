@@ -3,7 +3,7 @@
 
 menuconfig MCUMGR_GRP_TRANSPORT
 	bool "MCUmgr handlers for transport management"
-	depends on SMP_CLIENT
+#	depends on SMP_CLIENT
 #	select MCUMGR_SMP_CBOR_MIN_DECODING_LEVEL_2
 #	select MCUMGR_SMP_CBOR_MIN_ENCODING_LEVEL_2 if ZCBOR_CANONICAL
 #	select MCUMGR_SMP_CBOR_MIN_ENCODING_LEVEL_1
@@ -22,6 +22,7 @@ config MCUMGR_GRP_TRANSPORT_LOCKING
 
 config MCUMGR_GRP_TRANSPORT_MAX_BRIDGES
 	int "Maximum bridges"
+	default 1
 	range 1 128
 	help
 	  The maximum number of concurrent bridges to support.
@@ -63,16 +64,6 @@ config MCUMGR_GRP_TRANSPORT_GROUP_ID_CUSTOM_FUNCTION
 	  to an application or device.
 
 endchoice
-
-config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
-	bool
-	prompt "Info functions" if !MCUMGR_GRP_TRANSPORT_GROUP_ID_DEFAULT
-	default y
-	help
-	  Disabling this will remove the information functions which frees up resources on
-	  devices where the transport layout is static or already known, meaning that this will no
-	  longer comply with the transport management group specification, hence why it can only
-	  be disabled when using a custom group ID.
 
 config MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	bool

@@ -33,7 +33,7 @@ struct smp_transport smp_lorawan_transport = {
 	.functions.get_mtu = smp_lorawan_get_mtu,
 };
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 struct smp_client_transport_entry smp_lorawan_client_transport = {
 	.smpt = &smp_lorawan_transport,
 	.smpt_type = SMP_LORAWAN_TRANSPORT,
@@ -237,7 +237,7 @@ static void smp_lorawan_start(void)
 
 	rc = smp_transport_init(&smp_lorawan_transport);
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	if (rc == 0) {
 		smp_client_transport_register(&smp_lorawan_client_transport);
 	}

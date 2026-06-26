@@ -48,7 +48,7 @@ static uart_mcumgr_recv_fn *dummy_mgumgr_recv_cb;
 /** Contains the fragment currently being received. */
 static struct uart_mcumgr_rx_buf *dummy_mcumgr_cur_buf;
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport;
 #endif
 
@@ -161,9 +161,9 @@ static int smp_raw_dummy_bridge_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "description") &&
 	     zcbor_tstr_put_lit(output_data, "Dummy") &&
 	     zcbor_tstr_put_lit(output_data, "incoming") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
 	     zcbor_tstr_put_lit(output_data, "outgoing") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);
@@ -204,7 +204,7 @@ static int smp_raw_dummy_init(void)
 
 	dummy_mgumgr_recv_cb = smp_raw_dummy_process_frag;
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	smp_client_transport.smpt = &smp_dummy_transport;
 	smp_client_transport.smpt_type = SMP_RAW_SERIAL_TRANSPORT;
 	smp_client_transport_register(&smp_client_transport);

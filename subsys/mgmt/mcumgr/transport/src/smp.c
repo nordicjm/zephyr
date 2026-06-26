@@ -31,7 +31,7 @@ K_THREAD_STACK_DEFINE(smp_work_queue_stack, CONFIG_MCUMGR_TRANSPORT_WORKQUEUE_ST
 
 static struct k_work_q smp_work_queue;
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static sys_slist_t smp_transport_clients = SYS_SLIST_STATIC_INIT(&smp_transport_clients);
 #endif
 
@@ -186,7 +186,7 @@ int smp_transport_init(struct smp_transport *smpt)
 	return 0;
 }
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 struct smp_transport *smp_client_transport_get(int smpt_type)
 {
 	struct smp_client_transport_entry *entry;
@@ -233,8 +233,7 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry)
 	sys_slist_append(&smp_transport_clients, &entry->node);
 
 }
-
-#endif /* CONFIG_SMP_CLIENT */
+#endif /* CONFIG_SMP_CLIENT || CONFIG_MCUMGR_GRP_TRANSPORT */
 
 /**
  * @brief Enqueues an incoming SMP request packet for processing.

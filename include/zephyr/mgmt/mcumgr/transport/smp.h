@@ -28,10 +28,8 @@ extern "C" {
 struct smp_transport;
 struct zephyr_smp_transport;
 struct net_buf;
-
-#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 struct smp_transport_bridge;
-#endif
+struct smp_client_transport_entry;
 
 /** @typedef smp_transport_out_fn
  * @brief SMP transmit callback for transport
@@ -109,7 +107,6 @@ typedef bool (*smp_transport_query_valid_check_fn)(struct net_buf *nb, void *arg
  */
 typedef void (*smp_transport_ud_req_init_fn)(struct net_buf *nb, void *priv);
 
-#if defined(CONFIG_MCUMGR_GRP_TRANSPORT) || defined(__DOXYGEN__)
 /** @typedef smp_transport_bridge_connect_fn
  * @brief SMP transport bridge connect
  *
@@ -157,7 +154,16 @@ typedef void (*smp_transport_bridge_disconnect_fn)(struct smp_transport_bridge *
  */
 typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing);
 
-#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS) || defined(__DOXYGEN__)
+/** @typedef mgmt_client_transport_cb_t
+ * @brief Callback for SMP client transports
+ *
+ * @param transport             SMP client transport
+ * @param user_date             User data supplied to smp_client_transport_foreach() function
+ *
+ * @return                      true to continue with the next transport, false to abort.
+ */
+typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_entry *transport, void *user_data);
+
 /** @typedef smp_transport_bridge_details_fn
  * @brief SMP transport bridge details
  *
@@ -179,8 +185,6 @@ typedef int (*smp_transport_bridge_details_fn)(zcbor_state_t *output_data);
  * @return                      0 on success, #mcumgr_err_t code on failure.
  */
 typedef int (*smp_transport_bridge_config_details_fn)(zcbor_state_t *output_data);
-#endif
-#endif
 
 /**
  * @brief Function pointers of SMP transport functions, if a handler is NULL then it is not
@@ -273,8 +277,11 @@ enum smp_transport_type {
 	SMP_UDP_IPV6_TRANSPORT,
 	/** SMP LoRaWAN */
 	SMP_LORAWAN_TRANSPORT,
+
+	/** IDs up to 63 reserved for future in-tree transports */
+
 	/** SMP user defined type */
-	SMP_USER_DEFINED_TRANSPORT
+	SMP_USER_DEFINED_TRANSPORT = 64,
 };
 
 /**
@@ -337,8 +344,13 @@ void smp_client_transport_register(struct smp_client_transport_entry *entry);
  */
 struct smp_transport *smp_client_transport_get(int smpt_type);
 
-//TODO: iteration function to callback with all transports
-typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_entry *transport, void *user_data);
+/**
+ * @brief Discover a registered SMP transport client object.
+ *
+ * @param smpt_type	Type of transport
+ *
+ * @return		true if all transports were iterated, false otherwise.
+ */
 bool smp_client_transport_foreach(mgmt_client_transport_cb_t user_cb, void *user_data);
 
 /**

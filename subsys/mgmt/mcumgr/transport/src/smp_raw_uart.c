@@ -34,7 +34,7 @@ static struct mcumgr_serial_rx_ctxt mcumgr_raw_uart_rx_ctxt = {
 };
 static struct smp_transport smp_raw_uart_transport;
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_raw_uart_client_transport;
 #endif
 
@@ -132,7 +132,7 @@ static int smp_raw_uart_init(void)
 
 	if (rc == 0) {
 		uart_mcumgr_register(smp_raw_uart_process_frag);
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 		smp_client_transport.smpt = &smp_raw_uart_transport;
 		smp_client_transport.smpt_type = SMP_RAW_SERIAL_TRANSPORT;
 		smp_client_transport_register(&smp_raw_client_transport);

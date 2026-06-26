@@ -192,7 +192,7 @@ static int transport_mgmt_list(struct smp_streamer *ctxt)
 	return MGMT_RETURN_CHECK(ok);
 }
 
-static int transport_mgmt_get_details(struct smp_streamer *ctxt)
+static int transport_mgmt_get_modes(struct smp_streamer *ctxt)
 {
 	int rc;
 	zcbor_state_t *zse = ctxt->writer->zs;
@@ -659,8 +659,8 @@ static const struct mgmt_handler transport_mgmt_handlers[] = {
 		.mh_read = transport_mgmt_list,
 		.mh_write = NULL,
 	},
-	[TRANSPORT_MGMT_ID_GET_DETAILS] = {
-		.mh_read = transport_mgmt_get_details,
+	[TRANSPORT_MGMT_ID_GET_MODES] = {
+		.mh_read = transport_mgmt_get_modes,
 		.mh_write = NULL,
 	},
 	[TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS] = {

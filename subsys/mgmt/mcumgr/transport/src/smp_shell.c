@@ -41,7 +41,7 @@ static struct mcumgr_serial_rx_ctxt smp_shell_rx_ctxt;
 
 static const struct shell_uart_common *shell_uart;
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport = {
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	.name = "Shell",
@@ -265,7 +265,7 @@ static int smp_shell_bridge_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "description") &&
 	     zcbor_tstr_put_lit(output_data, "Shell") &&
 	     zcbor_tstr_put_lit(output_data, "incoming") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);
@@ -297,7 +297,7 @@ int smp_shell_init(void)
 #endif
 
 	rc = smp_transport_init(&smp_shell_transport);
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	if (rc == 0) {
 		smp_client_transport.smpt = &smp_shell_transport;
 		smp_client_transport.smpt_type = SMP_SHELL_TRANSPORT;

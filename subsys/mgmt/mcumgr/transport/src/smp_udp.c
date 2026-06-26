@@ -75,13 +75,13 @@ uint8_t bridge_user_data[sizeof(struct net_sockaddr)];
 struct configs {
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV4
 	struct config ipv4;
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	struct smp_client_transport_entry ipv4_transport;
 #endif
 #endif
 #ifdef CONFIG_MCUMGR_TRANSPORT_UDP_IPV6
 	struct config ipv6;
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	struct smp_client_transport_entry ipv6_transport;
 #endif
 #endif
@@ -640,9 +640,9 @@ static int smp_udp4_bridge_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "description") &&
 	     zcbor_tstr_put_lit(output_data, "UDP") &&
 	     zcbor_tstr_put_lit(output_data, "incoming") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
 	     zcbor_tstr_put_lit(output_data, "outgoing") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);
@@ -659,7 +659,7 @@ static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "type") &&
 	     zcbor_uint32_put(output_data, 5) &&
 	     zcbor_tstr_put_lit(output_data, "required") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2) &&
              zcbor_map_start_encode(output_data, 2) &&
 	     zcbor_tstr_put_lit(output_data, "name") &&
@@ -667,7 +667,7 @@ static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "type") &&
 	     zcbor_uint32_put(output_data, 0) &&
 	     zcbor_tstr_put_lit(output_data, "required") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);

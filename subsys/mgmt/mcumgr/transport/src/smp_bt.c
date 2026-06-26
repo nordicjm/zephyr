@@ -122,7 +122,7 @@ BT_CONN_CB_DEFINE(mcumgr_bt_callbacks) = {
 	.disconnected = disconnected,
 };
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport;
 #endif
 
@@ -695,9 +695,9 @@ static int smp_bt_bridge_details(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "description") &&
 	     zcbor_tstr_put_lit(output_data, "Bluetooth Low Energy") &&
 	     zcbor_tstr_put_lit(output_data, "incoming") &&
-	     zcbor_bool_put_lit(output_data, true) &&
+	     zcbor_bool_put(output_data, true) &&
 //	     zcbor_tstr_put_lit(output_data, "outgoing") &&
-//	     zcbor_bool_put_lit(output_data, true) &&
+//	     zcbor_bool_put(output_data, true) &&
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);
@@ -749,7 +749,7 @@ static void smp_bt_setup(void)
 		rc = smp_bt_register();
 	}
 
-#ifdef CONFIG_SMP_CLIENT
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	if (rc == 0) {
 		smp_client_transport.smpt = &smp_bt_transport;
 		smp_client_transport.smpt_type = SMP_BLUETOOTH_TRANSPORT;
