@@ -1,0 +1,6 @@
+name: mcuboot
+
+boards:
+  /.*/nrf7120/cpuapp/ns/:
+    append:
+      EXTRA_DTC_OVERLAY_FILE: soc/nrf7120_cpuapp_ns.overlay

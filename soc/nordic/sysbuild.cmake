@@ -41,3 +41,24 @@ endif()
 if(SB_CONFIG_SOC_NRF71_GENERATE_WICR)
   include(${CMAKE_CURRENT_LIST_DIR}/nrf71/wicr/sysbuild.cmake)
 endif()
+
+if(SB_CONFIG_BOOTLOADER_MCUBOOT AND BOARD_QUALIFIERS MATCHES "nrf7120/cpuapp/ns")
+  sysbuild_cache_set(
+    VAR ${DEFAULT_IMAGE}_SNIPPET
+    APPEND
+    REMOVE_DUPLICATES
+    mcuboot
+  )
+
+  sysbuild_cache_set(
+    VAR mcuboot_SNIPPET
+    APPEND
+    REMOVE_DUPLICATES
+    mcuboot
+  )
+
+  set(mcuboot_BOARD
+      "nrf7120dk/nrf7120/cpuapp"
+      CACHE INTERNAL "Board for MCUboot image" FORCE
+  )
+endif()
