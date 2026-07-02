@@ -164,7 +164,7 @@ typedef int (*smp_transport_bridge_out_fn)(const struct smp_transport_bridge *br
  */
 typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_entry *transport, void *user_data);
 
-/** @typedef smp_transport_bridge_details_fn
+/** @typedef smp_transport_bridge_modes_fn
  * @brief SMP transport bridge details
  *
  * Used to see number of transport modes.
@@ -173,7 +173,7 @@ typedef bool (*mgmt_client_transport_cb_t)(const struct smp_client_transport_ent
  *
  * @return                      number of supported transport modes on success, #mcumgr_err_t code on failure.
  */
-typedef int (*smp_transport_bridge_details_fn)(zcbor_state_t *output_data);
+typedef int (*smp_transport_bridge_modes_fn)(zcbor_state_t *output_data);
 
 /** @typedef smp_transport_bridge_config_details_fn
  * @brief SMP transport bridge config details
@@ -220,8 +220,8 @@ struct smp_transport_api_t {
 	smp_transport_bridge_out_fn bridge_output;
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS) || defined(__DOXYGEN__)
-	/** Transport get details function. */
-	smp_transport_bridge_details_fn bridge_details;
+	/** Transport get modes function. */
+	smp_transport_bridge_modes_fn bridge_modes;
 
 	/** Transport get config details function. */
 	smp_transport_bridge_config_details_fn bridge_config_details;

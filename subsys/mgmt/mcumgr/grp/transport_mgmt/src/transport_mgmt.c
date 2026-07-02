@@ -223,7 +223,7 @@ static int transport_mgmt_get_modes(struct smp_streamer *ctxt)
 
 	transport = smp_client_transport_get(transport_id);
 
-	if (transport == NULL || transport->functions.bridge_details == NULL) {
+	if (transport == NULL || transport->functions.bridge_modes == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
@@ -237,7 +237,7 @@ return MGMT_ERR_EBADSTATE;
 		return MGMT_ERR_EMSGSIZE;
 	}
 
-	rc = transport->functions.bridge_details(zse);
+	rc = transport->functions.bridge_modes(zse);
 
 	if (rc != 0) {
 		return rc;
@@ -282,7 +282,7 @@ static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
 
 	transport = smp_client_transport_get(transport_id);
 
-	if (transport == NULL || transport->functions.bridge_details == NULL) {
+	if (transport == NULL || transport->functions.bridge_modes == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);

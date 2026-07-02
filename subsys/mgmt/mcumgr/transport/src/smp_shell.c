@@ -254,7 +254,7 @@ static int smp_shell_bridge_tx(const struct smp_transport_bridge *bridge, struct
 }
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
-static int smp_shell_bridge_details(zcbor_state_t *output_data)
+static int smp_shell_bridge_modes(zcbor_state_t *output_data)
 {
 //TODO: for shell this should be empty to mean "no bridge from another transport to it"
 	bool ok;
@@ -290,7 +290,7 @@ int smp_shell_init(void)
 	smp_shell_transport.functions.bridge_disconnect = smp_shell_bridge_disconnect;
 	smp_shell_transport.functions.bridge_output = smp_shell_bridge_tx;
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
-	smp_shell_transport.functions.bridge_details = smp_shell_bridge_details;
+	smp_shell_transport.functions.bridge_modes = smp_shell_bridge_modes;
 	smp_shell_transport.functions.bridge_config_details = smp_shell_bridge_config_details;
 #endif
 #endif

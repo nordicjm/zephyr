@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#error TODO
+//#error TODO
 
 /**
  * @brief MCUmgr Transport management callbacks API
