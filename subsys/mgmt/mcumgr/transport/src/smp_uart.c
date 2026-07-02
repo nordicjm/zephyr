@@ -32,7 +32,13 @@ K_WORK_DEFINE(smp_uart_work, smp_uart_process_rx_queue);
 static struct mcumgr_serial_rx_ctxt smp_uart_rx_ctxt;
 static struct smp_transport smp_uart_transport;
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
-static struct smp_client_transport_entry smp_client_transport;
+static struct smp_client_transport_entry smp_client_transport = {
+	.smpt = &smp_uart_transport,
+	.smpt_type = SMP_SERIAL_TRANSPORT,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	.name = "UART",
+#endif
+};
 #endif
 
 /**
@@ -157,8 +163,6 @@ static int smp_uart_init(void)
 	if (rc == 0) {
 		uart_mcumgr_register(smp_uart_rx_frag);
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
-		smp_client_transport.smpt = &smp_uart_transport;
-		smp_client_transport.smpt_type = SMP_SERIAL_TRANSPORT;
 		smp_client_transport_register(&smp_client_transport);
 #endif
 	}

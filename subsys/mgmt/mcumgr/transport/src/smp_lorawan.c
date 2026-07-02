@@ -37,6 +37,9 @@ struct smp_transport smp_lorawan_transport = {
 struct smp_client_transport_entry smp_lorawan_client_transport = {
 	.smpt = &smp_lorawan_transport,
 	.smpt_type = SMP_LORAWAN_TRANSPORT,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	.name = "LoRaWAN",
+#endif
 };
 #endif
 

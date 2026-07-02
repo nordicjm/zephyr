@@ -123,7 +123,13 @@ BT_CONN_CB_DEFINE(mcumgr_bt_callbacks) = {
 };
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
-static struct smp_client_transport_entry smp_client_transport;
+static struct smp_client_transport_entry smp_client_transport = {
+	.smpt = &smp_bt_transport,
+	.smpt_type = SMP_BLUETOOTH_TRANSPORT,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	.name = "Bluetooth",
+#endif
+};
 #endif
 
 /* Helper function that allocates conn_param_data for a conn. */
@@ -751,8 +757,6 @@ static void smp_bt_setup(void)
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	if (rc == 0) {
-		smp_client_transport.smpt = &smp_bt_transport;
-		smp_client_transport.smpt_type = SMP_BLUETOOTH_TRANSPORT;
 		smp_client_transport_register(&smp_client_transport);
 	}
 #endif

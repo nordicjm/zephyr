@@ -43,6 +43,8 @@ static const struct shell_uart_common *shell_uart;
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport = {
+	.smpt = &smp_shell_transport,
+	.smpt_type = SMP_SHELL_TRANSPORT,
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	.name = "Shell",
 #endif
@@ -298,8 +300,6 @@ int smp_shell_init(void)
 	rc = smp_transport_init(&smp_shell_transport);
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 	if (rc == 0) {
-		smp_client_transport.smpt = &smp_shell_transport;
-		smp_client_transport.smpt_type = SMP_SHELL_TRANSPORT;
 		smp_client_transport_register(&smp_client_transport);
 	}
 #endif

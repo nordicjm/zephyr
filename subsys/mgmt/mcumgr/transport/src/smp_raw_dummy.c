@@ -49,7 +49,13 @@ static uart_mcumgr_recv_fn *dummy_mgumgr_recv_cb;
 static struct uart_mcumgr_rx_buf *dummy_mcumgr_cur_buf;
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
-static struct smp_client_transport_entry smp_client_transport;
+static struct smp_client_transport_entry smp_client_transport = {
+	smp_client_transport.smpt = &smp_dummy_transport,
+	smp_client_transport.smpt_type = SMP_RAW_SERIAL_TRANSPORT,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+	.name = "Raw dummy",
+#endif
+};
 #endif
 
 static void smp_raw_dummy_mcumgr_free_rx_buf(struct uart_mcumgr_rx_buf *rx_buf);
@@ -204,8 +210,6 @@ static int smp_raw_dummy_init(void)
 	dummy_mgumgr_recv_cb = smp_raw_dummy_process_frag;
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
-	smp_client_transport.smpt = &smp_dummy_transport;
-	smp_client_transport.smpt_type = SMP_RAW_SERIAL_TRANSPORT;
 	smp_client_transport_register(&smp_client_transport);
 #endif
 

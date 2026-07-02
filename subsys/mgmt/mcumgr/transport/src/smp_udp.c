@@ -89,7 +89,28 @@ struct configs {
 
 static bool threads_created;
 
-static struct configs smp_udp_configs;
+static struct configs smp_udp_configs = {
+#if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_IPV4)
+	.ipv4_transport = {
+		.smpt_type = SMP_UDP_IPV4_TRANSPORT,
+                .smpt = &smp_udp_configs.ipv4.smp_transport,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+		.name = "UDP (IPv4)",
+#endif
+	},
+#endif
+#if defined(CONFIG_MCUMGR_TRANSPORT_UDP_IPV6)
+	.ipv6_transport = {
+		.smpt_type = SMP_UDP_IPV6_TRANSPORT,
+                .smpt = &smp_udp_configs.ipv6.smp_transport,
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
+		.name = "UDP (IPv6)",
+#endif
+	},
+#endif
+#endif
+};
 
 static struct net_mgmt_event_callback smp_udp_mgmt_cb;
 
@@ -703,8 +724,6 @@ static void smp_udp_start(void)
 	rc = smp_transport_init(&smp_udp_configs.ipv4.smp_transport);
 #ifdef CONFIG_SMP_CLIENT
 	if (rc == 0) {
-		smp_udp_configs.ipv4_transport.smpt = &smp_udp_configs.ipv4.smp_transport;
-		smp_udp_configs.ipv4_transport.smpt_type = SMP_UDP_IPV4_TRANSPORT;
 		smp_client_transport_register(&smp_udp_configs.ipv4_transport);
 	}
 #endif
@@ -726,8 +745,6 @@ static void smp_udp_start(void)
 	rc = smp_transport_init(&smp_udp_configs.ipv6.smp_transport);
 #ifdef CONFIG_SMP_CLIENT
 	if (rc == 0) {
-		smp_udp_configs.ipv6_transport.smpt = &smp_udp_configs.ipv6.smp_transport;
-		smp_udp_configs.ipv6_transport.smpt_type = SMP_UDP_IPV6_TRANSPORT;
 		smp_client_transport_register(&smp_udp_configs.ipv6_transport);
 	}
 #endif
