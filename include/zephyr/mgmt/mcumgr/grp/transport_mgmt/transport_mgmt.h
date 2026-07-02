@@ -41,12 +41,6 @@ enum transport_mgmt_ids {
 	/** Reserved for future use */
 	TRANSPORT_MGMT_ID_RESERVED_3,
 
-	/** Reserved for future use */
-	TRANSPORT_MGMT_ID_RESERVED_4,
-
-	/** Reserved for future use */
-	TRANSPORT_MGMT_ID_RESERVED_5,
-
 	/*
 	 * The following are purposely at the end to be able to see if they have been excluded
 	 * when using enum mgmt due to being optional when using a custom derivative group ID
@@ -54,8 +48,10 @@ enum transport_mgmt_ids {
 
 	/** List supported transports */
 	TRANSPORT_MGMT_ID_LIST,
+
 	/** Get the supported modes of a transport  */
 	TRANSPORT_MGMT_ID_GET_MODES,
+
 	/** Get the configuration details of a transport */
 	TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS,
 };
