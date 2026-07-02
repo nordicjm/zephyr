@@ -184,7 +184,7 @@ typedef int (*smp_transport_bridge_details_fn)(zcbor_state_t *output_data);
  *
  * @return                      0 on success, #mcumgr_err_t code on failure.
  */
-typedef int (*smp_transport_bridge_config_details_fn)(zcbor_state_t *output_data);
+typedef int (*smp_transport_bridge_config_details_fn)(uint32_t type, zcbor_state_t *output_data);
 
 /**
  * @brief Function pointers of SMP transport functions, if a handler is NULL then it is not

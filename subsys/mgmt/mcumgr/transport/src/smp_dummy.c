@@ -224,9 +224,8 @@ static int smp_dummy_bridge_details(zcbor_state_t *output_data)
 	return MGMT_RETURN_CHECK(ok);
 }
 
-static int smp_dummy_bridge_config_details(zcbor_state_t *output_data)
+static int smp_dummy_bridge_config_details(uint32_t type, zcbor_state_t *output_data)
 {
-//TODO
 	return MGMT_ERR_EOK;
 }
 #endif

@@ -648,9 +648,8 @@ static int smp_udp4_bridge_details(zcbor_state_t *output_data)
 	return MGMT_RETURN_CHECK(ok);
 }
 
-static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
+static int smp_udp4_bridge_config_details(uint32_t type, zcbor_state_t *output_data)
 {
-
 	bool ok;
 
         ok = zcbor_map_start_encode(output_data, 2) &&
@@ -671,9 +670,6 @@ static int smp_udp4_bridge_config_details(zcbor_state_t *output_data)
              zcbor_map_end_encode(output_data, 2);
 
 	return MGMT_RETURN_CHECK(ok);
-
-//TODO
-	return MGMT_ERR_EOK;
 }
 #endif
 #endif
