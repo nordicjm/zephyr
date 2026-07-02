@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//bluetooth -> shell, connect then send once, goes out (no response) then send another -> crash
-
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/mgmt/mcumgr/mgmt/mgmt.h>
@@ -57,6 +55,19 @@ static inline void transport_mgmt_unlock(void)
 
 static struct smp_transport_bridge bridges[CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES];
 static bool bridge_active;
+
+static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	struct transport_id_lookup_t *transport_lookup = (struct transport_id_lookup_t *)user_data;
+
+	if (transport->smpt == transport_lookup->transport) {
+		transport_lookup->transport_id = transport->smpt_type;
+		transport_lookup->found = true;
+		return false;
+	}
+
+	return true;
+}
 
 bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
 {
@@ -136,178 +147,8 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
 }
 
 /**
- * Command handler: transport <>
+ * Command handler: transport connect
  */
-#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
-static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *transport, void *user_data)
-{
-	uint32_t *count = (uint32_t *)user_data;
-
-	++*count;
-
-	return true;
-}
-
-static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport, void *user_data)
-{
-	zcbor_state_t *zse = (zcbor_state_t *)user_data;
-	bool ok;
-
-	ok = zcbor_map_start_encode(zse, 30) &&
-	     zcbor_tstr_put_lit(zse, "id") &&
-	     zcbor_uint32_put(zse, transport->smpt_type);
-
-	if (!ok) {
-		goto finish;
-	}
-
-	if (transport->name != NULL) {
-		ok = zcbor_tstr_put_lit(zse, "name") &&
-		     zcbor_tstr_put_term(zse, transport->name, 30);
-
-		if (!ok) {
-			goto finish;
-		}
-	}
-
-	ok = zcbor_map_end_encode(zse, 30);
-
-finish:
-	return ok;
-}
-
-static int transport_mgmt_list(struct smp_streamer *ctxt)
-{
-	uint32_t transports = 0;
-	zcbor_state_t *zse = ctxt->writer->zs;
-	bool ok = true;
-
-	smp_client_transport_foreach(transport_mgmt_count_loop, (void *)&transports);
-
-	ok = zcbor_tstr_put_lit(zse, "transports") &&
-	     zcbor_list_start_encode(zse, transports) &&
-	     smp_client_transport_foreach(transport_mgmt_list_loop, (void *)zse) &&
-	     zcbor_list_end_encode(zse, transports);
-
-	return MGMT_RETURN_CHECK(ok);
-}
-
-static int transport_mgmt_get_modes(struct smp_streamer *ctxt)
-{
-	int rc;
-	zcbor_state_t *zse = ctxt->writer->zs;
-	zcbor_state_t *zsd = ctxt->reader->zs;
-	bool ok = true;
-	size_t decoded = 0;
-	uint32_t transport_id = 0;
-	struct smp_transport *transport;
-
-	struct zcbor_map_decode_key_val settings_save_decode[] = {
-		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
-	};
-
-#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
-	enum mgmt_cb_return status;
-	int32_t err_rc;
-	uint16_t err_group;
-#endif
-
-	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
-				   &decoded) == 0;
-
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
-		return MGMT_ERR_EINVAL;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
-	transport = smp_client_transport_get(transport_id);
-
-	if (transport == NULL || transport->functions.bridge_modes == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
-	ok = zcbor_tstr_put_lit(zse, "modes") &&
-	     zcbor_list_start_encode(zse, 30);
-
-	if (!ok) {
-		return MGMT_ERR_EMSGSIZE;
-	}
-
-	rc = transport->functions.bridge_modes(zse);
-
-	if (rc != 0) {
-		return rc;
-	}
-
-	ok = zcbor_list_end_encode(zse, 30);
-
-	return MGMT_RETURN_CHECK(ok);
-}
-
-static int transport_mgmt_get_config_details(struct smp_streamer *ctxt)
-{
-//TODO
-	int rc;
-	zcbor_state_t *zse = ctxt->writer->zs;
-	zcbor_state_t *zsd = ctxt->reader->zs;
-	bool ok = true;
-	size_t decoded = 0;
-	uint32_t transport_id = 0;
-	uint32_t mode = 0;
-	struct smp_transport *transport;
-
-	struct zcbor_map_decode_key_val settings_save_decode[] = {
-		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
-		ZCBOR_MAP_DECODE_KEY_DECODER("mode", zcbor_uint32_decode, &mode),
-	};
-
-#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
-	enum mgmt_cb_return status;
-	int32_t err_rc;
-	uint16_t err_group;
-#endif
-
-	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
-				   &decoded) == 0;
-
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "mode")) {
-		return MGMT_ERR_EINVAL;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
-	transport = smp_client_transport_get(transport_id);
-
-	if (transport == NULL || transport->functions.bridge_modes == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
-	}
-
-	ok = zcbor_tstr_put_lit(zse, "configs") &&
-	     zcbor_list_start_encode(zse, 30);
-
-	if (!ok) {
-		return MGMT_ERR_EMSGSIZE;
-	}
-
-	rc = transport->functions.bridge_config_details(mode, zse);
-
-	if (rc != 0) {
-		return rc;
-	}
-
-	ok = zcbor_list_end_encode(zse, 30);
-
-	return MGMT_RETURN_CHECK(ok);
-}
-#endif
-
 static int transport_mgmt_connect(struct smp_streamer *ctxt)
 {
 //	int rc;
@@ -443,6 +284,9 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 	return MGMT_RETURN_CHECK(ok);
 }
 
+/**
+ * Command handler: transport disconnect
+ */
 static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 {
 //	int rc;
@@ -591,19 +435,9 @@ return MGMT_ERR_EBADSTATE;
 	return MGMT_RETURN_CHECK(ok);
 }
 
-static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *transport, void *user_data)
-{
-	struct transport_id_lookup_t *transport_lookup = (struct transport_id_lookup_t *)user_data;
-
-	if (transport->smpt == transport_lookup->transport) {
-		transport_lookup->transport_id = transport->smpt_type;
-		transport_lookup->found = true;
-		return false;
-	}
-
-	return true;
-}
-
+/**
+ * Command handler: transport status
+ */
 static int transport_mgmt_status(struct smp_streamer *ctxt)
 {
 //	int rc;
@@ -669,6 +503,185 @@ static int transport_mgmt_status(struct smp_streamer *ctxt)
 }
 //		ok = smp_add_cmd_err(zse, MGMT_GROUP_ID_SETTINGS, (uint16_t)rc);
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
+static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	uint32_t *count = (uint32_t *)user_data;
+
+	++*count;
+
+	return true;
+}
+
+static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport, void *user_data)
+{
+	zcbor_state_t *zse = (zcbor_state_t *)user_data;
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 30) &&
+	     zcbor_tstr_put_lit(zse, "id") &&
+	     zcbor_uint32_put(zse, transport->smpt_type);
+
+	if (!ok) {
+		goto finish;
+	}
+
+	if (transport->name != NULL) {
+		ok = zcbor_tstr_put_lit(zse, "name") &&
+		     zcbor_tstr_put_term(zse, transport->name, 30);
+
+		if (!ok) {
+			goto finish;
+		}
+	}
+
+	ok = zcbor_map_end_encode(zse, 30);
+
+finish:
+	return ok;
+}
+
+/**
+ * Command handler: transport list
+ */
+static int transport_mgmt_list(struct smp_streamer *ctxt)
+{
+	uint32_t transports = 0;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	bool ok = true;
+
+	smp_client_transport_foreach(transport_mgmt_count_loop, (void *)&transports);
+
+	ok = zcbor_tstr_put_lit(zse, "transports") &&
+	     zcbor_list_start_encode(zse, transports) &&
+	     smp_client_transport_foreach(transport_mgmt_list_loop, (void *)zse) &&
+	     zcbor_list_end_encode(zse, transports);
+
+	return MGMT_RETURN_CHECK(ok);
+}
+
+/**
+ * Command handler: transport modes
+ */
+static int transport_mgmt_modes(struct smp_streamer *ctxt)
+{
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zsd = ctxt->reader->zs;
+	bool ok = true;
+	size_t decoded = 0;
+	uint32_t transport_id = 0;
+	struct smp_transport *transport;
+
+	struct zcbor_map_decode_key_val settings_save_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+	};
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	enum mgmt_cb_return status;
+	int32_t err_rc;
+	uint16_t err_group;
+#endif
+
+	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
+				   &decoded) == 0;
+
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+		return MGMT_ERR_EINVAL;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	transport = smp_client_transport_get(transport_id);
+
+	if (transport == NULL || transport->functions.bridge_modes == NULL) {
+//TODO: error
+return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	ok = zcbor_tstr_put_lit(zse, "modes") &&
+	     zcbor_list_start_encode(zse, 30);
+
+	if (!ok) {
+		return MGMT_ERR_EMSGSIZE;
+	}
+
+	rc = transport->functions.bridge_modes(zse);
+
+	if (rc != 0) {
+		return rc;
+	}
+
+	ok = zcbor_list_end_encode(zse, 30);
+
+	return MGMT_RETURN_CHECK(ok);
+}
+
+/**
+ * Command handler: transport config details
+ */
+static int transport_mgmt_config_details(struct smp_streamer *ctxt)
+{
+//TODO
+	int rc;
+	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zsd = ctxt->reader->zs;
+	bool ok = true;
+	size_t decoded = 0;
+	uint32_t transport_id = 0;
+	uint32_t mode = 0;
+	struct smp_transport *transport;
+
+	struct zcbor_map_decode_key_val settings_save_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
+		ZCBOR_MAP_DECODE_KEY_DECODER("mode", zcbor_uint32_decode, &mode),
+	};
+
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+	enum mgmt_cb_return status;
+	int32_t err_rc;
+	uint16_t err_group;
+#endif
+
+	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
+				   &decoded) == 0;
+
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "mode")) {
+		return MGMT_ERR_EINVAL;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	transport = smp_client_transport_get(transport_id);
+
+	if (transport == NULL || transport->functions.bridge_config_details == NULL) {
+//TODO: error
+return MGMT_ERR_EBADSTATE;
+//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
+//		goto end;
+	}
+
+	ok = zcbor_tstr_put_lit(zse, "configs") &&
+	     zcbor_list_start_encode(zse, 30);
+
+	if (!ok) {
+		return MGMT_ERR_EMSGSIZE;
+	}
+
+	rc = transport->functions.bridge_config_details(mode, zse);
+
+	if (rc != 0) {
+		return rc;
+	}
+
+	ok = zcbor_list_end_encode(zse, 30);
+
+	return MGMT_RETURN_CHECK(ok);
+}
+#endif
+
 #ifdef CONFIG_MCUMGR_SMP_SUPPORT_ORIGINAL_PROTOCOL
 static int transport_mgmt_translate_error_code(uint16_t ret)
 {
@@ -714,11 +727,11 @@ static const struct mgmt_handler transport_mgmt_handlers[] = {
 		.mh_write = NULL,
 	},
 	[TRANSPORT_MGMT_ID_GET_MODES] = {
-		.mh_read = transport_mgmt_get_modes,
+		.mh_read = transport_mgmt_modes,
 		.mh_write = NULL,
 	},
 	[TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS] = {
-		.mh_read = transport_mgmt_get_config_details,
+		.mh_read = transport_mgmt_config_details,
 		.mh_write = NULL,
 	},
 #endif
