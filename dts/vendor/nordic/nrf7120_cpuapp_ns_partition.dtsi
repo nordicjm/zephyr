@@ -8,11 +8,13 @@
 
 /*
  * Default SRAM planning when building for nRF7120 with ARM TrustZone-M support
- * - Lowest 128 kB in RAM00 allocated to Secure RAM (sram0_s).
- * - Upper 384 kB in RAM00 allocated to Non-Secure RAM (sram00_ns).
- * - 256 kB SRAM in RAM01 allocated to Non-Secure RAM (sram01_ns).
- * - 128 kB SRAM in RAM02 allocated to Non-Secure RAM (sram02_ns).
- * - 120 kB SRAM in RAM03 allocated to Non-Secure RAM (sram03_ns).
+ * Lowest 96 kB allocated to Secure RAM (sram0_s).
+ *   - 96 kB SRAM in RAM00 allocated to Secure RAM      (sram00_s).
+ * Upper 920 kB allocated to Non-Secure RAM (sram0_ns).
+ *   - 416 kB SRAM in RAM00 allocated to Non-Secure RAM (sram00_ns).
+ *   - 256 kB SRAM in RAM01 allocated to Non-Secure RAM (sram01_ns).
+ *   - 128 kB SRAM in RAM02 allocated to Non-Secure RAM (sram02_ns).
+ *   - 120 kB SRAM in RAM03 allocated to Non-Secure RAM (sram03_ns).
  *
  * cpuapp_sram has 1016 kB of volatile memory (SRAM).
  * This static layout needs to be the same with the upstream TF-M layout in the
@@ -24,23 +26,23 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		/* Secure RAM */
-		reg = <0x0 DT_SIZE_K(128)>; /* 0x2000_0000 */
-		ranges = <0x0 0x0 DT_SIZE_K(128)>;
+		reg = <0x0 DT_SIZE_K(96)>; /* 0x2000_0000 */
+		ranges = <0x0 0x0 DT_SIZE_K(96)>;
 	};
 
-	sram0_ns: sram@20000 {
+	sram0_ns: sram@18000 {
 		#address-cells = <1>;
 		#size-cells = <1>;
 		/* Non-Secure RAM */
-		reg = <0x20000 DT_SIZE_K(888)>; /* 0x2002_0000 */
-		ranges = <0x0 0x20000 DT_SIZE_K(888)>;
+		reg = <0x18000 DT_SIZE_K(920)>; /* 0x2001_8000 */
+		ranges = <0x0 0x18000 DT_SIZE_K(920)>;
 
 		sram00_ns: sram0_ns@0 {
 			#address-cells = <1>;
 			#size-cells = <1>;
 			/* Non-Secure RAM */
-			reg = <0x0 DT_SIZE_K(384)>; /* 0x2002_0000 */
-			ranges = <0x0 0x0 DT_SIZE_K(384)>;
+			reg = <0x0 DT_SIZE_K(416)>; /* 0x2001_8000 */
+			ranges = <0x0 0x0 DT_SIZE_K(416)>;
 		};
 
 		sram01_ns: sram0_ns@60000 {
@@ -70,26 +72,28 @@
 };
 
 &cpuapp_mram {
+#ifdef WITH_MCUBOOT_PARTITIONS
 	/*
-	 * Default NVM layout on NRF7120 Application MCU without BL2:
+	 * Default NVM layout on NRF7120 Application MCU with BL2:
 	 * This layout matches (by necessity) that in the TF-M repository:
 	 *
 	 * 0x0000_0000 Boot Partition (64 KB)
 	 *
-	 * 0x0001_0000 Secure image primary (192 KB)
-	 * 0x0004_0000 Non-secure image primary (1762 KB)
+	 * 0x0001_0000 Primary image area (1954 KB):
+	 *   - 0x0001_0000 Secure image primary (192 KB)
+	 *   - 0x0004_0000 Non-secure image primary (1762 KB)
 	 *
-	 * 0x001E_8800 Secure image secondary (192 KB)
-	 * 0x0021_8800 Non-secure image secondary (1762 KB)
+	 * 0x001F_8800 Secondary image area (1954 KB):
+	 *   - 0x001F_8800 Secure image secondary (192 KB)
+	 *   - 0x0022_8800 Non-secure image secondary (1762 KB)
 	 *
-	 * 0x003C_1000 Protected Storage Area (16 KB)
-	 * 0x003C_5000 Internal Trusted Storage Area (16 KB)
-	 * 0x003C_9000 OTP / NV counters area (8 KB)
+	 * 0x003E_1000 Protected Storage Area (16 KB)
+	 * 0x003E_5000 Internal Trusted Storage Area (16 KB)
+	 * 0x003E_9000 OTP / NV counters area (8 KB)
 	 *
 	 * 0x003E_B000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
 	 *             otherwise unused (64 KB)
 	 */
-#ifdef WITH_MCUBOOT_PARTITIONS
 	partitions {
 		#address-cells = <1>;
 		#size-cells = <1>;
