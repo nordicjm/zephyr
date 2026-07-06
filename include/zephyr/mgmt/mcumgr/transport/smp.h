@@ -9,13 +9,10 @@
 #define ZEPHYR_INCLUDE_MGMT_MCUMGR_TRANSPORT_SMP_H_
 
 #include <zephyr/kernel.h>
+#include <zcbor_common.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-#include <zcbor_common.h>
 #endif
 
 /**
