@@ -98,6 +98,37 @@ enum transport_mgmt_ret_code_t {
 
 	/** Unknown error occurred. */
 	TRANSPORT_MGMT_ERR_UNKNOWN,
+
+	/** The transport is missing the required mandatory bridging functions. */
+	TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_REQUIRED_FUNCTIONS,
+
+	/** The transport is missing the information bridging functions. */
+	TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_INFO_FUNCTIONS,
+
+	/** Invalid or unsupported transport ID provided. */
+	TRANSPORT_MGMT_ERR_INVALID_TRANSPORT,
+
+	/** All transport bridging context are in use. */
+	TRANSPORT_MGMT_ERR_ALL_CONTEXTS_USED,
+
+        /** The transport parameter was not provided and is required. */
+        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT,
+
+        /** The transport or all parameters were not provided and one is required. */
+        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_ALL,
+
+        /** The transport or all parameters were both provided and only one should be supplied. */
+        TRANSPORT_MGMT_ERR_PARAMETER_BOTH_TRANSPORT_AND_ALL,
+
+        /** The transport or mode parameters were not provided and both are required. */
+        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_MODE,
+
+	/** . */
+//	TRANSPORT_MGMT_ERR_,
+	/** . */
+//	TRANSPORT_MGMT_ERR_,
+	/** . */
+//	TRANSPORT_MGMT_ERR_,
 };
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_GROUP_ID_CUSTOM_FUNCTION) || defined(__DOXYGEN__)

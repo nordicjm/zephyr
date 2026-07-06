@@ -182,10 +182,9 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 
 	if (ctxt->smpt->functions.bridge_connect == NULL ||
 	    ctxt->smpt->functions.bridge_disconnect == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_REQUIRED_FUNCTIONS);
+		goto end;
 	}
 
 	if (!zcbor_new_backup(zsd, backup_element_count_reader)) {
@@ -196,11 +195,15 @@ return MGMT_ERR_EBADSTATE;
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
-					ARRAY_SIZE(settings_save_decode), "transport")) {
+	if (!ok) {
 		return MGMT_ERR_EINVAL;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+	}
+
+	if (decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "transport")) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT);
+		return MGMT_ERR_EOK;
 	}
 
 //zcbor_map_decode_bulk_reset(settings_save_decode, ARRAY_SIZE(settings_save_decode));
@@ -212,12 +215,17 @@ return MGMT_ERR_EBADSTATE;
 
 	outgoing_transport = smp_client_transport_get(transport_id);
 
-	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL ||
+	if (outgoing_transport == NULL) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
+		goto end;
+	}
+
+	if (outgoing_transport->functions.bridge_connect == NULL ||
 	    ctxt->smpt->functions.bridge_connect == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_REQUIRED_FUNCTIONS);
+		goto end;
 	}
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
@@ -323,11 +331,17 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
 #endif
 
-	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode,
+	if (!ok) {
+		return MGMT_ERR_EINVAL;
+	}
+
+	if (decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode,
 					ARRAY_SIZE(settings_save_decode), "transport") &&
 	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
 					ARRAY_SIZE(settings_save_decode), "all"))) {
-		return MGMT_ERR_EINVAL;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_ALL);
+		return MGMT_ERR_EOK;
 	}
 
 	if (zcbor_map_decode_bulk_key_found(settings_save_decode,
@@ -335,8 +349,9 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	    zcbor_map_decode_bulk_key_found(settings_save_decode,
 					ARRAY_SIZE(settings_save_decode), "all") &&
 	    disconnect_all == true) {
-//cannot disconnect all and just one transport at the same time
-		return MGMT_ERR_EINVAL;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_PARAMETER_BOTH_TRANSPORT_AND_ALL);
+		return MGMT_ERR_EOK;
 	}
 
 	if (bridge_active == false) {
@@ -381,14 +396,19 @@ return MGMT_ERR_EINVAL;
 	} else {
 		struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
-		if (outgoing_transport == NULL ||
-		    outgoing_transport->functions.bridge_disconnect == NULL ||
+		if (outgoing_transport == NULL) {
+			transport_mgmt_unlock();
+			smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+					TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
+			return MGMT_ERR_EOK;
+		}
+
+		if (outgoing_transport->functions.bridge_disconnect == NULL ||
 		    ctxt->smpt->functions.bridge_disconnect == NULL) {
-//TODO: error
-//		transport_mgmt_unlock();
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+			transport_mgmt_unlock();
+			smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+					TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_REQUIRED_FUNCTIONS);
+			return MGMT_ERR_EOK;
 		}
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
@@ -415,11 +435,10 @@ return MGMT_ERR_EBADSTATE;
 		}
 
 		if (i == CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-//TODO: error
 			transport_mgmt_unlock();
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+			smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+					TRANSPORT_MGMT_ERR_ALL_CONTEXTS_USED);
+			return MGMT_ERR_EOK;
 		}
 
 		outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
@@ -624,11 +643,16 @@ static int transport_mgmt_modes(struct smp_streamer *ctxt)
 
 	transport = smp_client_transport_get(transport_id);
 
-	if (transport == NULL || transport->functions.bridge_modes == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+	if (transport == NULL) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
+		return MGMT_ERR_EOK;
+	}
+
+	if (transport->functions.bridge_modes == NULL) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_INFO_FUNCTIONS);
+		return MGMT_ERR_EOK;
 	}
 
 	ok = zcbor_tstr_put_lit(zse, "modes") &&
@@ -678,22 +702,31 @@ static int transport_mgmt_config_details(struct smp_streamer *ctxt)
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
+	if (!ok) {
+		return MGMT_ERR_EINVAL;
+	}
+
+	if (decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
 				ARRAY_SIZE(settings_save_decode), "transport") ||
 	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
 				ARRAY_SIZE(settings_save_decode), "mode")) {
-		return MGMT_ERR_EINVAL;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_MODE);
+		return MGMT_ERR_EOK;
 	}
 
 	transport = smp_client_transport_get(transport_id);
 
-	if (transport == NULL || transport->functions.bridge_config_details == NULL) {
-//TODO: error
-return MGMT_ERR_EBADSTATE;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+	if (transport == NULL) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
+		return MGMT_ERR_EOK;
+	}
+
+	if (transport->functions.bridge_config_details == NULL) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_INFO_FUNCTIONS);
+		return MGMT_ERR_EOK;
 	}
 
 	ok = zcbor_tstr_put_lit(zse, "configs") &&
