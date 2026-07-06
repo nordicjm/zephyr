@@ -36,6 +36,9 @@ struct transport_id_lookup_t {
 	bool found;
 };
 
+static struct smp_transport_bridge bridges[CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES];
+static bool bridge_active;
+
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_LOCKING)
 static K_SEM_DEFINE(mcumgr_transport_sem, 1, 1);
 
@@ -53,10 +56,8 @@ static inline void transport_mgmt_unlock(void)
 #define transport_mgmt_unlock()
 #endif
 
-static struct smp_transport_bridge bridges[CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES];
-static bool bridge_active;
-
-static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *transport, void *user_data)
+static bool transport_mgmt_get_id_loop(const struct smp_client_transport_entry *transport,
+				       void *user_data)
 {
 	struct transport_id_lookup_t *transport_lookup = (struct transport_id_lookup_t *)user_data;
 
@@ -79,7 +80,9 @@ bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
 		uint8_t i = 0;
 
 		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
+			if (bridges[i].status == 1 && ((outgoing == false &&
+			      bridges[i].incoming_transport == transport) || (outgoing == true &&
+			     bridges[i].outgoing_transport == transport))) {
 				bridged = true;
 				break;
 			}
@@ -93,7 +96,8 @@ bool transport_mgmt_is_bridged(struct smp_transport *transport, bool outgoing)
 	return bridged;
 }
 
-struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *transport, bool outgoing)
+struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *transport,
+							 bool outgoing)
 {
 	struct smp_transport *other_transport = NULL;
 
@@ -104,10 +108,12 @@ struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *t
 
 		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 			if (bridges[i].status == 1) {
-				if (outgoing == false && bridges[i].incoming_transport == transport) {
+				if (outgoing == false &&
+				    bridges[i].incoming_transport == transport) {
 					other_transport = bridges[i].outgoing_transport;
 					break;
-				} else if (outgoing == true && bridges[i].outgoing_transport == transport) {
+				} else if (outgoing == true &&
+					   bridges[i].outgoing_transport == transport) {
 					other_transport = bridges[i].incoming_transport;
 					break;
 				}
@@ -122,7 +128,8 @@ struct smp_transport *transport_mgmt_get_other_transport(struct smp_transport *t
 	return other_transport;
 }
 
-const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transport *transport, bool outgoing)
+const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transport *transport,
+							     bool outgoing)
 {
 	const struct smp_transport_bridge *bridge = NULL;
 
@@ -132,7 +139,9 @@ const struct smp_transport_bridge *transport_mgmt_get_bridge(struct smp_transpor
 		uint8_t i = 0;
 
 		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-			if (bridges[i].status == 1 && ((outgoing == false && bridges[i].incoming_transport == transport) || (outgoing == true && bridges[i].outgoing_transport == transport))) {
+			if (bridges[i].status == 1 && ((outgoing == false &&
+			      bridges[i].incoming_transport == transport) || (outgoing == true &&
+			     bridges[i].outgoing_transport == transport))) {
 				bridge = &bridges[i];
 				break;
 			}
@@ -171,7 +180,8 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	uint16_t err_group;
 #endif
 
-	if (ctxt->smpt->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+	if (ctxt->smpt->functions.bridge_connect == NULL ||
+	    ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
@@ -186,7 +196,8 @@ return MGMT_ERR_EBADSTATE;
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "transport")) {
 		return MGMT_ERR_EINVAL;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
 //		goto end;
@@ -201,7 +212,8 @@ return MGMT_ERR_EBADSTATE;
 
 	outgoing_transport = smp_client_transport_get(transport_id);
 
-	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL || ctxt->smpt->functions.bridge_connect == NULL) {
+	if (outgoing_transport == NULL || outgoing_transport->functions.bridge_connect == NULL ||
+	    ctxt->smpt->functions.bridge_connect == NULL) {
 //TODO: error
 return MGMT_ERR_EBADSTATE;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
@@ -240,7 +252,8 @@ return MGMT_ERR_EBADSTATE;
 	}
 
 //TODO:
-	if (outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd) == false) {
+	if (outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd) ==
+	    false) {
 //TODO: error
 		transport_mgmt_unlock();
 return MGMT_ERR_EACCESSDENIED;
@@ -310,11 +323,18 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
 #endif
 
-	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all"))) {
+	if (!ok || decoded == 0 || (!zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "transport") &&
+	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "all"))) {
 		return MGMT_ERR_EINVAL;
 	}
 
-	if (zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") && zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "all") && disconnect_all == true) {
+	if (zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "transport") &&
+	    zcbor_map_decode_bulk_key_found(settings_save_decode,
+					ARRAY_SIZE(settings_save_decode), "all") &&
+	    disconnect_all == true) {
 //cannot disconnect all and just one transport at the same time
 		return MGMT_ERR_EINVAL;
 	}
@@ -339,14 +359,15 @@ return MGMT_ERR_EINVAL;
 //	}
 #endif
 
-
 		transport_mgmt_lock();
 
 
 		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
 			if (bridges[i].status == 1) {
-				bridges[i].outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
-				bridges[i].incoming_transport->functions.bridge_disconnect(&bridges[i], false);
+				bridges[i].outgoing_transport->functions.bridge_disconnect(
+					&bridges[i], true);
+				bridges[i].incoming_transport->functions.bridge_disconnect(
+					&bridges[i], false);
 				bridges[i].status = 0;
 				bridges[i].incoming_transport = NULL;
 				bridges[i].outgoing_transport = NULL;
@@ -360,7 +381,9 @@ return MGMT_ERR_EINVAL;
 	} else {
 		struct smp_transport *outgoing_transport = smp_client_transport_get(transport_id);
 
-		if (outgoing_transport == NULL || outgoing_transport->functions.bridge_disconnect == NULL || ctxt->smpt->functions.bridge_disconnect == NULL) {
+		if (outgoing_transport == NULL ||
+		    outgoing_transport->functions.bridge_disconnect == NULL ||
+		    ctxt->smpt->functions.bridge_disconnect == NULL) {
 //TODO: error
 //		transport_mgmt_unlock();
 return MGMT_ERR_EBADSTATE;
@@ -370,8 +393,8 @@ return MGMT_ERR_EBADSTATE;
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
 		/* Send notification to say a bridge is being dropped */
-		status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
-		      sizeof(group_detail_data), &err_rc, &err_group);
+		status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT,
+		      &group_detail_data, sizeof(group_detail_data), &err_rc, &err_group);
 
 		if (status != MGMT_CB_OK) {
 			*data->ok = false;
@@ -382,7 +405,9 @@ return MGMT_ERR_EBADSTATE;
 		transport_mgmt_lock();
 
 		while (i < CONFIG_MCUMGR_GRP_TRANSPORT_MAX_BRIDGES) {
-			if (bridges[i].status == 1 && bridges[i].outgoing_transport == outgoing_transport && bridges[i].incoming_transport == ctxt->smpt) {
+			if (bridges[i].status == 1 &&
+			    bridges[i].outgoing_transport == outgoing_transport &&
+			    bridges[i].incoming_transport == ctxt->smpt) {
 				break;
 			}
 
@@ -471,11 +496,13 @@ static int transport_mgmt_status(struct smp_streamer *ctxt)
 			if (bridges[i].incoming_transport == ctxt->smpt) {
 				bridged = true;
 				transport_lookup.transport = bridges[i].outgoing_transport;
-				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop, (void *)&transport_lookup);
+				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop,
+					(void *)&transport_lookup);
 			} else if (bridges[i].outgoing_transport == ctxt->smpt) {
 				bridged = true;
 				transport_lookup.transport = bridges[i].incoming_transport;
-				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop, (void *)&transport_lookup);
+				(void)smp_client_transport_foreach(transport_mgmt_get_id_loop,
+					(void *)&transport_lookup);
 			}
 		}
 
@@ -504,7 +531,8 @@ static int transport_mgmt_status(struct smp_streamer *ctxt)
 //		ok = smp_add_cmd_err(zse, MGMT_GROUP_ID_SETTINGS, (uint16_t)rc);
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
-static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *transport, void *user_data)
+static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *transport,
+				      void *user_data)
 {
 	uint32_t *count = (uint32_t *)user_data;
 
@@ -513,7 +541,8 @@ static bool transport_mgmt_count_loop(const struct smp_client_transport_entry *t
 	return true;
 }
 
-static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport, void *user_data)
+static bool transport_mgmt_list_loop(const struct smp_client_transport_entry *transport,
+				     void *user_data)
 {
 	zcbor_state_t *zse = (zcbor_state_t *)user_data;
 	bool ok;
@@ -586,7 +615,8 @@ static int transport_mgmt_modes(struct smp_streamer *ctxt)
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport")) {
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
+						ARRAY_SIZE(settings_save_decode), "transport")) {
 		return MGMT_ERR_EINVAL;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
 //		goto end;
@@ -648,7 +678,10 @@ static int transport_mgmt_config_details(struct smp_streamer *ctxt)
 	ok = zcbor_map_decode_bulk(zsd, settings_save_decode, ARRAY_SIZE(settings_save_decode),
 				   &decoded) == 0;
 
-	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "transport") || !zcbor_map_decode_bulk_key_found(settings_save_decode, ARRAY_SIZE(settings_save_decode), "mode")) {
+	if (!ok || decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
+				ARRAY_SIZE(settings_save_decode), "transport") ||
+	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
+				ARRAY_SIZE(settings_save_decode), "mode")) {
 		return MGMT_ERR_EINVAL;
 //		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
 //		goto end;
