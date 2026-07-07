@@ -202,7 +202,7 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 	if (decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
 					ARRAY_SIZE(settings_save_decode), "transport")) {
 		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
-				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT);
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
 		return MGMT_ERR_EOK;
 	}
 
@@ -340,7 +340,7 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
 					ARRAY_SIZE(settings_save_decode), "all"))) {
 		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
-				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_ALL);
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT_OR_ALL_PARAMETERS);
 		return MGMT_ERR_EOK;
 	}
 
@@ -350,7 +350,7 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 					ARRAY_SIZE(settings_save_decode), "all") &&
 	    disconnect_all == true) {
 		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
-				TRANSPORT_MGMT_ERR_PARAMETER_BOTH_TRANSPORT_AND_ALL);
+				TRANSPORT_MGMT_ERR_BOTH_TRANSPORT_AND_ALL_PARAMETERS);
 		return MGMT_ERR_EOK;
 	}
 
@@ -707,11 +707,14 @@ static int transport_mgmt_config_details(struct smp_streamer *ctxt)
 	}
 
 	if (decoded == 0 || !zcbor_map_decode_bulk_key_found(settings_save_decode,
-				ARRAY_SIZE(settings_save_decode), "transport") ||
-	    !zcbor_map_decode_bulk_key_found(settings_save_decode,
+				ARRAY_SIZE(settings_save_decode), "transport")) {
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
+				TRANSPORT_MGMT_ERR_INVALID_TRANSPORT);
+		return MGMT_ERR_EOK;
+	} else if (!zcbor_map_decode_bulk_key_found(settings_save_decode,
 				ARRAY_SIZE(settings_save_decode), "mode")) {
 		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT,
-				TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_MODE);
+				TRANSPORT_MGMT_ERR_INVALID_MODE);
 		return MGMT_ERR_EOK;
 	}
 

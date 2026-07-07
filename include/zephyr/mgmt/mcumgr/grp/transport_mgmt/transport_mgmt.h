@@ -105,23 +105,20 @@ enum transport_mgmt_ret_code_t {
 	/** The transport is missing the information bridging functions. */
 	TRANSPORT_MGMT_ERR_TRANSPORT_MISSING_INFO_FUNCTIONS,
 
-	/** Invalid or unsupported transport ID provided. */
+	/** Invalid, unsupported or no transport ID provided. */
 	TRANSPORT_MGMT_ERR_INVALID_TRANSPORT,
+
+	/** Invalid, unsupported or no mode provided. */
+	TRANSPORT_MGMT_ERR_INVALID_MODE,
 
 	/** All transport bridging context are in use. */
 	TRANSPORT_MGMT_ERR_ALL_CONTEXTS_USED,
 
-        /** The transport parameter was not provided and is required. */
-        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT,
+	/** The transport or all parameters were not provided and one is required. */
+	TRANSPORT_MGMT_ERR_INVALID_TRANSPORT_OR_ALL_PARAMETERS,
 
-        /** The transport or all parameters were not provided and one is required. */
-        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_ALL,
-
-        /** The transport or all parameters were both provided and only one should be supplied. */
-        TRANSPORT_MGMT_ERR_PARAMETER_BOTH_TRANSPORT_AND_ALL,
-
-        /** The transport or mode parameters were not provided and both are required. */
-        TRANSPORT_MGMT_ERR_PARAMETER_INVALID_TRANSPORT_OR_MODE,
+	/** The transport or all parameters were both provided and only one should be supplied. */
+	TRANSPORT_MGMT_ERR_BOTH_TRANSPORT_AND_ALL_PARAMETERS,
 
 	/** . */
 //	TRANSPORT_MGMT_ERR_,
