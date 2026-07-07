@@ -71,10 +71,17 @@ bool create_transport_mgmt_disconnect_packet(zcbor_state_t *zse, uint8_t *buffer
 {
 	bool ok;
 
-	ok = zcbor_map_start_encode(zse, 2) &&
-	     zcbor_tstr_put_lit(zse, "transport")  &&
-	     zcbor_uint32_put(zse, transport_id) &&
-	     zcbor_map_end_encode(zse, 2);
+	if (all == true) {
+		ok = zcbor_map_start_encode(zse, 2) &&
+		     zcbor_tstr_put_lit(zse, "all")  &&
+		     zcbor_bool_put(zse, true) &&
+		     zcbor_map_end_encode(zse, 2);
+	} else {
+		ok = zcbor_map_start_encode(zse, 2) &&
+		     zcbor_tstr_put_lit(zse, "transport")  &&
+		     zcbor_uint32_put(zse, transport_id) &&
+		     zcbor_map_end_encode(zse, 2);
+	}
 
 	*buffer_size = (zse->payload_mut - buffer);
 	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
@@ -88,5 +95,58 @@ bool create_transport_mgmt_disconnect_packet(zcbor_state_t *zse, uint8_t *buffer
 bool create_transport_mgmt_status_packet(zcbor_state_t *zse, uint8_t *buffer,
 					 uint8_t *output_buffer, uint16_t *buffer_size)
 {
-//todo
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 2) &&
+	     zcbor_map_end_encode(zse, 2);
+
+	*buffer_size = (zse->payload_mut - buffer);
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+		     TRANSPORT_MGMT_ID_LIST);
+	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
+	*buffer_size += sizeof(struct smp_hdr);
+
+	return ok;
+}
+
+bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
+					uint8_t *output_buffer, uint16_t *buffer_size,
+					uint8_t transport_id)
+{
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 2) &&
+	     zcbor_tstr_put_lit(zse, "transport")  &&
+	     zcbor_uint32_put(zse, transport_id) &&
+	     zcbor_map_end_encode(zse, 2);
+
+	*buffer_size = (zse->payload_mut - buffer);
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+		     TRANSPORT_MGMT_ID_LIST);
+	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
+	*buffer_size += sizeof(struct smp_hdr);
+
+	return ok;
+}
+
+bool create_transport_mgmt_config_details_packet(zcbor_state_t *zse, uint8_t *buffer,
+						 uint8_t *output_buffer, uint16_t *buffer_size,
+						 uint8_t transport_id, uint8_t type)
+{
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 2) &&
+	     zcbor_tstr_put_lit(zse, "transport")  &&
+	     zcbor_uint32_put(zse, transport_id) &&
+	     zcbor_tstr_put_lit(zse, "type")  &&
+	     zcbor_uint32_put(zse, type) &&
+	     zcbor_map_end_encode(zse, 2);
+
+	*buffer_size = (zse->payload_mut - buffer);
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+		     TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS);
+	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
+	*buffer_size += sizeof(struct smp_hdr);
+
+	return ok;
 }

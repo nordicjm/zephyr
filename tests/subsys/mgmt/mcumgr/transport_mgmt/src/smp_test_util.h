@@ -30,4 +30,15 @@ bool create_transport_mgmt_disconnect_packet(zcbor_state_t *zse, uint8_t *buffer
 bool create_transport_mgmt_status_packet(zcbor_state_t *zse, uint8_t *buffer,
 					 uint8_t *output_buffer, uint16_t *buffer_size);
 
+/* Function for creating a transport_mgmt modes of transport command */
+bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
+					uint8_t *output_buffer, uint16_t *buffer_size,
+					uint8_t transport_id);
+
+/* Function for creating a transport_mgmt config details of transport command */
+bool create_transport_mgmt_config_details_packet(zcbor_state_t *zse, uint8_t *buffer,
+						 uint8_t *output_buffer, uint16_t *buffer_size,
+						 uint8_t transport_id, uint8_t type);
+
+
 #endif
