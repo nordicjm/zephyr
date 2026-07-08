@@ -253,6 +253,57 @@ def find_v2_boards(args):
         if conflict_boards:
             raise RuntimeError(f'Board(s): {conflict_boards}, defined multiple times.\n'
                                f'Last defined in {board_yml}')
+
+        if args.qualifiers:
+            if len(b) > 0:
+                for board in b:
+                    if board != args.board:
+                        continue;
+
+                    for soc in b[board].socs:
+                        for cluster in soc.cpuclusters:
+                            for variant in cluster.variants:
+                                print(variant)
+                                target_qualifiers = soc.name + '/' + cluster.name + '/' + variant.name
+
+                                if target_qualifiers == args.qualifiers:
+                                    print("f1")
+                                    boards.update(b)
+#                                    extend_v2_boards(boards, board_extensions)
+                                    return boards
+
+                        for variant in extension['variants']:
+                            target_qualifiers = soc.name + '/' + variant['name']
+
+                            if target_qualifiers == args.qualifiers:
+                                print("f2")
+                                boards.update(b)
+#                                extend_v2_boards(boards, board_extensions)
+                                return boards
+
+                        if len(soc.cpuclusters) == 0:
+                            target_qualifiers = soc.name
+
+                            if target_qualifiers == args.qualifiers:
+                                print("f3")
+                                boards.update(b)
+#                                extend_v2_boards(boards, board_extensions)
+                                return boards
+
+            if len(e) > 0:
+                for extension in e:
+                    if extension['extend'] != args.board:
+                        continue;
+
+                    for variant in extension['variants']:
+                        target_qualifiers = variant['qualifier'] + '/' + variant['name']
+
+                        if target_qualifiers == args.qualifiers:
+                            print("f4")
+                            board_extensions.extend(e)
+                            extend_v2_boards(boards, board_extensions)
+                            return boards
+
         boards.update(b)
         board_extensions.extend(e)
 
@@ -281,6 +332,8 @@ def add_args(parser):
                         help='add a soc root, may be given more than once')
     parser.add_argument("--board", dest='board', default=None,
                         help='lookup the specific board, fail if not found')
+    parser.add_argument("--qualifiers", dest='qualifiers', default=None,
+                        help='lookup the specific qualifiers for the given board')
     parser.add_argument("--board-dir", default=[], type=Path, action='append',
                         help='only look for boards at the specific location')
     parser.add_argument("--fuzzy-match", default=None,
