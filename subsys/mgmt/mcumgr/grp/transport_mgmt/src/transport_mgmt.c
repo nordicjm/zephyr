@@ -355,10 +355,8 @@ static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 	}
 
 	if (bridge_active == false) {
-//TODO: error
-return MGMT_ERR_EINVAL;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_NOT_BRIDGED);
+		goto end;
 	}
 
 	if (disconnect_all == true) {
@@ -476,6 +474,7 @@ return MGMT_ERR_EINVAL;
 #endif
 
 //TODO
+end:
 	return MGMT_RETURN_CHECK(ok);
 }
 

@@ -120,8 +120,9 @@ enum transport_mgmt_ret_code_t {
 	/** The transport or all parameters were both provided and only one should be supplied. */
 	TRANSPORT_MGMT_ERR_BOTH_TRANSPORT_AND_ALL_PARAMETERS,
 
-	/** . */
-//	TRANSPORT_MGMT_ERR_,
+	/** The transport is not bridged. */
+	TRANSPORT_MGMT_ERR_NOT_BRIDGED,
+
 	/** . */
 //	TRANSPORT_MGMT_ERR_,
 	/** . */
