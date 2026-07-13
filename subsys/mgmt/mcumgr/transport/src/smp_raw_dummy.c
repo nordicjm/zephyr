@@ -50,8 +50,8 @@ static struct uart_mcumgr_rx_buf *dummy_mcumgr_cur_buf;
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport = {
-	smp_client_transport.smpt = &smp_dummy_transport,
-	smp_client_transport.smpt_type = SMP_RAW_SERIAL_TRANSPORT,
+	.smpt = &smp_dummy_transport,
+	.smpt_type = SMP_RAW_SERIAL_TRANSPORT,
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	.name = "Raw dummy",
 #endif
@@ -141,7 +141,7 @@ static int smp_raw_dummy_tx_pkt_int(struct net_buf *nb)
 }
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-static bool smp_raw_dummy_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
+static bool smp_raw_dummy_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
 return true;
 }

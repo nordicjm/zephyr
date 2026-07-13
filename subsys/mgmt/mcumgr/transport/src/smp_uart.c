@@ -100,7 +100,7 @@ static int smp_uart_tx_pkt(struct net_buf *nb)
 }
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-static bool smp_uart_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, const zcbor_state_t *input_data, zcbor_state_t *output_data)
+static bool smp_uart_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
 return true;
 }

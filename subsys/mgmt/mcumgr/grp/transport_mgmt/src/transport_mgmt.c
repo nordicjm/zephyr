@@ -301,7 +301,7 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 #endif
 
 //TODO
-//end:
+end:
 	return MGMT_RETURN_CHECK(ok);
 }
 
@@ -311,7 +311,7 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 static int transport_mgmt_disconnect(struct smp_streamer *ctxt)
 {
 //	int rc;
-//	zcbor_state_t *zse = ctxt->writer->zs;
+	zcbor_state_t *zse = ctxt->writer->zs;
 	zcbor_state_t *zsd = ctxt->reader->zs;
 	bool ok = true;
 	size_t decoded = 0;
