@@ -19,7 +19,7 @@ static void smp_make_hdr(struct smp_hdr *rsp_hdr, uint16_t group, bool write, si
 		.nh_len = sys_cpu_to_be16(len),
 		.nh_flags = 0,
 		.nh_op = (write == true ? MGMT_OP_WRITE : MGMT_OP_READ),
-		.nh_group = sys_cpu_to_be16(type),
+		.nh_group = sys_cpu_to_be16(group),
 		.nh_seq = 1,
 		.nh_id = type,
 		.nh_version = 1,

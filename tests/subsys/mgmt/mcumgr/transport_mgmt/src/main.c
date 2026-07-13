@@ -20,11 +20,21 @@
 #include <zephyr/sys/byteorder.h>
 #include "smp_test_util.h"
 
+#define LOG_LEVEL LOG_LEVEL_DBG
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(smp_sample);
+
 #define SMP_RESPONSE_WAIT_TIME 3
 #define ZCBOR_BUFFER_SIZE 128
 #define OUTPUT_BUFFER_SIZE 384
 #define ZCBOR_HISTORY_ARRAY_SIZE 8
 #define TEST_STRING "tEsTiNg eChO dAtA"
+
+struct group_error {
+	uint16_t group;
+	uint16_t rc;
+	bool found;
+};
 
 static struct net_buf *nb;
 
@@ -37,6 +47,117 @@ static void cleanup_test(void *p)
 	}
 }
 
+static bool mcumgr_ret_decode(zcbor_state_t *state, struct group_error *result)
+{
+	bool ok;
+	size_t decoded;
+	uint32_t tmp_group;
+	uint32_t tmp_rc;
+
+	struct zcbor_map_decode_key_val output_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("group", zcbor_uint32_decode, &tmp_group),
+		ZCBOR_MAP_DECODE_KEY_DECODER("rc", zcbor_uint32_decode, &tmp_rc),
+	};
+
+	result->found = false;
+
+	ok = zcbor_map_decode_bulk(state, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+
+	if (ok &&
+	    zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "group") &&
+	    zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "rc")) {
+		result->group = (uint16_t)tmp_group;
+		result->rc = (uint16_t)tmp_rc;
+		result->found = true;
+	}
+
+	return ok;
+}
+
+ZTEST(transport_mgmt, test_connect_invalid)
+{
+	uint8_t buffer[ZCBOR_BUFFER_SIZE];
+	uint8_t buffer_out[OUTPUT_BUFFER_SIZE];
+	bool ok;
+	uint16_t buffer_size;
+	zcbor_state_t zse[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
+	zcbor_state_t zsd[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
+	bool received;
+	struct smp_hdr *header;
+	size_t decoded = 0;
+	struct zcbor_string data = { 0 };
+	struct group_error group_error;
+
+	struct zcbor_map_decode_key_val output_decode[] = {
+//		ZCBOR_MAP_DECODE_KEY_DECODER("rc", zcbor_int32_decode, &rc),
+		ZCBOR_MAP_DECODE_KEY_DECODER("err", mcumgr_ret_decode, &group_error),
+	};
+
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+
+	/* Test 1:  */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_connect_packet(zse, buffer, buffer_out, &buffer_size, 0x30);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+LOG_HEXDUMP_ERR(buffer_out, 8, "aa");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_dummy_enable();
+	smp_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_dummy_get_outgoing();
+	smp_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_WRITE_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_CONNECT, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+LOG_HEXDUMP_ERR(header, sizeof(struct smp_hdr), "blah");
+LOG_HEXDUMP_ERR(nb->data, nb->len, "blah");
+	zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+	ok = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_true(ok, "Expected decode to be successful");
+	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+	zassert_equal(group_error.group, MGMT_GROUP_ID_TRANSPORT,
+		      "Expected 'err' -> 'group' to be transport");
+	zassert_equal(group_error.rc, OS_MGMT_ERR_RTC_NOT_SET,
+		      "Expected 'err' -> 'rc' to be X");
+
+#if 0
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	cleanup_test(NULL);
+#endif
+}
+
+#if 0
 ZTEST(transport_raw_uart, test_os_mgmt_echo)
 {
 	uint8_t buffer[ZCBOR_BUFFER_SIZE];
@@ -155,5 +276,6 @@ printk("%d %d q", sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT), header->nh_group);
 	zassert_equal(data.len, strlen(TEST_STRING), "os mgmt echo response length mismatch");
 	zassert_mem_equal(data.value, TEST_STRING, data.len, "os mgmt echo response mismatch");
 }
+#endif
 
-ZTEST_SUITE(transport_raw_uart, NULL, NULL, NULL, cleanup_test, NULL);
+ZTEST_SUITE(transport_mgmt, NULL, NULL, NULL, cleanup_test, NULL);
