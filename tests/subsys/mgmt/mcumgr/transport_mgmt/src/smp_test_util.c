@@ -12,13 +12,13 @@
 #include <zcbor_encode.h>
 
 /* SMP header function for generating MCUmgr command header with sequence number set to 1 */
-static void smp_make_hdr(struct smp_hdr *rsp_hdr, uint16_t group, bool write, size_t len,
+static void smp_make_hdr(struct smp_hdr *rsp_hdr, uint16_t group, uint8_t op, size_t len,
 			 uint8_t type)
 {
 	*rsp_hdr = (struct smp_hdr) {
 		.nh_len = sys_cpu_to_be16(len),
 		.nh_flags = 0,
-		.nh_op = (write == true ? MGMT_OP_WRITE : MGMT_OP_READ),
+		.nh_op = op,
 		.nh_group = sys_cpu_to_be16(group),
 		.nh_seq = 1,
 		.nh_id = type,
@@ -37,7 +37,26 @@ bool create_os_mgmt_echo_packet(zcbor_state_t *zse, uint8_t *buffer, uint8_t *ou
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_OS, false, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_OS, MGMT_OP_READ, *buffer_size,
+		     OS_MGMT_ID_ECHO);
+	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
+	*buffer_size += sizeof(struct smp_hdr);
+
+	return ok;
+}
+
+bool create_os_mgmt_echo_response_packet(zcbor_state_t *zse, uint8_t *buffer,
+					 uint8_t *output_buffer, uint16_t *buffer_size, char *data)
+{
+	bool ok;
+
+	ok = zcbor_map_start_encode(zse, 2) &&
+	     zcbor_tstr_put_lit(zse, "d")  &&
+	     zcbor_tstr_put_term(zse, data, CONFIG_ZCBOR_MAX_STR_LEN) &&
+	     zcbor_map_end_encode(zse, 2);
+
+	*buffer_size = (zse->payload_mut - buffer);
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_OS, MGMT_OP_READ_RSP, *buffer_size,
 		     OS_MGMT_ID_ECHO);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -57,7 +76,7 @@ bool create_transport_mgmt_connect_packet(zcbor_state_t *zse, uint8_t *buffer,
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
 		     TRANSPORT_MGMT_ID_CONNECT);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -84,7 +103,7 @@ bool create_transport_mgmt_disconnect_packet(zcbor_state_t *zse, uint8_t *buffer
 	}
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
 		     TRANSPORT_MGMT_ID_DISCONNECT);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -101,7 +120,7 @@ bool create_transport_mgmt_status_packet(zcbor_state_t *zse, uint8_t *buffer,
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
 		     TRANSPORT_MGMT_ID_LIST);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -121,7 +140,7 @@ bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
 		     TRANSPORT_MGMT_ID_LIST);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -143,7 +162,7 @@ bool create_transport_mgmt_config_details_packet(zcbor_state_t *zse, uint8_t *bu
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, true, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
 		     TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);

@@ -487,7 +487,7 @@ req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
 			/* Send the response. */
 			rc = streamer->smpt->functions.output(rsp);
 			rsp = NULL;
-		} else if (IS_ENABLED(CONFIG_SMP_CLIENT) && (req_hdr.nh_op == MGMT_OP_READ_RSP ||
+		} else if ((IS_ENABLED(CONFIG_MCUMGR_GRP_TRANSPORT) || IS_ENABLED(CONFIG_SMP_CLIENT)) && (req_hdr.nh_op == MGMT_OP_READ_RSP ||
 			   req_hdr.nh_op == MGMT_OP_WRITE_RSP)) {
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 //TODO: group
@@ -512,6 +512,8 @@ req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
 				goto skip_processing_packet;
 			}
 #endif
+
+#if defined(CONFIG_SMP_CLIENT)
 			rc = smp_client_single_response(req, &req_hdr);
 
 			if (rc == MGMT_ERR_EOK) {
@@ -520,7 +522,7 @@ req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;
 				/* Server should not send error response for response */
 				valid_hdr = false;
 			}
-
+#endif
 		} else {
 			rc = MGMT_ERR_ENOTSUP;
 		}

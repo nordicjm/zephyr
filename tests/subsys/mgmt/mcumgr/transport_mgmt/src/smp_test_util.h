@@ -16,6 +16,11 @@
 bool create_os_mgmt_echo_packet(zcbor_state_t *zse, uint8_t *buffer, uint8_t *output_buffer,
 				uint16_t *buffer_size, char *data);
 
+/* Function for creating an os_mgmt echo response */
+bool create_os_mgmt_echo_response_packet(zcbor_state_t *zse, uint8_t *buffer,
+					 uint8_t *output_buffer, uint16_t *buffer_size,
+					 char *data);
+
 /* Function for creating a transport_mgmt connect command */
 bool create_transport_mgmt_connect_packet(zcbor_state_t *zse, uint8_t *buffer,
 					  uint8_t *output_buffer, uint16_t *buffer_size,
