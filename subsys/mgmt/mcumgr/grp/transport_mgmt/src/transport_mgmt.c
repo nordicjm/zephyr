@@ -260,24 +260,17 @@ return MGMT_ERR_EBADSTATE;
 	}
 
 //TODO:
-	if (outgoing_transport->functions.bridge_connect(&bridges[i], true, false, zse, zsd) ==
+	if (outgoing_transport->functions.bridge_connect(&bridges[i], true, (outgoing_transport == ctxt->smpt ? true : false), zsd, zse) ==
 	    false) {
-//TODO: error
 		transport_mgmt_unlock();
-return MGMT_ERR_EACCESSDENIED;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		goto end;
 	}
 
 //TODO:
-
-	if (ctxt->smpt->functions.bridge_connect(&bridges[i], false, false, zse, zsd) == false) {
-//TODO: error
+	if (ctxt->smpt->functions.bridge_connect(&bridges[i], false, (outgoing_transport == ctxt->smpt ? true : false), zsd, zse) == false) {
 		(void)outgoing_transport->functions.bridge_disconnect(&bridges[i], true);
 		transport_mgmt_unlock();
-return MGMT_ERR_UNSUPPORTED_TOO_OLD;
-//		smp_add_cmd_err(zse, MGMT_GROUP_ID_TRANSPORT, TRANSPORT_MGMT_ERR_);
-//		goto end;
+		goto end;
 	}
 
 	bridges[i].status = 1;
@@ -300,7 +293,6 @@ LOG_ERR("Bridge %p to %p with %d", ctxt->smpt, outgoing_transport, i);
 	}
 #endif
 
-//TODO
 end:
 	return MGMT_RETURN_CHECK(ok);
 }

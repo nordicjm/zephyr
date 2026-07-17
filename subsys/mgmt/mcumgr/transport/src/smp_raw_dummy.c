@@ -29,6 +29,10 @@
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+#include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt.h>
+#endif
+
 BUILD_ASSERT(CONFIG_MCUMGR_TRANSPORT_RAW_DUMMY_RX_BUF_SIZE != 0,
 	     "CONFIG_MCUMGR_TRANSPORT_RAW_DUMMY_RX_BUF_SIZE must be > 0");
 
@@ -143,6 +147,13 @@ static int smp_raw_dummy_tx_pkt_int(struct net_buf *nb)
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
 static bool smp_raw_dummy_bridge_connect(struct smp_transport_bridge *bridge, bool outgoing, bool same_transport, zcbor_state_t *input_data, zcbor_state_t *output_data)
 {
+	if (same_transport == true) {
+                smp_add_cmd_err(output_data, MGMT_GROUP_ID_TRANSPORT,
+                                TRANSPORT_MGMT_ERR_SAME_BRIDGE_DEVICE_DISALLOWED);
+
+		return false;
+	}
+
 return true;
 }
 

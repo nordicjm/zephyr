@@ -123,6 +123,9 @@ enum transport_mgmt_ret_code_t {
 	/** The transport is not bridged. */
 	TRANSPORT_MGMT_ERR_NOT_BRIDGED,
 
+	/** The transport does not support being used as both the input and output bridge device. */
+	TRANSPORT_MGMT_ERR_SAME_BRIDGE_DEVICE_DISALLOWED,
+
 	/** . */
 //	TRANSPORT_MGMT_ERR_,
 	/** . */
