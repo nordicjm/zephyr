@@ -487,8 +487,6 @@ ZTEST(transport_mgmt, test_connection)
         /* Get the response value to compare */
         zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
         rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
-LOG_HEXDUMP_ERR(nb->data, nb->len, "shit");
-LOG_ERR("its %d", rc);
         zassert_equal(rc, 1, "Expected decode to be successful %d", rc);
         zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
         zassert_equal(echo_receive_data.len, strlen(TEST_STRING_RAW), "os mgmt echo response length mismatch");
@@ -560,7 +558,6 @@ LOG_ERR("its %d", rc);
 	echo_receive_data.len = 0;
 	cleanup_test(NULL);
 
-#if 1
         /* Test 4: Check dummy transport does echo and raw dummy gets response */
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
@@ -591,7 +588,6 @@ LOG_ERR("its %d", rc);
 
         /* Check response is as expected */
         header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
-LOG_HEXDUMP_ERR(header, sizeof(struct smp_hdr), "hdr");
 
         zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
         zassert_equal(header->nh_op, MGMT_OP_READ, "SMP header operation mismatch");
@@ -622,10 +618,6 @@ LOG_HEXDUMP_ERR(header, sizeof(struct smp_hdr), "hdr");
 	echo_send_data.len = 0;
 	echo_receive_data.len = 0;
 	cleanup_test(NULL);
-#endif
-
-//TODO: DOES NOT WORK
-LOG_ERR("test 5");
 
         /* Test 5: Check raw dummy transport does echo and dummy gets response */
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
@@ -637,27 +629,20 @@ LOG_ERR("test 5");
         smp_raw_dummy_clear_state();
         smp_dummy_enable();
         smp_dummy_clear_state();
-LOG_ERR("a1");
 
         /* Send query command to dummy SMP backend */
         (void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
         smp_raw_dummy_add_data();
 
-LOG_ERR("a0");
         /* Ensure primary transport gets no response */
         received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
-LOG_ERR("a0b");
         nb = smp_raw_dummy_get_outgoing();
-//LOG_HEXDUMP_ERR(nb->data, nb->len, "wtf");
-//LOG_HEXDUMP_ERR(buffer_out, buffer_size, "wtf2");
         zassert_false(received, "Expected to not receive data but received it");
-LOG_ERR("a2");
 
         /* For a short duration to see if response has been received */
         received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
         zassert_true(received, "Expected to receive data but timed out");
 
-LOG_ERR("a3");
         /* Retrieve response buffer */
         nb = smp_dummy_get_outgoing();
         smp_raw_dummy_disable();
@@ -667,13 +652,12 @@ LOG_ERR("a3");
         header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
 
         zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
-        zassert_equal(header->nh_op, MGMT_OP_READ, "SMP header operation mismatch");
+        zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
         zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
                       "SMP header group mismatch");
         zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
         zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
         zassert_equal(header->nh_version, 1, "SMP header version mismatch");
-LOG_ERR("a4");
 
         /* Get the response value to compare */
         zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
@@ -682,7 +666,6 @@ LOG_ERR("a4");
         zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
         zassert_equal(echo_send_data.len, strlen(TEST_STRING_RAW), "os mgmt echo response length mismatch");
         zassert_mem_equal(echo_send_data.value, TEST_STRING_RAW, echo_send_data.len, "os mgmt echo response mismatch");
-LOG_ERR("a5");
 
 	/* Clean up test */
 	memset(buffer, 0, sizeof(buffer));
@@ -758,82 +741,46 @@ LOG_ERR("a5");
 	echo_receive_data.len = 0;
 	cleanup_test(NULL);
 
-//check dummy transport does echo and gets response
-//check raw dummy transport does echo and gets response
-//bridge from raw to dummy
-//check dummy transport does echo and raw dummy gets response
-//check raw dummy transport does echo and dummy gets response
-//disconnect all
-//check dummy transport does echo and gets response
-//check raw dummy transport does echo and gets response
-}
+//fuck
+        /* Test 7: Check dummy transport does echo and gets response */
+        zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+        ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
+        zassert_true(ok, "Expected packet creation to be successful");
 
-#if 0
-ZTEST(transport_raw_uart, test_os_mgmt_echo)
-{
-	uint8_t buffer[ZCBOR_BUFFER_SIZE];
-	uint8_t buffer_out[OUTPUT_BUFFER_SIZE];
-	bool ok;
-	uint16_t buffer_size;
-	zcbor_state_t zse[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
-	zcbor_state_t zsd[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
-	bool received;
-	struct smp_hdr *header;
-	size_t decoded = 0;
-	struct zcbor_string data = { 0 };
+        /* Enable dummy SMP backend and ready for usage */
+        smp_dummy_enable();
+        smp_dummy_clear_state();
 
-	struct zcbor_map_decode_key_val output_decode[] = {
-		ZCBOR_MAP_DECODE_KEY_DECODER("r", zcbor_tstr_decode, &data),
-	};
+        /* Send query command to dummy SMP backend */
+        (void)smp_dummy_tx_pkt(buffer_out, buffer_size);
+        smp_dummy_add_data();
 
-	memset(buffer, 0, sizeof(buffer));
-	memset(buffer_out, 0, sizeof(buffer_out));
-	buffer_size = 0;
-	memset(zse, 0, sizeof(zse));
-	memset(zsd, 0, sizeof(zsd));
+        /* For a short duration to see if response has been received */
+        received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        zassert_true(received, "Expected to receive data but timed out");
 
-	/* Test 1: Get the unused default memory pool values as a baseline */
-	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
-	ok = create_transport_mgmt_connect_packet(zse, buffer, buffer_out, &buffer_size, SMP_RAW_SERIAL_TRANSPORT);
-	zassert_true(ok, "Expected packet creation to be successful");
+        /* Retrieve response buffer */
+        nb = smp_dummy_get_outgoing();
+        smp_dummy_disable();
 
-	/* Enable dummy SMP backend and ready for usage */
-	smp_dummy_enable();
-	smp_dummy_clear_state();
+        /* Check response is as expected */
+        header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
 
-	/* Send query command to dummy SMP backend */
-	(void)smp_dummy_tx_pkt(buffer_out, buffer_size);
-	smp_dummy_add_data();
+        zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+        zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+        zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
+                      "SMP header group mismatch");
+        zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+        zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
+        zassert_equal(header->nh_version, 1, "SMP header version mismatch");
 
-	/* For a short duration to see if response has been received */
-	received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
-	zassert_true(received, "Expected to receive data but timed out");
-
-	/* Retrieve response buffer */
-	nb = smp_dummy_get_outgoing();
-	smp_dummy_disable();
-
-	/* Check response is as expected */
-	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
-
-printk("%d %d q", sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT), header->nh_group);
-	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
-	zassert_equal(header->nh_op, MGMT_OP_WRITE_RSP, "SMP header operation mismatch");
-//	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
-//		      "SMP header group mismatch");
-	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
-	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_CONNECT, "SMP header command ID mismatch");
-	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
-
-#if 0
-	/* Get the response value to compare */
-	zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
-	ok = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
-	zassert_true(ok, "Expected decode to be successful");
-	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
-	zassert_equal(data.len, strlen(TEST_STRING), "os mgmt echo response length mismatch");
-	zassert_mem_equal(data.value, TEST_STRING, data.len, "os mgmt echo response mismatch");
-#endif
+        /* Get the response value to compare */
+        zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+        rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+        zassert_equal(rc, 1, "Expected decode to be successful");
+        zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+        zassert_equal(echo_receive_data.len, strlen(TEST_STRING), "os mgmt echo response length mismatch");
+        zassert_mem_equal(echo_receive_data.value, TEST_STRING, echo_receive_data.len, "os mgmt echo response mismatch");
 
 	/* Clean up test */
 	memset(buffer, 0, sizeof(buffer));
@@ -842,23 +789,79 @@ printk("%d %d q", sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT), header->nh_group);
 	memset(zse, 0, sizeof(zse));
 	memset(zsd, 0, sizeof(zsd));
 	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
 	cleanup_test(NULL);
 
-//todo
-	/* Test 1: Get the unused default memory pool values as a baseline */
+        /* Test 8: Check raw dummy transport does echo and gets response */
+        zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+        ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
+        zassert_true(ok, "Expected packet creation to be successful");
+
+        /* Enable dummy SMP backend and ready for usage */
+        smp_raw_dummy_enable();
+        smp_raw_dummy_clear_state();
+
+        /* Send query command to dummy SMP backend */
+        (void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+        smp_raw_dummy_add_data();
+
+        /* For a short duration to see if response has been received */
+        received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        zassert_true(received, "Expected to receive data but timed out");
+
+        /* Retrieve response buffer */
+        nb = smp_raw_dummy_get_outgoing();
+        smp_raw_dummy_disable();
+
+        /* Check response is as expected */
+        header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+        zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+        zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+        zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
+                      "SMP header group mismatch");
+        zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+        zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
+        zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+        /* Get the response value to compare */
+        zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+        rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+        zassert_equal(rc, 1, "Expected decode to be successful %d", rc);
+        zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+        zassert_equal(echo_receive_data.len, strlen(TEST_STRING_RAW), "os mgmt echo response length mismatch");
+        zassert_mem_equal(echo_receive_data.value, TEST_STRING_RAW, echo_receive_data.len, "os mgmt echo response mismatch");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
+	cleanup_test(NULL);
+
+	/* Test 9: Bridge to other dummy transport */
 	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
-	ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
+	ok = create_transport_mgmt_connect_packet(zse, buffer, buffer_out, &buffer_size, 0);
 	zassert_true(ok, "Expected packet creation to be successful");
 
 	/* Enable dummy SMP backend and ready for usage */
-	smp_dummy_enable();
-	smp_dummy_clear_state();
 	smp_raw_dummy_enable();
 	smp_raw_dummy_clear_state();
 
 	/* Send query command to dummy SMP backend */
-	(void)smp_dummy_tx_pkt(buffer_out, buffer_size);
-	smp_dummy_add_data();
+	(void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_raw_dummy_add_data();
 
 	/* For a short duration to see if response has been received */
 	received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
@@ -866,27 +869,223 @@ printk("%d %d q", sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT), header->nh_group);
 
 	/* Retrieve response buffer */
 	nb = smp_raw_dummy_get_outgoing();
-	smp_dummy_disable();
+	smp_raw_dummy_disable();
 
 	/* Check response is as expected */
 	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
 
 	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
-	zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
-	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
+	zassert_equal(header->nh_op, MGMT_OP_WRITE_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
 		      "SMP header group mismatch");
 	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
-	zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_CONNECT, "SMP header command ID mismatch");
 	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
 
 	/* Get the response value to compare */
 	zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
-	ok = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
-	zassert_true(ok, "Expected decode to be successful");
-	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
-	zassert_equal(data.len, strlen(TEST_STRING), "os mgmt echo response length mismatch");
-	zassert_mem_equal(data.value, TEST_STRING, data.len, "os mgmt echo response mismatch");
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 0, "Expected to receive 0 decoded zcbor elements");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
+	cleanup_test(NULL);
+
+//check dummy transport does echo and gets response
+//check raw dummy transport does echo and gets response
+        /* Test 10: Check dummy transport does echo and raw dummy gets response */
+        zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+        ok = create_os_mgmt_echo_response_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
+        zassert_true(ok, "Expected packet creation to be successful");
+
+        /* Enable dummy SMP backend and ready for usage */
+        smp_dummy_enable();
+        smp_dummy_clear_state();
+        smp_raw_dummy_enable();
+        smp_raw_dummy_clear_state();
+
+        /* Send query command to dummy SMP backend */
+        (void)smp_dummy_tx_pkt(buffer_out, buffer_size);
+        smp_dummy_add_data();
+
+        /* Ensure primary transport gets no response */
+        received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        zassert_false(received, "Expected to not receive data but received it");
+
+        /* For a short duration to see if response has been received */
+        received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        zassert_true(received, "Expected to receive data but timed out");
+
+        /* Retrieve response buffer */
+        nb = smp_raw_dummy_get_outgoing();
+        smp_dummy_disable();
+        smp_raw_dummy_disable();
+
+        /* Check response is as expected */
+        header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+        zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+        zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+        zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
+                      "SMP header group mismatch");
+        zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+        zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
+        zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+        /* Get the response value to compare */
+        zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+        rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+        zassert_equal(rc, 1, "Expected decode to be successful");
+        zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+        zassert_equal(echo_send_data.len, strlen(TEST_STRING), "os mgmt echo response length mismatch");
+        zassert_mem_equal(echo_send_data.value, TEST_STRING, echo_send_data.len, "os mgmt echo response mismatch");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
+	cleanup_test(NULL);
+
+        /* Test 11: Check raw dummy transport does echo and dummy gets response */
+        zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+        ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
+        zassert_true(ok, "Expected packet creation to be successful");
+
+        /* Enable dummy SMP backend and ready for usage */
+        smp_raw_dummy_enable();
+        smp_raw_dummy_clear_state();
+        smp_dummy_enable();
+        smp_dummy_clear_state();
+
+        /* Send query command to dummy SMP backend */
+        (void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+        smp_raw_dummy_add_data();
+
+        /* Ensure primary transport gets no response */
+        received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        nb = smp_raw_dummy_get_outgoing();
+        zassert_false(received, "Expected to not receive data but received it");
+
+        /* For a short duration to see if response has been received */
+        received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+        zassert_true(received, "Expected to receive data but timed out");
+
+        /* Retrieve response buffer */
+        nb = smp_dummy_get_outgoing();
+        smp_raw_dummy_disable();
+        smp_dummy_disable();
+
+        /* Check response is as expected */
+        header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+        zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+        zassert_equal(header->nh_op, MGMT_OP_READ, "SMP header operation mismatch");
+        zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_OS),
+                      "SMP header group mismatch");
+        zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+        zassert_equal(header->nh_id, OS_MGMT_ID_ECHO, "SMP header command ID mismatch");
+        zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+        /* Get the response value to compare */
+        zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+        rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+        zassert_equal(rc, 1, "Expected decode to be successful");
+        zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+        zassert_equal(echo_send_data.len, strlen(TEST_STRING_RAW), "os mgmt echo response length mismatch");
+        zassert_mem_equal(echo_send_data.value, TEST_STRING_RAW, echo_send_data.len, "os mgmt echo response mismatch");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
+	cleanup_test(NULL);
+
+	/* Test 12: Disconnect all bridges with one active bridge */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_disconnect_packet(zse, buffer, buffer_out, &buffer_size, 0, true);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+//LOG_HEXDUMP_ERR(buffer_out, 8, "aa");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_raw_dummy_enable();
+	smp_raw_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_raw_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_raw_dummy_get_outgoing();
+	smp_raw_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_WRITE_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_DISCONNECT, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+//LOG_HEXDUMP_ERR(header, sizeof(struct smp_hdr), "blah");
+//LOG_HEXDUMP_ERR(nb->data, nb->len, "blah");
+	zcbor_new_decode_state(zsd, 4, nb->data, nb->len, 1, NULL, 0);
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 0, "Expected to receive 0 decoded zcbor elements");
+//	zassert_equal(group_error.group, MGMT_GROUP_ID_TRANSPORT,
+//		      "Expected 'err' -> 'group' to be transport");
+//	zassert_equal(group_error.rc, TRANSPORT_MGMT_ERR_NOT_BRIDGED,
+//		      "Expected 'err' -> 'rc' to be not bridged");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	output_decode[1].found = false;
+	output_decode[2].found = false;
+	output_decode[3].found = false;
+	echo_send_data.len = 0;
+	echo_receive_data.len = 0;
+	cleanup_test(NULL);
 }
-#endif
 
 ZTEST_SUITE(transport_mgmt, NULL, NULL, NULL, cleanup_test, NULL);
