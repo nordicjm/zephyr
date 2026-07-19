@@ -39,6 +39,16 @@ struct group_error {
 	bool found;
 };
 
+struct transport_mgmt_modes {
+	uint32_t type;
+	struct zcbor_string description;
+	bool incoming;
+	bool incoming_found;
+	bool outgoing;
+	bool outgoing_found;
+	bool found;
+};
+
 static struct net_buf *nb;
 
 static void cleanup_test(void *p)
@@ -72,6 +82,42 @@ static bool mcumgr_ret_decode(zcbor_state_t *state, struct group_error *result)
 		result->group = (uint16_t)tmp_group;
 		result->rc = (uint16_t)tmp_rc;
 		result->found = true;
+	}
+
+	return ok;
+}
+
+static bool transport_mgmt_modes_decode(zcbor_state_t *state, struct transport_mgmt_modes *result)
+{
+	bool ok;
+	size_t decoded;
+
+	struct zcbor_map_decode_key_val output_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("type", zcbor_uint32_decode, &result->type),
+		ZCBOR_MAP_DECODE_KEY_DECODER("description", zcbor_tstr_decode, &result->description),
+		ZCBOR_MAP_DECODE_KEY_DECODER("incoming", zcbor_bool_decode, &result->incoming),
+		ZCBOR_MAP_DECODE_KEY_DECODER("outgoing", zcbor_bool_decode, &result->outgoing),
+	};
+
+	result->found = false;
+
+	ok = zcbor_list_start_decode(state) &&
+	     zcbor_map_decode_bulk(state, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+
+	if (ok &&
+	    zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "type") &&
+	    zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "description")) {
+		result->found = true;
+
+		if (zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "incoming")) {
+			result->incoming_found = true;
+		}
+
+		if (zcbor_map_decode_bulk_key_found(output_decode, ARRAY_SIZE(output_decode), "outgoing")) {
+			result->outgoing_found = true;
+		}
+
+		ok = zcbor_list_end_decode(state);
 	}
 
 	return ok;
@@ -1850,15 +1896,252 @@ ZTEST(transport_mgmt, test_status)
 	zassert_equal(active, 0, "Expected 'active' value mismatch");
 }
 
-//test modes
-//test config details
+ZTEST(transport_mgmt, test_modes)
+{
+	uint8_t buffer[ZCBOR_BUFFER_SIZE];
+	uint8_t buffer_out[OUTPUT_BUFFER_SIZE];
+	bool ok;
+	uint16_t buffer_size;
+	zcbor_state_t zse[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
+	zcbor_state_t zsd[ZCBOR_HISTORY_ARRAY_SIZE] = { 0 };
+	bool received;
+	struct smp_hdr *header;
+	size_t decoded = 0;
+	struct transport_mgmt_modes modes;
+	int rc;
+
+	struct zcbor_map_decode_key_val output_decode[] = {
+		ZCBOR_MAP_DECODE_KEY_DECODER("modes", transport_mgmt_modes_decode, &modes),
+	};
+
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+
+	/* Test 1: Query primary transport modes from primary transport */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_modes_packet(zse, buffer, buffer_out, &buffer_size, SMP_SERIAL_TRANSPORT);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_dummy_enable();
+	smp_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_dummy_get_outgoing();
+	smp_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_GET_MODES, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+	zcbor_new_decode_state(zsd, 6, nb->data, nb->len, 1, NULL, 0);
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+	zassert_equal(modes.type, 0, "Expected mode 'type' mismatch'");
+	zassert_equal(modes.description.len, strlen("Dummy"), "Expected mode 'description' length mismatch");
+	zassert_mem_equal(modes.description.value, "Dummy", modes.description.len, "Expected mode 'description' mismatch");
+	zassert_true(modes.incoming, "Expected mode 'incoming' mismatch");
+	zassert_true(modes.incoming_found, "Expected mode 'incoming' to be found");
+	zassert_true(modes.outgoing, "Expected mode 'outgoing' mismatch");
+	zassert_true(modes.outgoing_found, "Expected mode 'outgoing' to be found");
+	zassert_true(modes.found, "Expected array to be found");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	memset(&modes, 0, sizeof(modes));
+	cleanup_test(NULL);
+
+	/* Test 2: Query primary transport modes from secondary transport */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_modes_packet(zse, buffer, buffer_out, &buffer_size, SMP_SERIAL_TRANSPORT);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_raw_dummy_enable();
+	smp_raw_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_raw_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_raw_dummy_get_outgoing();
+	smp_raw_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_GET_MODES, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+	zcbor_new_decode_state(zsd, 6, nb->data, nb->len, 1, NULL, 0);
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+	zassert_equal(modes.type, 0, "Expected mode 'type' mismatch'");
+	zassert_equal(modes.description.len, strlen("Dummy"), "Expected mode 'description' length mismatch");
+	zassert_mem_equal(modes.description.value, "Dummy", modes.description.len, "Expected mode 'description' mismatch");
+	zassert_true(modes.incoming, "Expected mode 'incoming' mismatch");
+	zassert_true(modes.incoming_found, "Expected mode 'incoming' to be found");
+	zassert_true(modes.outgoing, "Expected mode 'outgoing' mismatch");
+	zassert_true(modes.outgoing_found, "Expected mode 'outgoing' to be found");
+	zassert_true(modes.found, "Expected array to be found");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	memset(&modes, 0, sizeof(modes));
+	cleanup_test(NULL);
+
+	/* Test 3: Query secondary transport modes from primary transport */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_modes_packet(zse, buffer, buffer_out, &buffer_size, SMP_RAW_SERIAL_TRANSPORT);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_dummy_enable();
+	smp_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_dummy_get_outgoing();
+	smp_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_GET_MODES, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+	zcbor_new_decode_state(zsd, 6, nb->data, nb->len, 1, NULL, 0);
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+	zassert_equal(modes.type, 0, "Expected mode 'type' mismatch'");
+	zassert_equal(modes.description.len, strlen("Raw dummy"), "Expected mode 'description' length mismatch");
+	zassert_mem_equal(modes.description.value, "Raw dummy", modes.description.len, "Expected mode 'description' mismatch");
+	zassert_true(modes.incoming, "Expected mode 'incoming' mismatch");
+	zassert_true(modes.incoming_found, "Expected mode 'incoming' to be found");
+	zassert_true(modes.outgoing, "Expected mode 'outgoing' mismatch");
+	zassert_true(modes.outgoing_found, "Expected mode 'outgoing' to be found");
+	zassert_true(modes.found, "Expected array to be found");
+
+	/* Clean up test */
+	memset(buffer, 0, sizeof(buffer));
+	memset(buffer_out, 0, sizeof(buffer_out));
+	buffer_size = 0;
+	memset(zse, 0, sizeof(zse));
+	memset(zsd, 0, sizeof(zsd));
+	output_decode[0].found = false;
+	memset(&modes, 0, sizeof(modes));
+	cleanup_test(NULL);
+
+	/* Test 4: Query secondary transport modes from secondary transport */
+	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
+	ok = create_transport_mgmt_modes_packet(zse, buffer, buffer_out, &buffer_size, SMP_RAW_SERIAL_TRANSPORT);
+	zassert_true(ok, "Expected packet creation to be successful");
+
+	/* Enable dummy SMP backend and ready for usage */
+	smp_raw_dummy_enable();
+	smp_raw_dummy_clear_state();
+
+	/* Send query command to dummy SMP backend */
+	(void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
+	smp_raw_dummy_add_data();
+
+	/* For a short duration to see if response has been received */
+	received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
+	zassert_true(received, "Expected to receive data but timed out");
+
+	/* Retrieve response buffer */
+	nb = smp_raw_dummy_get_outgoing();
+	smp_raw_dummy_disable();
+
+	/* Check response is as expected */
+	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
+
+	zassert_equal(header->nh_flags, 0, "SMP header flags mismatch");
+	zassert_equal(header->nh_op, MGMT_OP_READ_RSP, "SMP header operation mismatch");
+	zassert_equal(header->nh_group, sys_cpu_to_be16(MGMT_GROUP_ID_TRANSPORT),
+		      "SMP header group mismatch");
+	zassert_equal(header->nh_seq, 1, "SMP header sequence number mismatch");
+	zassert_equal(header->nh_id, TRANSPORT_MGMT_ID_GET_MODES, "SMP header command ID mismatch");
+	zassert_equal(header->nh_version, 1, "SMP header version mismatch");
+
+	/* Get the response value to compare */
+	zcbor_new_decode_state(zsd, 6, nb->data, nb->len, 1, NULL, 0);
+	rc = zcbor_map_decode_bulk(zsd, output_decode, ARRAY_SIZE(output_decode), &decoded) == 0;
+	zassert_equal(rc, 1, "Expected decode to be successful");
+	zassert_equal(decoded, 1, "Expected to receive 1 decoded zcbor element");
+	zassert_equal(modes.type, 0, "Expected mode 'type' mismatch'");
+	zassert_equal(modes.description.len, strlen("Raw dummy"), "Expected mode 'description' length mismatch");
+	zassert_mem_equal(modes.description.value, "Raw dummy", modes.description.len, "Expected mode 'description' mismatch");
+	zassert_true(modes.incoming, "Expected mode 'incoming' mismatch");
+	zassert_true(modes.incoming_found, "Expected mode 'incoming' to be found");
+	zassert_true(modes.outgoing, "Expected mode 'outgoing' mismatch");
+	zassert_true(modes.outgoing_found, "Expected mode 'outgoing' to be found");
+	zassert_true(modes.found, "Expected array to be found");
+}
+
+//test invalid modes
+//test valid transports
+//test invalid transports
+//test valid config details
+//test invalid config details
 
 #if 0
-/* Function for creating a transport_mgmt modes of transport command */
-bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
-                                        uint8_t *output_buffer, uint16_t *buffer_size,
-                                        uint8_t transport_id);
-
 /* Function for creating a transport_mgmt config details of transport command */
 bool create_transport_mgmt_config_details_packet(zcbor_state_t *zse, uint8_t *buffer,
                                                  uint8_t *output_buffer, uint16_t *buffer_size,

@@ -176,7 +176,7 @@ static int smp_raw_dummy_bridge_modes(zcbor_state_t *output_data)
 	     zcbor_tstr_put_lit(output_data, "type") &&
 	     zcbor_uint32_put(output_data, 0) &&
 	     zcbor_tstr_put_lit(output_data, "description") &&
-	     zcbor_tstr_put_lit(output_data, "Dummy") &&
+	     zcbor_tstr_put_lit(output_data, "Raw dummy") &&
 	     zcbor_tstr_put_lit(output_data, "incoming") &&
 	     zcbor_bool_put(output_data, true) &&
 	     zcbor_tstr_put_lit(output_data, "outgoing") &&

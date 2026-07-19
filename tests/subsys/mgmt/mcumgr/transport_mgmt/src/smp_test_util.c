@@ -128,6 +128,8 @@ bool create_transport_mgmt_status_packet(zcbor_state_t *zse, uint8_t *buffer,
 	return ok;
 }
 
+//TODO: list command
+
 bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
 					uint8_t *output_buffer, uint16_t *buffer_size,
 					uint8_t transport_id)
@@ -141,7 +143,7 @@ bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
 
 	*buffer_size = (zse->payload_mut - buffer);
 	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_READ, *buffer_size,
-		     TRANSPORT_MGMT_ID_LIST);
+		     TRANSPORT_MGMT_ID_GET_MODES);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
 
