@@ -26,6 +26,7 @@
 #include <zephyr/mgmt/mcumgr/transport/smp_raw_dummy.h>
 #include <zephyr/mgmt/mcumgr/transport/serial.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <mgmt/mcumgr/transport/smp_internal.h>
 
@@ -36,9 +37,9 @@
 BUILD_ASSERT(CONFIG_MCUMGR_TRANSPORT_RAW_DUMMY_RX_BUF_SIZE != 0,
 	     "CONFIG_MCUMGR_TRANSPORT_RAW_DUMMY_RX_BUF_SIZE must be > 0");
 
-static struct mcumgr_serial_rx_ctxt smp_dummy_rx_ctxt;
-static struct mcumgr_serial_rx_ctxt smp_dummy_tx_ctxt;
-static struct smp_transport smp_dummy_transport;
+static struct mcumgr_serial_rx_ctxt smp_raw_dummy_rx_ctxt;
+static struct mcumgr_serial_rx_ctxt smp_raw_dummy_tx_ctxt;
+static struct smp_transport smp_raw_dummy_transport;
 static bool enable_dummy_smp;
 static struct k_sem smp_data_ready_sem;
 static uint8_t smp_send_buffer[CONFIG_MCUMGR_TRANSPORT_RAW_DUMMY_RX_BUF_SIZE];
@@ -54,7 +55,7 @@ static struct uart_mcumgr_rx_buf *dummy_mcumgr_cur_buf;
 
 #if defined(CONFIG_SMP_CLIENT) || defined(CONFIG_MCUMGR_GRP_TRANSPORT)
 static struct smp_client_transport_entry smp_client_transport = {
-	.smpt = &smp_dummy_transport,
+	.smpt = &smp_raw_dummy_transport,
 	.smpt_type = SMP_RAW_SERIAL_TRANSPORT,
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS
 	.name = "Raw dummy",
@@ -90,7 +91,7 @@ static void smp_raw_dummy_process_frag(struct uart_mcumgr_rx_buf *rx_buf)
 	/* Decode the fragment and write the result to the global receive
 	 * context.
 	 */
-	nb = mcumgr_dummy_process_frag(&smp_dummy_rx_ctxt,
+	nb = mcumgr_dummy_process_frag(&smp_raw_dummy_rx_ctxt,
 					rx_buf->data, rx_buf->length);
 
 	/* Release the encoded fragment. */
@@ -100,7 +101,7 @@ static void smp_raw_dummy_process_frag(struct uart_mcumgr_rx_buf *rx_buf)
 	 * processing.
 	 */
 	if (nb != NULL) {
-		smp_rx_req(&smp_dummy_transport, nb);
+		smp_rx_req(&smp_raw_dummy_transport, nb);
 	}
 }
 
@@ -110,13 +111,12 @@ static void smp_raw_dummy_process_frag(struct uart_mcumgr_rx_buf *rx_buf)
  */
 struct net_buf *smp_raw_dummy_get_outgoing(void)
 {
-
 	struct net_buf *nb;
 
 	/* Decode the fragment and write the result to the global receive
 	 * context.
 	 */
-	nb = mcumgr_dummy_process_frag(&smp_dummy_tx_ctxt, smp_send_buffer, smp_send_pos);
+	nb = mcumgr_dummy_process_frag(&smp_raw_dummy_tx_ctxt, smp_send_buffer, smp_send_pos);
 
 	return nb;
 }
@@ -199,20 +199,20 @@ static int smp_raw_dummy_init(void)
 
 	k_sem_init(&smp_data_ready_sem, 0, 1);
 
-	smp_dummy_transport.functions.output = smp_raw_dummy_tx_pkt_int;
-	smp_dummy_transport.functions.get_mtu = smp_raw_dummy_get_mtu;
+	smp_raw_dummy_transport.functions.output = smp_raw_dummy_tx_pkt_int;
+	smp_raw_dummy_transport.functions.get_mtu = smp_raw_dummy_get_mtu;
 
 #ifdef CONFIG_MCUMGR_GRP_TRANSPORT
-	smp_dummy_transport.functions.bridge_connect = smp_raw_dummy_bridge_connect;
-	smp_dummy_transport.functions.bridge_disconnect = smp_raw_dummy_bridge_disconnect;
-	smp_dummy_transport.functions.bridge_output = smp_raw_dummy_bridge_tx;
+	smp_raw_dummy_transport.functions.bridge_connect = smp_raw_dummy_bridge_connect;
+	smp_raw_dummy_transport.functions.bridge_disconnect = smp_raw_dummy_bridge_disconnect;
+	smp_raw_dummy_transport.functions.bridge_output = smp_raw_dummy_bridge_tx;
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
-	smp_dummy_transport.functions.bridge_modes = smp_raw_dummy_bridge_modes;
-	smp_dummy_transport.functions.bridge_config_details = smp_raw_dummy_bridge_config_details;
+	smp_raw_dummy_transport.functions.bridge_modes = smp_raw_dummy_bridge_modes;
+	smp_raw_dummy_transport.functions.bridge_config_details = smp_raw_dummy_bridge_config_details;
 #endif
 #endif
 
-	rc = smp_transport_init(&smp_dummy_transport);
+	rc = smp_transport_init(&smp_raw_dummy_transport);
 
 	if (rc != 0) {
 		return rc;
@@ -317,12 +317,11 @@ static struct net_buf *mcumgr_dummy_process_frag(
 
 	if (rx_ctxt->nb == NULL) {
 		rx_ctxt->nb = smp_packet_alloc();
-		net_buf_reset(rx_ctxt->nb);
 		if (rx_ctxt->nb == NULL) {
 			return NULL;
 		}
+		net_buf_reset(rx_ctxt->nb);
 	}
-
 
 	net_buf_add_mem(rx_ctxt->nb, frag, frag_len);
 

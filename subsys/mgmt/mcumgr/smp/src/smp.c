@@ -502,7 +502,7 @@ req->data -= sizeof(struct smp_hdr);
 LOG_ERR("post: %d", req->len);
 LOG_HEXDUMP_ERR(req->data, req->len, "out");
 //				rc = bridged_transport->functions.bridge_output(bridge, req, true);
-				rc = bridge->incoming_transport->functions.bridge_output(bridge, req, false);
+				rc = bridge->incoming_transport->functions.bridge_output(bridge, net_buf_ref(req), false);
 
 req->len -= sizeof(struct smp_hdr) + req_hdr.nh_len;
 req->data += sizeof(struct smp_hdr) + req_hdr.nh_len;

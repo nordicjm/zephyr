@@ -219,7 +219,7 @@ return;
 
 static int smp_dummy_bridge_tx(const struct smp_transport_bridge *bridge, struct net_buf *nb, bool outgoing)
 {
-	return mcumgr_dummy_tx_pkt(nb->data, nb->len, dummy_mcumgr_send_raw);
+	return smp_dummy_tx_pkt_int(nb);
 }
 
 #if defined(CONFIG_MCUMGR_GRP_TRANSPORT_INFO_FUNCTIONS)
