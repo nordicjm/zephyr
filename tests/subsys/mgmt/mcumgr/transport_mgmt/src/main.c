@@ -399,6 +399,7 @@ ZTEST(transport_mgmt, test_connection)
 	memset(zsd, 0, sizeof(zsd));
 
         /* Test 1: Check dummy transport does echo and gets response */
+LOG_ERR("Test 1");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -453,6 +454,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
         /* Test 2: Check raw dummy transport does echo and gets response */
+LOG_ERR("Test 2");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -507,6 +509,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
 	/* Test 3: Bridge to other raw dummy transport */
+LOG_ERR("Test 3");
 	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
 	ok = create_transport_mgmt_connect_packet(zse, buffer, buffer_out, &buffer_size, 1);
 	zassert_true(ok, "Expected packet creation to be successful");
@@ -559,6 +562,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
         /* Test 4: Check dummy transport does echo and raw dummy gets response */
+LOG_ERR("Test 4");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -619,6 +623,7 @@ ZTEST(transport_mgmt, test_connection)
 	echo_receive_data.len = 0;
 	cleanup_test(NULL);
 
+LOG_ERR("Test 5");
         /* Test 5: Check raw dummy transport does echo and dummy gets response */
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_response_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
@@ -636,7 +641,6 @@ ZTEST(transport_mgmt, test_connection)
 
         /* Ensure primary transport gets no response */
         received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
-        nb = smp_raw_dummy_get_outgoing();
         zassert_false(received, "Expected to not receive data but received it");
 
         /* For a short duration to see if response has been received */
@@ -682,6 +686,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
 	/* Test 6: Disconnect one bridge with bridge active */
+LOG_ERR("Test 6");
 	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
 	ok = create_transport_mgmt_disconnect_packet(zse, buffer, buffer_out, &buffer_size, 1, false);
 	zassert_true(ok, "Expected packet creation to be successful");
@@ -741,8 +746,8 @@ ZTEST(transport_mgmt, test_connection)
 	echo_receive_data.len = 0;
 	cleanup_test(NULL);
 
-//fuck
         /* Test 7: Check dummy transport does echo and gets response */
+LOG_ERR("Test 7");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -797,6 +802,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
         /* Test 8: Check raw dummy transport does echo and gets response */
+LOG_ERR("Test 8");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -851,6 +857,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
 	/* Test 9: Bridge to other dummy transport */
+LOG_ERR("Test 9");
 	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
 	ok = create_transport_mgmt_connect_packet(zse, buffer, buffer_out, &buffer_size, 0);
 	zassert_true(ok, "Expected packet creation to be successful");
@@ -905,6 +912,7 @@ ZTEST(transport_mgmt, test_connection)
 //check dummy transport does echo and gets response
 //check raw dummy transport does echo and gets response
         /* Test 10: Check dummy transport does echo and raw dummy gets response */
+LOG_ERR("Test 10");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_response_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -966,6 +974,7 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
         /* Test 11: Check raw dummy transport does echo and dummy gets response */
+LOG_ERR("Test 11");
         zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
         ok = create_os_mgmt_echo_packet(zse, buffer, buffer_out, &buffer_size, TEST_STRING_RAW);
         zassert_true(ok, "Expected packet creation to be successful");
@@ -982,7 +991,6 @@ ZTEST(transport_mgmt, test_connection)
 
         /* Ensure primary transport gets no response */
         received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
-        nb = smp_raw_dummy_get_outgoing();
         zassert_false(received, "Expected to not receive data but received it");
 
         /* For a short duration to see if response has been received */
@@ -1028,28 +1036,34 @@ ZTEST(transport_mgmt, test_connection)
 	cleanup_test(NULL);
 
 	/* Test 12: Disconnect all bridges with one active bridge */
+LOG_ERR("Test 12");
 	zcbor_new_encode_state(zse, 2, buffer, ARRAY_SIZE(buffer), 0);
 	ok = create_transport_mgmt_disconnect_packet(zse, buffer, buffer_out, &buffer_size, 0, true);
 	zassert_true(ok, "Expected packet creation to be successful");
 
 //LOG_HEXDUMP_ERR(buffer_out, 8, "aa");
 
+LOG_ERR("o2");
 	/* Enable dummy SMP backend and ready for usage */
 	smp_raw_dummy_enable();
 	smp_raw_dummy_clear_state();
 
+LOG_ERR("o3");
 	/* Send query command to dummy SMP backend */
 	(void)smp_raw_dummy_tx_pkt(buffer_out, buffer_size);
 	smp_raw_dummy_add_data();
 
+LOG_ERR("o4");
 	/* For a short duration to see if response has been received */
 	received = smp_raw_dummy_wait_for_data(SMP_RESPONSE_WAIT_TIME);
 	zassert_true(received, "Expected to receive data but timed out");
 
+LOG_ERR("o5");
 	/* Retrieve response buffer */
 	nb = smp_raw_dummy_get_outgoing();
 	smp_raw_dummy_disable();
 
+LOG_ERR("o6");
 	/* Check response is as expected */
 	header = net_buf_pull_mem(nb, sizeof(struct smp_hdr));
 
