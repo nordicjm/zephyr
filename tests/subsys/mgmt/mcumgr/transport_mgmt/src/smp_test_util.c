@@ -120,8 +120,8 @@ bool create_transport_mgmt_status_packet(zcbor_state_t *zse, uint8_t *buffer,
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
-		     TRANSPORT_MGMT_ID_LIST);
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_READ, *buffer_size,
+		     TRANSPORT_MGMT_ID_STATUS);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
 
@@ -140,7 +140,7 @@ bool create_transport_mgmt_modes_packet(zcbor_state_t *zse, uint8_t *buffer,
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_READ, *buffer_size,
 		     TRANSPORT_MGMT_ID_LIST);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
@@ -162,7 +162,7 @@ bool create_transport_mgmt_config_details_packet(zcbor_state_t *zse, uint8_t *bu
 	     zcbor_map_end_encode(zse, 2);
 
 	*buffer_size = (zse->payload_mut - buffer);
-	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_WRITE, *buffer_size,
+	smp_make_hdr((struct smp_hdr *)output_buffer, MGMT_GROUP_ID_TRANSPORT, MGMT_OP_READ, *buffer_size,
 		     TRANSPORT_MGMT_ID_GET_CONFIG_DETAILS);
 	memcpy(&output_buffer[sizeof(struct smp_hdr)], buffer, *buffer_size);
 	*buffer_size += sizeof(struct smp_hdr);
