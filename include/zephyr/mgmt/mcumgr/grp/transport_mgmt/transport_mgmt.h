@@ -129,6 +129,17 @@ int transport_mgmt_disconnect_transport(struct smp_transport *transport, bool in
 int transport_mgmt_disconnect_all(void);
 
 /**
+ * @brief Bridge 2 transports together.
+ *
+ * @param incoming_transport	incoming transport
+ * @param outgoing_transport	outgoing transport
+ *
+ * @return return code
+ */
+int transport_mgmt_connect_transport(struct smp_transport *incoming_transport,
+				     struct smp_transport *outgoing_transport);
+
+/**
  * Command result codes for transport management group.
  */
 enum transport_mgmt_ret_code_t {

@@ -23,6 +23,10 @@
 #include <zcbor_decode.h>
 #include <zcbor_encode.h>
 
+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+#include <zephyr/mgmt/mcumgr/mgmt/callbacks.h>
+#endif
+
 #define LOG_LEVEL CONFIG_MCUMGR_LOG_LEVEL
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(transport_mgmt);
@@ -350,6 +354,17 @@ static int transport_mgmt_connect(struct smp_streamer *ctxt)
 
 	transport_mgmt_unlock();
 
+//+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+//+       /* Send notification to say a bridge has being made */
+//+       status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_CONNECTED, &group_detail_data,
+//+             sizeof(group_detail_data), &err_rc, &err_group);
+//+
+//+       if (status != MGMT_CB_OK) {
+//+               *data->ok = false;
+//+               return false;
+//+       }
+//+#endif
+
 end:
 	return MGMT_RETURN_CHECK(ok);
 }
@@ -424,6 +439,17 @@ static int transport_mgmt_status(struct smp_streamer *ctxt)
 	struct transport_id_lookup_t transport_lookup = {
 		.found = false,
 	};
+
+//+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+//+//     /* Send notification to say a bridge is being dropped */
+//+//     status = mgmt_callback_notify(MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT, &group_detail_data,
+//+//           sizeof(group_detail_data), &err_rc, &err_group);
+//+//
+//+//     if (status != MGMT_CB_OK) {
+//+//             *data->ok = false;
+//+//             return false;
+//+//     }
+//+#endif
 
 	transport_mgmt_lock();
 
@@ -539,6 +565,12 @@ static int transport_mgmt_modes(struct smp_streamer *ctxt)
 	uint32_t transport_id = 0;
 	struct smp_transport *transport;
 
+//+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+//+       enum mgmt_cb_return status;
+//+       int32_t err_rc;
+//+       uint16_t err_group;
+//+#endif
+
 	struct zcbor_map_decode_key_val cbor_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
 	};
@@ -598,6 +630,12 @@ static int transport_mgmt_config_details(struct smp_streamer *ctxt)
 	uint32_t transport_id = 0;
 	uint32_t mode = 0;
 	struct smp_transport *transport;
+
+//+#if defined(CONFIG_MCUMGR_GRP_TRANSPORT_HOOKS)
+//+       enum mgmt_cb_return status;
+//+       int32_t err_rc;
+//+       uint16_t err_group;
+//+#endif
 
 	struct zcbor_map_decode_key_val cbor_decode[] = {
 		ZCBOR_MAP_DECODE_KEY_DECODER("transport", zcbor_uint32_decode, &transport_id),
@@ -728,6 +766,11 @@ static struct mgmt_group transport_mgmt_group = {
 	.mg_group_name = "transport mgmt",
 #endif
 };
+
+int transport_mgmt_connect_transport(struct smp_transport *incoming_transport,
+                                     struct smp_transport *outgoing_transport)
+{
+}
 
 static void transport_mgmt_register_group(void)
 {

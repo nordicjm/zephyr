@@ -32,6 +32,10 @@
 #include <zephyr/mgmt/mcumgr/grp/enum_mgmt/enum_mgmt_callbacks.h>
 #endif
 
+#ifdef CONFIG_MCUMGR_GRP_TRANSPORT
+#include <zephyr/mgmt/mcumgr/grp/transport_mgmt/transport_mgmt_callbacks.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -91,6 +95,27 @@ enum smp_group_events {
 
 	/** Used to enable all smp_group events. */
 	MGMT_EVT_OP_CMD_ALL			= MGMT_DEF_EVT_OP_ALL(MGMT_EVT_GRP_SMP),
+};
+
+//TODO: move to separate file
+/**
+ * MGMT event opcodes for transport management group.
+ */
+enum transport_mgmt_group_events {
+	/** Callback when connecting a transport bridge. */
+	MGMT_EVT_OP_TRANSPORT_MGMT_CONNECT	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_TRANSPORT, 0),
+
+	/** Callback after connecting a transport bridge. */
+	MGMT_EVT_OP_TRANSPORT_MGMT_CONNECTED	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_TRANSPORT, 1),
+
+	/** Callback when disconnecting a transport bridge. */
+	MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECT	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_TRANSPORT, 2),
+
+	/** Callback after disconnecting a transport bridge. */
+	MGMT_EVT_OP_TRANSPORT_MGMT_DISCONNECTED	= MGMT_DEF_EVT_OP_ID(MGMT_EVT_GRP_TRANSPORT, 3),
+
+	/** Used to enable all transport_mgmt_group events. */
+	MGMT_EVT_OP_TRANSPORT_MGMT_ALL		= MGMT_DEF_EVT_OP_ALL(MGMT_EVT_GRP_TRANSPORT),
 };
 
 /**
